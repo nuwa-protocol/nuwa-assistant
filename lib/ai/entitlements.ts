@@ -1,5 +1,6 @@
-import type { UserType } from '@/app/(auth)/auth';
 import type { ChatModel } from './models';
+
+export type UserType = 'did-verified';
 
 interface Entitlements {
   maxMessagesPerDay: number;
@@ -8,22 +9,10 @@ interface Entitlements {
 
 export const entitlementsByUserType: Record<UserType, Entitlements> = {
   /*
-   * For users without an account
+   * For users with DID authentication
    */
-  guest: {
-    maxMessagesPerDay: 20,
-    availableChatModelIds: ['chat-model', 'chat-model-reasoning'],
-  },
-
-  /*
-   * For users with an account
-   */
-  regular: {
+  'did-verified': {
     maxMessagesPerDay: 100,
     availableChatModelIds: ['chat-model', 'chat-model-reasoning'],
   },
-
-  /*
-   * TODO: For users with an account and a paid membership
-   */
 };

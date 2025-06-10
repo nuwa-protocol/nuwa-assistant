@@ -5,26 +5,29 @@ const textPartSchema = z.object({
   type: z.enum(['text']),
 });
 
-export const postRequestBodySchema = z.object({
+const messageSchema = z.object({
   id: z.string().uuid(),
-  message: z.object({
-    id: z.string().uuid(),
-    createdAt: z.coerce.date(),
-    role: z.enum(['user']),
-    content: z.string().min(1).max(2000),
-    parts: z.array(textPartSchema),
-    experimental_attachments: z
-      .array(
-        z.object({
-          url: z.string().url(),
-          name: z.string().min(1).max(2000),
-          contentType: z.enum(['image/png', 'image/jpg', 'image/jpeg']),
-        }),
-      )
-      .optional(),
-  }),
+  createdAt: z.coerce.date(),
+  role: z.enum(['user', 'assistant']),
+  content: z.string().min(1).max(2000),
+  parts: z.array(textPartSchema),
+  experimental_attachments: z
+    .array(
+      z.object({
+        url: z.string().url(),
+        name: z.string().min(1).max(2000),
+        contentType: z.enum(['image/png', 'image/jpg', 'image/jpeg']),
+      }),
+    )
+    .optional(),
+});
+
+export const postRequestBodySchema = z.object({
+  id: z.string().uuid().optional(),
+  message: messageSchema,
+  messages: z.array(messageSchema).optional(),
   selectedChatModel: z.enum(['chat-model', 'chat-model-reasoning']),
-  selectedVisibilityType: z.enum(['public', 'private']),
+  selectedVisibilityType: z.enum(['public', 'private']).optional(),
 });
 
 export type PostRequestBody = z.infer<typeof postRequestBodySchema>;

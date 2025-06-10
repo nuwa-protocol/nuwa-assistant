@@ -3,19 +3,14 @@
 import type { Attachment, UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useEffect, useState } from 'react';
-import useSWR, { useSWRConfig } from 'swr';
+import { useSWRConfig } from 'swr';
 import { ChatHeader } from '@/components/chat-header';
-import type { Vote } from '@/lib/db/schema';
-import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
+import { generateUUID } from '@/lib/utils';
 import { Artifact } from './artifact';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
 import type { VisibilityType } from './visibility-selector';
 import { useArtifactSelector } from '@/hooks/use-artifact';
-import { unstable_serialize } from 'swr/infinite';
-import { getChatHistoryPaginationKey } from './sidebar-history';
-import { toast } from './toast';
-import type { Session } from 'next-auth';
 import { useSearchParams } from 'next/navigation';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useAutoResume } from '@/hooks/use-auto-resume';
@@ -27,7 +22,6 @@ export function Chat({
   initialChatModel,
   initialVisibilityType,
   isReadonly,
-  session,
   autoResume,
 }: {
   id: string;
@@ -35,7 +29,6 @@ export function Chat({
   initialChatModel: string;
   initialVisibilityType: VisibilityType;
   isReadonly: boolean;
-  session: Session;
   autoResume: boolean;
 }) {
   const { mutate } = useSWRConfig();
@@ -63,22 +56,18 @@ export function Chat({
     experimental_throttle: 100,
     sendExtraMessageFields: true,
     generateId: generateUUID,
-    fetch: fetchWithErrorHandlers,
     experimental_prepareRequestBody: (body) => ({
       id,
       message: body.messages.at(-1),
+      messages: body.messages,
       selectedChatModel: initialChatModel,
       selectedVisibilityType: visibilityType,
     }),
     onFinish: () => {
-      mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
     onError: (error) => {
       if (error instanceof ChatSDKError) {
-        toast({
-          type: 'error',
-          description: error.message,
-        });
+        console.error('Chat error:', error.message);
       }
     },
   });
@@ -100,10 +89,7 @@ export function Chat({
     }
   }, [query, append, hasAppendedQuery, id]);
 
-  const { data: votes } = useSWR<Array<Vote>>(
-    messages.length >= 2 ? `/api/vote?chatId=${id}` : null,
-    fetcher,
-  );
+  const votes: any[] = []; // TODO: 实现客户端投票存储
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
@@ -124,7 +110,6 @@ export function Chat({
           selectedModelId={initialChatModel}
           selectedVisibilityType={initialVisibilityType}
           isReadonly={isReadonly}
-          session={session}
         />
 
         <Messages

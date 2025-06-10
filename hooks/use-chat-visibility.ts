@@ -1,13 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import useSWR, { useSWRConfig } from 'swr';
-import { unstable_serialize } from 'swr/infinite';
-import { updateChatVisibility } from '@/app/(chat)/actions';
-import {
-  getChatHistoryPaginationKey,
-  type ChatHistory,
-} from '@/components/sidebar-history';
+import useSWR from 'swr';
 import type { VisibilityType } from '@/components/visibility-selector';
 
 export function useChatVisibility({
@@ -17,9 +11,6 @@ export function useChatVisibility({
   chatId: string;
   initialVisibilityType: VisibilityType;
 }) {
-  const { mutate, cache } = useSWRConfig();
-  const history: ChatHistory = cache.get('/api/history')?.data;
-
   const { data: localVisibility, mutate: setLocalVisibility } = useSWR(
     `${chatId}-visibility`,
     null,
@@ -28,21 +19,15 @@ export function useChatVisibility({
     },
   );
 
+  // 在纯客户端模式下，直接使用本地状态
   const visibilityType = useMemo(() => {
-    if (!history) return localVisibility;
-    const chat = history.chats.find((chat) => chat.id === chatId);
-    if (!chat) return 'private';
-    return chat.visibility;
-  }, [history, chatId, localVisibility]);
+    return localVisibility || initialVisibilityType;
+  }, [localVisibility, initialVisibilityType]);
 
   const setVisibilityType = (updatedVisibilityType: VisibilityType) => {
     setLocalVisibility(updatedVisibilityType);
-    mutate(unstable_serialize(getChatHistoryPaginationKey));
-
-    updateChatVisibility({
-      chatId: chatId,
-      visibility: updatedVisibilityType,
-    });
+    // TODO: 实现客户端聊天可见性存储
+    // 在客户端化完成后，这里可以保存到 localStorage/IndexedDB
   };
 
   return { visibilityType, setVisibilityType };
