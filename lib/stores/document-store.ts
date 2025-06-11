@@ -30,6 +30,11 @@ class DocumentDatabase extends Dexie {
   suggestions!: Table<ClientSuggestion>;
 
   constructor() {
+    if (typeof window === 'undefined') {
+      // 在服务器端返回一个空的 Dexie 实例
+      super('dummy');
+      return;
+    }
     super('DocumentDatabase');
     this.version(1).stores({
       documents: 'id, createdAt, updatedAt, kind',
@@ -74,9 +79,13 @@ interface DocumentStoreState {
   saveToDB: () => Promise<void>;
 }
 
+
+const isBrowser = typeof window !== 'undefined';
+
 // 自定义存储适配器
 const persistStorage = {
   getItem: async (name: string): Promise<string | null> => {
+    if (!isBrowser) return null;
     try {
       return localStorage.getItem(name);
     } catch (error) {
@@ -85,6 +94,7 @@ const persistStorage = {
     }
   },
   setItem: async (name: string, value: string): Promise<void> => {
+    if (!isBrowser) return;
     try {
       localStorage.setItem(name, value);
     } catch (error) {
@@ -92,6 +102,7 @@ const persistStorage = {
     }
   },
   removeItem: async (name: string): Promise<void> => {
+    if (!isBrowser) return;
     try {
       localStorage.removeItem(name);
     } catch (error) {
@@ -328,6 +339,8 @@ export const useDocumentStore = create<DocumentStoreState>()(
       },
 
       loadFromDB: async () => {
+        if (typeof window === 'undefined') return;
+        
         try {
           const [documents, suggestions] = await Promise.all([
             documentDB.documents.toArray(),
@@ -355,6 +368,8 @@ export const useDocumentStore = create<DocumentStoreState>()(
       },
 
       saveToDB: async () => {
+        if (typeof window === 'undefined') return;
+        
         try {
           const { documents, suggestions } = get();
           const documentsToSave = Object.values(documents);

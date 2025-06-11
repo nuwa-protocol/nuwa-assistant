@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { useDIDStore } from '@/lib/stores/did-store';
+import { clearAllStorage } from '@/lib/stores/storage-utils';
 
 import {
   DropdownMenu,
@@ -81,8 +82,8 @@ export function UserNav() {
             <DropdownMenuItem
               data-testid="user-nav-item-clear-store"
               className="cursor-pointer text-destructive"
-              onSelect={() => {
-                localStorage.removeItem('user-did-storage');
+              onSelect={async () => {
+                await clearAllStorage();
                 window.location.reload();
               }}
             >

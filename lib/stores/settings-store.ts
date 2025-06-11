@@ -14,9 +14,12 @@ interface SettingsState {
   resetSettings: () => void;
 }
 
+const isBrowser = typeof window !== 'undefined';
+
 // 自定义存储适配器
 const persistStorage = {
   getItem: (name: string): string | null => {
+    if (!isBrowser) return null;
     try {
       return localStorage.getItem(name);
     } catch (error) {
@@ -25,6 +28,7 @@ const persistStorage = {
     }
   },
   setItem: (name: string, value: string): void => {
+    if (!isBrowser) return;
     try {
       localStorage.setItem(name, value);
     } catch (error) {
@@ -32,6 +36,7 @@ const persistStorage = {
     }
   },
   removeItem: (name: string): void => {
+    if (!isBrowser) return;
     try {
       localStorage.removeItem(name);
     } catch (error) {

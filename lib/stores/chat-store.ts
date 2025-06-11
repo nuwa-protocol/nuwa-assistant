@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { generateUUID } from '@/lib/utils';
 import type { UIMessage } from 'ai';
 import Dexie, { type Table } from 'dexie';
-import { generateTitleFromUserMessage } from '@/lib/ai/client';
+import { generateTitleFromUserMessage } from '@/lib/ai/client-fetch';
 
 // 客户端聊天接口
 export interface ClientChat {
@@ -27,6 +27,11 @@ class ChatDatabase extends Dexie {
   streams!: Table<StreamRecord>;
 
   constructor() {
+    if (typeof window === 'undefined') {
+      // 在服务器端返回一个空的 Dexie 实例
+      super('dummy');
+      return;
+    }
     super('ChatDatabase');
     this.version(1).stores({
       chats: 'id, createdAt, updatedAt',
@@ -71,8 +76,11 @@ interface ChatStoreState {
 }
 
 // 自定义存储适配器
+const isBrowser = typeof window !== 'undefined';
+
 const persistStorage = {
   getItem: async (name: string): Promise<string | null> => {
+    if (!isBrowser) return null;
     try {
       return localStorage.getItem(name);
     } catch (error) {
@@ -81,6 +89,7 @@ const persistStorage = {
     }
   },
   setItem: async (name: string, value: string): Promise<void> => {
+    if (!isBrowser) return;
     try {
       localStorage.setItem(name, value);
     } catch (error) {
@@ -88,6 +97,7 @@ const persistStorage = {
     }
   },
   removeItem: async (name: string): Promise<void> => {
+    if (!isBrowser) return;
     try {
       localStorage.removeItem(name);
     } catch (error) {
@@ -178,6 +188,8 @@ export const useChatStore = create<ChatStoreState>()(
       },
 
       addMessage: (sessionId: string, message: UIMessage) => {
+
+        console.log('addMessage', sessionId, message);
         set((state) => {
           const session = state.sessions[sessionId];
           if (!session) return state;
@@ -370,6 +382,8 @@ export const useChatStore = create<ChatStoreState>()(
       },
 
       loadFromDB: async () => {
+        if (typeof window === 'undefined') return;
+        
         try {
           const chats = await chatDB.chats.orderBy('updatedAt').reverse().toArray();
           const sessionsMap: Record<string, ClientChat> = {};
@@ -387,6 +401,8 @@ export const useChatStore = create<ChatStoreState>()(
       },
 
       saveToDB: async () => {
+        if (typeof window === 'undefined') return;
+        
         try {
           const { sessions } = get();
           const chatsToSave = Object.values(sessions);

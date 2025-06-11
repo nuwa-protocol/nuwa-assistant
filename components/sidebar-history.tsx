@@ -1,9 +1,10 @@
 'use client';
 
 import {
-    SidebarGroup,
-    SidebarGroupContent,
-    useSidebar,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  useSidebar
 } from '@/components/ui/sidebar';
 import { useDIDStore } from '@/lib/stores/did-store';
 import { useChatStore } from '@/lib/stores/chat-store';
@@ -58,7 +59,7 @@ export function SidebarHistory() {
   return (
     <SidebarGroup>
       <SidebarGroupContent>
-        <div className="space-y-1">
+        <SidebarMenu>
           {sessions.map((session) => (
             <ChatItem
               key={session.id}
@@ -68,7 +69,7 @@ export function SidebarHistory() {
               setOpenMobile={setOpenMobile}
             />
           ))}
-        </div>
+        </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   );
