@@ -3,7 +3,12 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
+
+// use client-fetch to fetch data
+const openai = createOpenAI({
+  apiKey: "YOUR_OPENAI_API_KEY",
+});
 
 export const myProvider = customProvider({
   languageModels: {

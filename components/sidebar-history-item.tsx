@@ -1,19 +1,19 @@
 import type { ClientChat } from '@/lib/stores/chat-store';
 import {
-    SidebarMenuAction,
-    SidebarMenuButton,
-    SidebarMenuItem,
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from './ui/sidebar';
 import Link from 'next/link';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import {
-    MoreHorizontalIcon,
-    TrashIcon,
+  MoreHorizontalIcon,
+  TrashIcon,
 } from './icons';
 import { memo } from 'react';
 
@@ -63,5 +63,8 @@ const PureChatItem = ({
 
 export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
   if (prevProps.isActive !== nextProps.isActive) return false;
+  if (prevProps.chat.id !== nextProps.chat.id) return false;
+  if (prevProps.chat.title !== nextProps.chat.title) return false;
+  if (prevProps.chat.updatedAt !== nextProps.chat.updatedAt) return false;
   return true;
 });

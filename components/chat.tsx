@@ -14,7 +14,7 @@ import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { ErrorHandlers, handleAsyncError } from '@/lib/utils/error-handler';
-import { createClientAIFetch } from '@/lib/ai/client';
+import { createClientAIFetch } from '@/lib/ai/client-fetch';
 
 export function Chat({
   id,
@@ -29,13 +29,12 @@ export function Chat({
   isReadonly: boolean;
   autoResume: boolean;
 }) {
-  const { addMessage, updateMessage, updateSession } = useChatStore();
-  const [isLoading, setIsLoading] = useState(false);
+  const { updateSession } = useChatStore();
 
   const {
     messages,
     setMessages: setChatMessages,
-    handleSubmit: originalHandleSubmit,
+    handleSubmit,
     input,
     setInput,
     append,
@@ -57,54 +56,38 @@ export function Chat({
       messages: body.messages,
       selectedChatModel: initialChatModel,
     }),
-    onFinish: () => {
-      setIsLoading(false);
-      // 聊天完成后，同步消息到客户端存储
-      messages.forEach(message => {
-        addMessage(id, message);
-      });
-    },
     onError: (error) => {
-      setIsLoading(false);
       let errorMessage: UIMessage;
-      
+
       if (error instanceof ChatSDKError) {
         errorMessage = ErrorHandlers.api(error.message);
-      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        errorMessage = ErrorHandlers.network('Failed to connect to the AI service');
+      } else if (
+        error.name === 'TypeError' &&
+        error.message.includes('fetch')
+      ) {
+        errorMessage = ErrorHandlers.network(
+          'Failed to connect to the AI service',
+        );
       } else if (error.message.includes('timeout')) {
         errorMessage = ErrorHandlers.timeout('AI response');
       } else {
         errorMessage = ErrorHandlers.generic(error.message);
       }
-      
-      // 将错误消息添加到聊天中
-      addMessage(id, errorMessage);
+
+      // Add error message to chat
       setChatMessages((messages) => [...messages, errorMessage]);
     },
   });
 
-  // 包装 handleSubmit 以添加加载状态
-  const handleSubmit = (event?: { preventDefault?: () => void }) => {
-    setIsLoading(true);
-    try {
-      originalHandleSubmit(event);
-    } catch (error) {
-      setIsLoading(false);
-      console.error('Submit error:', error);
-      const errorMessage = ErrorHandlers.generic('Failed to send message');
-      addMessage(id, errorMessage);
-      setChatMessages((messages) => [...messages, errorMessage]);
-    }
-  };
-
-  // 同步会话元数据
+  // Sync session metadata
   useEffect(() => {
     handleAsyncError(
-      Promise.resolve(updateSession(id, {
-        updatedAt: Date.now(),
-      })),
-      () => console.warn('Failed to update session metadata')
+      Promise.resolve(
+        updateSession(id, {
+          updatedAt: Date.now(),
+        }),
+      ),
+      () => console.warn('Failed to update session metadata'),
     );
   }, [id, updateSession]);
 
@@ -136,15 +119,10 @@ export function Chat({
     setMessages: setChatMessages,
   });
 
-  // 检查是否正在加载
-  const isGenerating = status === 'streaming' || isLoading;
-
   return (
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
-        <ChatHeader
-          isReadonly={isReadonly}
-        />
+        <ChatHeader isReadonly={isReadonly} />
 
         <Messages
           chatId={id}
@@ -173,16 +151,6 @@ export function Chat({
             />
           )}
         </form>
-
-        {/* 加载状态指示器 */}
-        {isGenerating && (
-          <div className="fixed bottom-20 right-4 bg-background border rounded-lg shadow-lg p-3 z-50">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground" />
-              <span>AI is thinking...</span>
-            </div>
-          </div>
-        )}
       </div>
 
       <Artifact

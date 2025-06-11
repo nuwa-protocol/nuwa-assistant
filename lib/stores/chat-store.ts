@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { generateUUID } from '@/lib/utils';
-import type { UIMessage } from 'ai';
+import type { UIMessage, Message } from 'ai';
 import Dexie, { type Table } from 'dexie';
 import { generateTitleFromUserMessage } from '@/lib/ai/client-fetch';
 
@@ -35,7 +35,7 @@ class ChatDatabase extends Dexie {
     super('ChatDatabase');
     this.version(1).stores({
       chats: 'id, createdAt, updatedAt',
-      streams: 'id, chatId, createdAt'
+      streams: 'id, chatId, createdAt',
     });
   }
 }
@@ -53,23 +53,26 @@ interface ChatStoreState {
   updateSession: (id: string, updates: Partial<Omit<ClientChat, 'id'>>) => void;
   deleteSession: (id: string) => void;
   setCurrentSession: (id: string | null) => void;
-  
+
   // 消息管理
-  addMessage: (sessionId: string, message: UIMessage) => void;
-  updateMessage: (sessionId: string, messageId: string, updates: Partial<UIMessage>) => void;
+  addMessage: (sessionId: string, message: Message | UIMessage) => void;
+  updateMessage: (
+    sessionId: string,
+    messageId: string,
+    updates: Partial<UIMessage>,
+  ) => void;
   deleteMessage: (sessionId: string, messageId: string) => void;
   deleteMessagesAfterTimestamp: (sessionId: string, timestamp: number) => void;
   getMessages: (sessionId: string) => UIMessage[];
-  
+
   // 流管理
   createStreamId: (streamId: string, chatId: string) => Promise<void>;
   getStreamIdsByChatId: (chatId: string) => Promise<string[]>;
-  
+
   // 工具方法
-  getSortedSessions: () => ClientChat[];
-  generateTitle: (messages: UIMessage[]) => Promise<string>;
+  updateTitle: (chatId: string) => Promise<void>;
   clearAllSessions: () => void;
-  
+
   // 数据持久化
   loadFromDB: () => Promise<void>;
   saveToDB: () => Promise<void>;
@@ -167,7 +170,8 @@ export const useChatStore = create<ChatStoreState>()(
           const { [id]: deleted, ...restSessions } = state.sessions;
           return {
             sessions: restSessions,
-            currentSessionId: state.currentSessionId === id ? null : state.currentSessionId,
+            currentSessionId:
+              state.currentSessionId === id ? null : state.currentSessionId,
           };
         });
 
@@ -187,28 +191,19 @@ export const useChatStore = create<ChatStoreState>()(
         set({ currentSessionId: id });
       },
 
-      addMessage: (sessionId: string, message: UIMessage) => {
-
-        console.log('addMessage', sessionId, message);
+      addMessage: (sessionId: string, message: Message | UIMessage) => {
         set((state) => {
           const session = state.sessions[sessionId];
           if (!session) return state;
 
+          // 确保消息转换为 UIMessage 格式
+          const uiMessage: UIMessage = message as UIMessage;
+
           const updatedSession = {
             ...session,
-            messages: [...session.messages, message],
+            messages: [...session.messages, uiMessage],
             updatedAt: Date.now(),
           };
-
-          // 如果是第一条用户消息，自动生成标题
-          if (session.messages.length === 0 && message.role === 'user' && session.title === 'New Chat') {
-            // 异步生成标题
-            get().generateTitle([message]).then(generatedTitle => {
-              get().updateSession(sessionId, { title: generatedTitle });
-            }).catch(error => {
-              console.error('Failed to generate title:', error);
-            });
-          }
 
           return {
             sessions: {
@@ -221,13 +216,17 @@ export const useChatStore = create<ChatStoreState>()(
         get().saveToDB();
       },
 
-      updateMessage: (sessionId: string, messageId: string, updates: Partial<UIMessage>) => {
+      updateMessage: (
+        sessionId: string,
+        messageId: string,
+        updates: Partial<UIMessage>,
+      ) => {
         set((state) => {
           const session = state.sessions[sessionId];
           if (!session) return state;
 
-          const updatedMessages = session.messages.map(msg => 
-            msg.id === messageId ? { ...msg, ...updates } : msg
+          const updatedMessages = session.messages.map((msg) =>
+            msg.id === messageId ? { ...msg, ...updates } : msg,
           );
 
           return {
@@ -250,7 +249,9 @@ export const useChatStore = create<ChatStoreState>()(
           const session = state.sessions[sessionId];
           if (!session) return state;
 
-          const updatedMessages = session.messages.filter(msg => msg.id !== messageId);
+          const updatedMessages = session.messages.filter(
+            (msg) => msg.id !== messageId,
+          );
 
           return {
             sessions: {
@@ -272,8 +273,10 @@ export const useChatStore = create<ChatStoreState>()(
           const session = state.sessions[sessionId];
           if (!session) return state;
 
-          const updatedMessages = session.messages.filter(msg => {
-            const messageTime = msg.createdAt ? new Date(msg.createdAt).getTime() : 0;
+          const updatedMessages = session.messages.filter((msg) => {
+            const messageTime = msg.createdAt
+              ? new Date(msg.createdAt).getTime()
+              : 0;
             return messageTime < timestamp;
           });
 
@@ -317,7 +320,9 @@ export const useChatStore = create<ChatStoreState>()(
             .equals(chatId)
             .toArray();
           // 按创建时间排序
-          const sortedStreams = streams.sort((a, b) => a.createdAt - b.createdAt);
+          const sortedStreams = streams.sort(
+            (a, b) => a.createdAt - b.createdAt,
+          );
           return sortedStreams.map((stream: StreamRecord) => stream.id);
         } catch (error) {
           console.error('Failed to get stream IDs:', error);
@@ -325,41 +330,26 @@ export const useChatStore = create<ChatStoreState>()(
         }
       },
 
-      getSortedSessions: () => {
-        const { sessions } = get();
-        return Object.values(sessions).sort((a, b) => b.updatedAt - a.updatedAt);
-      },
+      updateTitle: async (sessionId: string) => {
+        const session = get().getSession(sessionId);
+        if (!session || session.messages.length === 0) return;
 
-      generateTitle: async (messages: UIMessage[]) => {
-        const userMessage = messages.find((msg) => msg.role === 'user');
-        if (!userMessage) return 'New Chat';
-        
+        // 如果标题已经被修改过了，就不需要再更改
+        if (session.title !== 'New Chat') return;
+
+        // 找到第一条用户消息
+        const firstUserMessage = session.messages.find((msg) => msg.role === 'user');
+        if (!firstUserMessage) return;
+
         try {
-          const title = await generateTitleFromUserMessage({ message: userMessage });
-          return title;
+          const title = await generateTitleFromUserMessage({
+            message: firstUserMessage,
+          });
+          
+          // 直接更新会话标题
+          get().updateSession(sessionId, { title });
         } catch (error) {
           console.error('Failed to generate title with AI:', error);
-          // 回退到原来的方法
-          let content = '';
-          if (typeof userMessage.content === 'string') {
-            content = userMessage.content;
-          } else {
-            // 对于非字符串内容，尝试提取文本
-            try {
-              const contentArray = userMessage.content as any;
-              if (Array.isArray(contentArray)) {
-                content = contentArray
-                  .filter((part: any) => part?.type === 'text')
-                  .map((part: any) => part?.text || '')
-                  .join(' ');
-              }
-            } catch {
-              content = 'New Chat';
-            }
-          }
-          
-          // 截取前50个字符作为标题
-          return content.length > 50 ? `${content.slice(0, 50)}...` : content || 'New Chat';
         }
       },
 
@@ -383,17 +373,20 @@ export const useChatStore = create<ChatStoreState>()(
 
       loadFromDB: async () => {
         if (typeof window === 'undefined') return;
-        
+
         try {
-          const chats = await chatDB.chats.orderBy('updatedAt').reverse().toArray();
+          const chats = await chatDB.chats
+            .orderBy('updatedAt')
+            .reverse()
+            .toArray();
           const sessionsMap: Record<string, ClientChat> = {};
-          
-          chats.forEach(chat => {
+
+          chats.forEach((chat) => {
             sessionsMap[chat.id] = chat;
           });
 
           set((state) => ({
-            sessions: { ...state.sessions, ...sessionsMap }
+            sessions: { ...state.sessions, ...sessionsMap },
           }));
         } catch (error) {
           console.error('Failed to load from DB:', error);
@@ -402,11 +395,11 @@ export const useChatStore = create<ChatStoreState>()(
 
       saveToDB: async () => {
         if (typeof window === 'undefined') return;
-        
+
         try {
           const { sessions } = get();
           const chatsToSave = Object.values(sessions);
-          
+
           // 使用 bulkPut 来高效更新数据
           await chatDB.chats.bulkPut(chatsToSave);
         } catch (error) {
@@ -427,6 +420,6 @@ export const useChatStore = create<ChatStoreState>()(
           state.loadFromDB();
         }
       },
-    }
-  )
-); 
+    },
+  ),
+);

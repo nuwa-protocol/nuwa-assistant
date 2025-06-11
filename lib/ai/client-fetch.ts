@@ -1,15 +1,22 @@
 'use client';
 
-import { streamText, smoothStream, UIMessage, generateText } from 'ai';
+import {
+  streamText,
+  smoothStream,
+  UIMessage,
+  generateText,
+  appendResponseMessages
+} from 'ai';
 import { type RequestHints, systemPrompt } from './prompts';
 import { myProvider } from './providers';
 import { getWeather } from './tools/get-weather';
 import { generateUUID } from '@/lib/utils';
+import { useChatStore } from '@/lib/stores/chat-store';
 
-// 获取地理位置信息的客户端版本
+// Client version of getting location information
 const getClientLocation = async (): Promise<RequestHints> => {
   try {
-    // 尝试使用浏览器的地理位置API
+    // Try to use the browser's location API
     if (navigator.geolocation) {
       return new Promise((resolve) => {
         navigator.geolocation.getCurrentPosition(
@@ -17,19 +24,19 @@ const getClientLocation = async (): Promise<RequestHints> => {
             resolve({
               latitude: position.coords.latitude.toString(),
               longitude: position.coords.longitude.toString(),
-              city: undefined, // 浏览器API不提供城市信息
-              country: undefined, // 浏览器API不提供国家信息
+              city: undefined, // Browser API does not provide city information
+              country: undefined, // Browser API does not provide country information
             });
           },
           () => {
-            // 如果获取位置失败，返回默认值
+            // If location retrieval fails, return default value
             resolve({
               latitude: undefined,
               longitude: undefined,
               city: undefined,
               country: undefined,
             });
-          }
+          },
         );
       });
     }
@@ -37,7 +44,7 @@ const getClientLocation = async (): Promise<RequestHints> => {
     console.error('Failed to get location:', error);
   }
 
-  // 返回默认值
+  // Return default value
   return {
     latitude: undefined,
     longitude: undefined,
@@ -46,7 +53,7 @@ const getClientLocation = async (): Promise<RequestHints> => {
   };
 };
 
-// 错误处理函数
+// Error handling function
 function errorHandler(error: unknown) {
   if (error == null) {
     return 'unknown error';
@@ -63,8 +70,11 @@ function errorHandler(error: unknown) {
   return JSON.stringify(error);
 }
 
-// 创建客户端AI处理函数
-export const createClientAIFetch = (): ((input: RequestInfo | URL, init?: RequestInit) => Promise<Response>) => {
+// Create client-side fetch function for useChat hook
+export const createClientAIFetch = (): ((
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) => Promise<Response>) => {
   return async (input: RequestInfo | URL, init?: RequestInit) => {
     try {
       if (!init || !init.body) {
@@ -72,28 +82,39 @@ export const createClientAIFetch = (): ((input: RequestInfo | URL, init?: Reques
       }
 
       const requestBody = JSON.parse(init.body as string);
-      const { messages, selectedChatModel } = requestBody;
+      const { id: sessionId, message, messages, selectedChatModel } = requestBody;
 
+      // Get chat store methods
+      const { addMessage,updateTitle } = useChatStore.getState();
 
-      // 在请求时获取地理位置信息
+      addMessage(sessionId, message);
+
+      // Get location information when requesting
       const hints = await getClientLocation();
 
-      // 创建流式AI响应
+      // Create streaming AI response
       const result = streamText({
         model: myProvider.languageModel(selectedChatModel),
         system: systemPrompt({ selectedChatModel, requestHints: hints }),
         messages,
         maxSteps: 5,
         experimental_activeTools:
-          selectedChatModel === 'chat-model-reasoning'
-            ? []
-            : ['getWeather'],
+          selectedChatModel === 'chat-model-reasoning' ? [] : ['getWeather'],
         experimental_transform: smoothStream({ chunking: 'word' }),
         experimental_generateMessageId: generateUUID,
         tools: {
           getWeather,
         },
         abortSignal: init.signal || undefined,
+        async onFinish({ response }) {
+          const [, assistantMessage] = appendResponseMessages({
+            messages: [message],
+            responseMessages: response.messages,
+          });
+          // add the response messages to the chat store
+          await addMessage(sessionId,assistantMessage);
+          await updateTitle(sessionId);
+        },
       });
 
       return result.toDataStreamResponse({
@@ -101,20 +122,16 @@ export const createClientAIFetch = (): ((input: RequestInfo | URL, init?: Reques
       });
     } catch (error) {
       console.error('Client AI fetch error:', error);
-      // 返回错误响应
-      return new Response(
-        JSON.stringify({ error: 'AI request failed' }),
-        {
-          status: 500,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // Return error response
+      return new Response(JSON.stringify({ error: 'AI request failed' }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
     }
   };
-}; 
-
+};
 
 export async function generateTitleFromUserMessage({
   message,

@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 export function SidebarHistory() {
   const { setOpenMobile } = useSidebar();
   const { isAuthenticated } = useDIDStore();
-  const { getSortedSessions, deleteSession, currentSessionId } = useChatStore();
+  const { sessions, deleteSession, currentSessionId } = useChatStore();
   const router = useRouter();
 
   if (!isAuthenticated) {
@@ -29,9 +29,12 @@ export function SidebarHistory() {
     );
   }
 
-  const sessions = getSortedSessions();
+  // 在组件内部排序，确保响应式更新
+  const sortedSessions = Object.values(sessions).sort(
+    (a, b) => b.updatedAt - a.updatedAt,
+  );
 
-  if (sessions.length === 0) {
+  if (sortedSessions.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
@@ -60,7 +63,7 @@ export function SidebarHistory() {
     <SidebarGroup>
       <SidebarGroupContent>
         <SidebarMenu>
-          {sessions.map((session) => (
+          {sortedSessions.map((session) => (
             <ChatItem
               key={session.id}
               chat={session}

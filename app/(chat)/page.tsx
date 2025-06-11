@@ -6,13 +6,17 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function Page() {
-  const { createSession, getSortedSessions } = useChatStore();
+  const { createSession, sessions } = useChatStore();
   const router = useRouter();
 
   useEffect(() => {
-    const sessions = getSortedSessions();
-    if (sessions.length > 0) {
-      const latest = sessions[0];
+    // 将 sessions 对象转换为排序后的数组
+    const sortedSessions = Object.values(sessions).sort(
+      (a, b) => b.updatedAt - a.updatedAt,
+    );
+    
+    if (sortedSessions.length > 0) {
+      const latest = sortedSessions[0];
       if (latest.messages.length === 0) {
         // if recent session is empty, redirect to it
         router.replace(`/chat/${latest.id}`);
@@ -22,7 +26,7 @@ export default function Page() {
     // if no empty session, create a new one
     const newSessionId = createSession();
     router.replace(`/chat/${newSessionId}`);
-  }, [createSession, getSortedSessions, router]);
+  }, [createSession, sessions, router]);
 
   return (
     <AuthGuard>
