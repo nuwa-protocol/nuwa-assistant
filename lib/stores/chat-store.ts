@@ -116,6 +116,17 @@ export const useChatStore = create<ChatStoreState>()(
       currentSessionId: null,
 
       createSession: () => {
+        const { sessions } = get();
+        // 查找是否有空的会话（title 为 'New Chat' 且 messages 为空）
+        const emptySessionEntry = Object.entries(sessions).find(
+          ([, session]) => session.title === 'New Chat' && session.messages.length === 0
+        );
+        if (emptySessionEntry) {
+          const [emptySessionId] = emptySessionEntry;
+          // 切换当前会话为该空会话
+          set({ currentSessionId: emptySessionId });
+          return emptySessionId;
+        }
         const id = generateUUID();
         const newSession: ClientChat = {
           id,
