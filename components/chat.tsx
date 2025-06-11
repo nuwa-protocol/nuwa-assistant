@@ -15,6 +15,7 @@ import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { ErrorHandlers, handleAsyncError } from '@/lib/utils/error-handler';
+import { createClientAIFetch } from '@/lib/ai/client';
 
 export function Chat({
   id,
@@ -51,6 +52,7 @@ export function Chat({
     experimental_throttle: 100,
     sendExtraMessageFields: true,
     generateId: generateUUID,
+    fetch: createClientAIFetch(), // 直接使用客户端fetch
     experimental_prepareRequestBody: (body) => ({
       id,
       message: body.messages.at(-1),
