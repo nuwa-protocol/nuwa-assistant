@@ -1,14 +1,14 @@
 'use client';
 
-import { startTransition, useMemo, useOptimistic, useState } from 'react';
+import { startTransition, useOptimistic, useState } from 'react';
 
-import { saveChatModelAsCookie } from '@/app/(chat)/actions';
+import { useSettingsStore } from '@/lib/stores/settings-store';
 import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { chatModels } from '@/lib/ai/models';
 import { cn } from '@/lib/utils';
@@ -16,16 +16,11 @@ import { cn } from '@/lib/utils';
 import { CheckCircleFillIcon, ChevronDownIcon } from './icons';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 
-export function ModelSelector({
-  selectedModelId,
-  className,
-}: {
-  selectedModelId: string;
-} & React.ComponentProps<typeof Button>) {
+export function ModelSelector({ className, ...props }: React.ComponentProps<typeof Button>) {
+  const { selectedChatModel, setChatModel } = useSettingsStore();
   const [open, setOpen] = useState(false);
-  const [optimisticModelId, setOptimisticModelId] =
-    useOptimistic(selectedModelId);
-
+  const [optimisticModelId, setOptimisticModelId] = useOptimistic(selectedChatModel);
+  
   // 使用固定的用户权限（由于现在是单用户类型）
   const { availableChatModelIds } = entitlementsByUserType['did-verified'];
 
@@ -33,13 +28,6 @@ export function ModelSelector({
     availableChatModelIds.includes(chatModel.id),
   );
 
-  const selectedChatModel = useMemo(
-    () =>
-      availableChatModels.find(
-        (chatModel) => chatModel.id === optimisticModelId,
-      ),
-    [optimisticModelId, availableChatModels],
-  );
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -55,7 +43,7 @@ export function ModelSelector({
           variant="outline"
           className="md:px-2 md:h-[34px]"
         >
-          {selectedChatModel?.name}
+          {selectedChatModel.name}
           <ChevronDownIcon />
         </Button>
       </DropdownMenuTrigger>
@@ -71,11 +59,11 @@ export function ModelSelector({
                 setOpen(false);
 
                 startTransition(() => {
-                  setOptimisticModelId(id);
-                  saveChatModelAsCookie(id);
+                  setOptimisticModelId(chatModel);
+                  setChatModel(chatModel.id);
                 });
               }}
-              data-active={id === optimisticModelId}
+              data-active={chatModel.id === optimisticModelId.id}
               asChild
             >
               <button

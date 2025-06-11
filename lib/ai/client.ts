@@ -1,6 +1,6 @@
 'use client';
 
-import { streamText, smoothStream } from 'ai';
+import { streamText, smoothStream, UIMessage, generateText } from 'ai';
 import { type RequestHints, systemPrompt } from './prompts';
 import { myProvider } from './providers';
 import { getWeather } from './tools/get-weather';
@@ -57,6 +57,8 @@ export const createClientAIFetch = (): ((input: RequestInfo | URL, init?: Reques
       const requestBody = JSON.parse(init.body as string);
       const { messages, selectedChatModel } = requestBody;
 
+      console.log('requestBody', requestBody);
+
       // 在请求时获取地理位置信息
       const hints = await getClientLocation();
 
@@ -94,3 +96,22 @@ export const createClientAIFetch = (): ((input: RequestInfo | URL, init?: Reques
     }
   };
 }; 
+
+
+export async function generateTitleFromUserMessage({
+  message,
+}: {
+  message: UIMessage;
+}) {
+  const { text: title } = await generateText({
+    model: myProvider.languageModel('title-model'),
+    system: `\n
+    - you will generate a short title based on the first message a user begins a conversation with
+    - ensure it is not more than 80 characters long
+    - the title should be a summary of the user's message
+    - do not use quotes or colons`,
+    prompt: JSON.stringify(message),
+  });
+
+  return title;
+}

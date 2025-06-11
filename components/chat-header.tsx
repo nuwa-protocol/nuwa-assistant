@@ -12,12 +12,8 @@ import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 function PureChatHeader({
-  chatId,
-  selectedModelId,
   isReadonly,
 }: {
-  chatId: string;
-  selectedModelId: string;
   isReadonly: boolean;
 }) {
   const router = useRouter();
@@ -50,7 +46,6 @@ function PureChatHeader({
 
       {!isReadonly && (
         <ModelSelector
-          selectedModelId={selectedModelId}
           className="order-1 md:order-2"
         />
       )}
@@ -58,6 +53,4 @@ function PureChatHeader({
   );
 }
 
-export const ChatHeader = memo(PureChatHeader, (prevProps, nextProps) => {
-  return prevProps.selectedModelId === nextProps.selectedModelId;
-});
+export const ChatHeader = memo(PureChatHeader);

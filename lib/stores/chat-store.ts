@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { generateUUID } from '@/lib/utils';
 import type { UIMessage } from 'ai';
 import Dexie, { type Table } from 'dexie';
+import { generateTitleFromUserMessage } from '@/lib/ai/client';
 
 // 客户端聊天接口
 export interface ClientChat {
@@ -61,7 +62,7 @@ interface ChatStoreState {
   
   // 工具方法
   getSortedSessions: () => ClientChat[];
-  generateTitle: (messages: UIMessage[]) => string;
+  generateTitle: (messages: UIMessage[]) => Promise<string>;
   clearAllSessions: () => void;
   
   // 数据持久化
@@ -189,7 +190,12 @@ export const useChatStore = create<ChatStoreState>()(
 
           // 如果是第一条用户消息，自动生成标题
           if (session.messages.length === 0 && message.role === 'user' && session.title === 'New Chat') {
-            updatedSession.title = get().generateTitle([message]);
+            // 异步生成标题
+            get().generateTitle([message]).then(generatedTitle => {
+              get().updateSession(sessionId, { title: generatedTitle });
+            }).catch(error => {
+              console.error('Failed to generate title:', error);
+            });
           }
 
           return {
@@ -312,30 +318,37 @@ export const useChatStore = create<ChatStoreState>()(
         return Object.values(sessions).sort((a, b) => b.updatedAt - a.updatedAt);
       },
 
-      generateTitle: (messages: UIMessage[]) => {
+      generateTitle: async (messages: UIMessage[]) => {
         const userMessage = messages.find((msg) => msg.role === 'user');
         if (!userMessage) return 'New Chat';
         
-        let content = '';
-        if (typeof userMessage.content === 'string') {
-          content = userMessage.content;
-        } else {
-          // 对于非字符串内容，尝试提取文本
-          try {
-            const contentArray = userMessage.content as any;
-            if (Array.isArray(contentArray)) {
-              content = contentArray
-                .filter((part: any) => part?.type === 'text')
-                .map((part: any) => part?.text || '')
-                .join(' ');
+        try {
+          const title = await generateTitleFromUserMessage({ message: userMessage });
+          return title;
+        } catch (error) {
+          console.error('Failed to generate title with AI:', error);
+          // 回退到原来的方法
+          let content = '';
+          if (typeof userMessage.content === 'string') {
+            content = userMessage.content;
+          } else {
+            // 对于非字符串内容，尝试提取文本
+            try {
+              const contentArray = userMessage.content as any;
+              if (Array.isArray(contentArray)) {
+                content = contentArray
+                  .filter((part: any) => part?.type === 'text')
+                  .map((part: any) => part?.text || '')
+                  .join(' ');
+              }
+            } catch {
+              content = 'New Chat';
             }
-          } catch {
-            content = 'New Chat';
           }
+          
+          // 截取前50个字符作为标题
+          return content.length > 50 ? `${content.slice(0, 50)}...` : content || 'New Chat';
         }
-        
-        // 截取前50个字符作为标题
-        return content.length > 50 ? `${content.slice(0, 50)}...` : content || 'New Chat';
       },
 
       clearAllSessions: () => {

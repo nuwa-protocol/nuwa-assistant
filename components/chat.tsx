@@ -3,7 +3,6 @@
 import type { Attachment, UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useEffect, useState } from 'react';
-import { useSWRConfig } from 'swr';
 import { ChatHeader } from '@/components/chat-header';
 import { generateUUID } from '@/lib/utils';
 import { Artifact } from './artifact';
@@ -30,7 +29,6 @@ export function Chat({
   isReadonly: boolean;
   autoResume: boolean;
 }) {
-  const { mutate } = useSWRConfig();
   const { addMessage, updateMessage, updateSession } = useChatStore();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -143,8 +141,6 @@ export function Chat({
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
         <ChatHeader
-          chatId={id}
-          selectedModelId={initialChatModel}
           isReadonly={isReadonly}
         />
 
