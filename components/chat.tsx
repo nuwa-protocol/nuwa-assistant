@@ -50,7 +50,7 @@ export function Chat({
     experimental_throttle: 100,
     sendExtraMessageFields: true,
     generateId: generateUUID,
-    fetch: createClientAIFetch(), // 直接使用客户端fetch
+    fetch: createClientAIFetch(),
     experimental_prepareRequestBody: (body) => ({
       id,
       message: body.messages.at(-1),
@@ -80,6 +80,7 @@ export function Chat({
       
       // 将错误消息添加到聊天中
       addMessage(id, errorMessage);
+      setChatMessages((messages) => [...messages, errorMessage]);
     },
   });
 
@@ -93,6 +94,7 @@ export function Chat({
       console.error('Submit error:', error);
       const errorMessage = ErrorHandlers.generic('Failed to send message');
       addMessage(id, errorMessage);
+      setChatMessages((messages) => [...messages, errorMessage]);
     }
   };
 

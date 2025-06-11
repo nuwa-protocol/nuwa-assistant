@@ -46,6 +46,23 @@ const getClientLocation = async (): Promise<RequestHints> => {
   };
 };
 
+// 错误处理函数
+function errorHandler(error: unknown) {
+  if (error == null) {
+    return 'unknown error';
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return JSON.stringify(error);
+}
+
 // 创建客户端AI处理函数
 export const createClientAIFetch = (): ((input: RequestInfo | URL, init?: RequestInit) => Promise<Response>) => {
   return async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -57,7 +74,6 @@ export const createClientAIFetch = (): ((input: RequestInfo | URL, init?: Reques
       const requestBody = JSON.parse(init.body as string);
       const { messages, selectedChatModel } = requestBody;
 
-      console.log('requestBody', requestBody);
 
       // 在请求时获取地理位置信息
       const hints = await getClientLocation();
@@ -80,7 +96,9 @@ export const createClientAIFetch = (): ((input: RequestInfo | URL, init?: Reques
         abortSignal: init.signal || undefined,
       });
 
-      return result.toDataStreamResponse();
+      return result.toDataStreamResponse({
+        getErrorMessage: errorHandler,
+      });
     } catch (error) {
       console.error('Client AI fetch error:', error);
       // 返回错误响应

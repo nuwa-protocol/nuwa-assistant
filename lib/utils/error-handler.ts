@@ -8,38 +8,43 @@ export type ErrorLevel = 'info' | 'warning' | 'error' | 'critical';
 interface ErrorHandlerOptions {
   level?: ErrorLevel;
   showToUser?: boolean;
-  logToConsole?: boolean;
 }
 
 // 创建错误消息
 export function createErrorMessage(
   error: string | Error,
-  options: ErrorHandlerOptions = {}
+  options: ErrorHandlerOptions = {},
 ): UIMessage {
-  const {
-    level = 'error',
-    showToUser = true,
-    logToConsole = true
-  } = options;
+  try {
+    const { level = 'error', showToUser = true } = options;
 
-  const errorText = error instanceof Error ? error.message : error;
-  
-  if (logToConsole) {
-    console.error(`[${level.toUpperCase()}]`, errorText);
+    // 防御性检查：确保 level 是有效的字符串
+    const validLevel = typeof level === 'string' && level ? level : 'error';
+
+    const errorText = error instanceof Error ? error.message : error;
+
+    if (!showToUser) {
+      return createSystemMessage('An error occurred. Please try again.');
+    }
+
+    return createSystemMessage(formatErrorForUser(errorText, validLevel as ErrorLevel));
+  } catch (internalError) {
+    // 返回一个最基本的错误消息
+    return {
+      id: generateUUID(),
+      role: 'assistant',
+      content: 'An error occurred. Please try again.',
+      parts: [{ type: 'text', text: 'An error occurred. Please try again.' }],
+      createdAt: new Date(),
+    };
   }
-
-  if (!showToUser) {
-    return createSystemMessage('An error occurred. Please try again.');
-  }
-
-  return createSystemMessage(formatErrorForUser(errorText, level));
 }
 
 // 格式化错误信息给用户
 function formatErrorForUser(errorText: string, level: ErrorLevel): string {
   const emoji = getErrorEmoji(level);
   const prefix = getErrorPrefix(level);
-  
+
   return `${emoji} **${prefix}**: ${errorText}
 
 *If this issue persists, please check your internet connection or try refreshing the page.*`;
@@ -90,54 +95,61 @@ function createSystemMessage(content: string): UIMessage {
 
 // 常见错误类型处理
 export const ErrorHandlers = {
-  network: (error?: string) => createErrorMessage(
-    error || 'Network connection failed. Please check your internet connection.',
-    { level: 'error' }
-  ),
-  
-  api: (error?: string) => createErrorMessage(
-    error || 'Service temporarily unavailable. Please try again later.',
-    { level: 'error' }
-  ),
-  
-  storage: (error?: string) => createErrorMessage(
-    error || 'Unable to save data locally. Please check your browser storage settings.',
-    { level: 'warning' }
-  ),
-  
-  validation: (error?: string) => createErrorMessage(
-    error || 'Invalid input provided. Please check your data and try again.',
-    { level: 'warning' }
-  ),
-  
-  permission: (error?: string) => createErrorMessage(
-    error || 'Permission denied. Please check your access rights.',
-    { level: 'error' }
-  ),
-  
-  notFound: (resource = 'resource') => createErrorMessage(
-    `The requested ${resource} was not found.`,
-    { level: 'warning' }
-  ),
-  
-  timeout: (operation = 'operation') => createErrorMessage(
-    `The ${operation} timed out. Please try again.`,
-    { level: 'warning' }
-  ),
-  
-  generic: (error?: string) => createErrorMessage(
-    error || 'An unexpected error occurred. Please try again.',
-    { level: 'error' }
-  ),
+  network: (error?: string) =>
+    createErrorMessage(
+      error ||
+        'Network connection failed. Please check your internet connection.',
+      { level: 'error' },
+    ),
+
+  api: (error?: string) =>
+    createErrorMessage(
+      error || 'Service temporarily unavailable. Please try again later.',
+      { level: 'error' },
+    ),
+
+  storage: (error?: string) =>
+    createErrorMessage(
+      error ||
+        'Unable to save data locally. Please check your browser storage settings.',
+      { level: 'warning' },
+    ),
+
+  validation: (error?: string) =>
+    createErrorMessage(
+      error || 'Invalid input provided. Please check your data and try again.',
+      { level: 'warning' },
+    ),
+
+  permission: (error?: string) =>
+    createErrorMessage(
+      error || 'Permission denied. Please check your access rights.',
+      { level: 'error' },
+    ),
+
+  notFound: (resource = 'resource') =>
+    createErrorMessage(`The requested ${resource} was not found.`, {
+      level: 'warning',
+    }),
+
+  timeout: (operation = 'operation') =>
+    createErrorMessage(`The ${operation} timed out. Please try again.`, {
+      level: 'warning',
+    }),
+
+  generic: (error?: string) =>
+    createErrorMessage(
+      error || 'An unexpected error occurred. Please try again.',
+      { level: 'error' },
+    ),
 };
 
 // 错误边界处理函数
 export function handleAsyncError<T>(
   promise: Promise<T>,
-  fallback?: () => T
+  fallback?: () => T,
 ): Promise<T | null> {
   return promise.catch((error) => {
-    console.error('Async operation failed:', error);
     return fallback ? fallback() : null;
   });
 }
@@ -146,7 +158,7 @@ export function handleAsyncError<T>(
 export async function retryOperation<T>(
   operation: () => Promise<T>,
   maxRetries = 3,
-  delay = 1000
+  delay = 1000,
 ): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -155,11 +167,9 @@ export async function retryOperation<T>(
       if (attempt === maxRetries) {
         throw error;
       }
-      
-      console.warn(`Operation failed (attempt ${attempt}/${maxRetries}):`, error);
-      await new Promise(resolve => setTimeout(resolve, delay * attempt));
+      await new Promise((resolve) => setTimeout(resolve, delay * attempt));
     }
   }
-  
+
   throw new Error('Max retries exceeded');
-} 
+}
