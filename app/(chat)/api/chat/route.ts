@@ -6,12 +6,12 @@ import { myProvider } from '@/lib/ai/providers';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { geolocation } from '@vercel/functions';
 import { ChatSDKError } from '@/lib/errors';
+import { getWeather } from '@/lib/ai/tools/get-weather';
 
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
-
 
   try {
     const json = await request.json();
@@ -40,15 +40,21 @@ export async function POST(request: Request) {
       country,
     };
 
-
     const result = streamText({
       model: myProvider.languageModel(selectedChatModel),
       system: systemPrompt({ selectedChatModel, requestHints }),
       messages,
+      maxSteps: 5,
+      experimental_activeTools:
+        selectedChatModel === 'chat-model-reasoning'
+          ? []
+          : ['getWeather'],
+      tools: {
+        getWeather,
+      },
     });
   
     return result.toDataStreamResponse();
-
 
     // 创建AI流式响应
     // const stream = createDataStream({
@@ -88,6 +94,7 @@ export async function POST(request: Request) {
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
+    console.error('Chat API error:', error);
     return new Response('Internal server error', { status: 500 });
   }
 }

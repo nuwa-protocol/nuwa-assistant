@@ -1,17 +1,17 @@
 'use client';
 
 import {
-  memo,
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
+    memo,
+    type MouseEvent,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
 } from 'react';
-import { ArtifactKind, UIArtifact } from './artifact';
+import type { ArtifactKind, UIArtifact } from './artifact';
 import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from './icons';
 import { cn, fetcher } from '@/lib/utils';
-import { Document } from '@/lib/db/schema';
+import type { ClientDocument } from '@/lib/stores/document-store';
 import { InlineDocumentSkeleton } from './document-skeleton';
 import useSWR from 'swr';
 import { Editor } from './text-editor';
@@ -36,7 +36,7 @@ export function DocumentPreview({
   const { artifact, setArtifact } = useArtifact();
 
   const { data: documents, isLoading: isDocumentsFetching } = useSWR<
-    Array<Document>
+    Array<ClientDocument>
   >(result ? `/api/document?id=${result.id}` : null, fetcher);
 
   const previewDocument = useMemo(() => documents?.[0], [documents]);
@@ -84,7 +84,7 @@ export function DocumentPreview({
     return <LoadingSkeleton artifactKind={result.kind ?? args.kind} />;
   }
 
-  const document: Document | null = previewDocument
+  const document: ClientDocument | null = previewDocument
     ? previewDocument
     : artifact.status === 'streaming'
       ? {
@@ -92,8 +92,8 @@ export function DocumentPreview({
           kind: artifact.kind,
           content: artifact.content,
           id: artifact.documentId,
-          createdAt: new Date(),
-          userId: 'noop',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
         }
       : null;
 
@@ -234,7 +234,7 @@ const DocumentHeader = memo(PureDocumentHeader, (prevProps, nextProps) => {
   return true;
 });
 
-const DocumentContent = ({ document }: { document: Document }) => {
+const DocumentContent = ({ document }: { document: ClientDocument }) => {
   const { artifact } = useArtifact();
 
   const containerClassName = cn(

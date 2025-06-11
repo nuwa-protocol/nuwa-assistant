@@ -16,10 +16,18 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { useChatStore } from '@/lib/stores/chat-store';
 
 export function AppSidebar() {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
+  const { createSession } = useChatStore();
+
+  const handleNewChat = () => {
+    setOpenMobile(false);
+    const newSessionId = createSession();
+    router.push(`/chat/${newSessionId}`);
+  };
 
   return (
     <Sidebar className="group-data-[side=left]:border-r-0">
@@ -43,11 +51,7 @@ export function AppSidebar() {
                   variant="ghost"
                   type="button"
                   className="p-2 h-fit"
-                  onClick={() => {
-                    setOpenMobile(false);
-                    router.push('/');
-                    router.refresh();
-                  }}
+                  onClick={handleNewChat}
                 >
                   <PlusIcon />
                 </Button>

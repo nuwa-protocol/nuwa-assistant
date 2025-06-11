@@ -1,17 +1,17 @@
 import type { Node } from 'prosemirror-model';
 import { Plugin, PluginKey } from 'prosemirror-state';
 import {
-  type Decoration,
-  DecorationSet,
-  type EditorView,
+    type Decoration,
+    DecorationSet,
+    type EditorView,
 } from 'prosemirror-view';
 import { createRoot } from 'react-dom/client';
 
 import { Suggestion as PreviewSuggestion } from '@/components/suggestion';
-import type { Suggestion } from '@/lib/db/schema';
-import { ArtifactKind } from '@/components/artifact';
+import type { ClientSuggestion } from '@/lib/stores/document-store';
+import type { ArtifactKind } from '@/components/artifact';
 
-export interface UISuggestion extends Suggestion {
+export interface UISuggestion extends ClientSuggestion {
   selectionStart: number;
   selectionEnd: number;
 }
@@ -46,7 +46,7 @@ function findPositionsInDoc(doc: Node, searchText: string): Position | null {
 
 export function projectWithPositions(
   doc: Node,
-  suggestions: Array<Suggestion>,
+  suggestions: Array<ClientSuggestion>,
 ): Array<UISuggestion> {
   return suggestions.map((suggestion) => {
     const positions = findPositionsInDoc(doc, suggestion.originalText);

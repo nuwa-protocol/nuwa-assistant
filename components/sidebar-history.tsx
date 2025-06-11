@@ -6,10 +6,15 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import { useDIDStore } from '@/lib/stores/did-store';
+import { useChatStore } from '@/lib/stores/chat-store';
+import { ChatItem } from './sidebar-history-item';
+import { useRouter } from 'next/navigation';
 
 export function SidebarHistory() {
   const { setOpenMobile } = useSidebar();
   const { isAuthenticated } = useDIDStore();
+  const { getSortedSessions, deleteSession, currentSessionId } = useChatStore();
+  const router = useRouter();
 
   if (!isAuthenticated) {
     return (
@@ -23,18 +28,46 @@ export function SidebarHistory() {
     );
   }
 
-  // TODO: 实现客户端聊天历史管理
-  // 将从 localStorage/IndexedDB 读取聊天记录
+  const sessions = getSortedSessions();
+
+  if (sessions.length === 0) {
+    return (
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">No chats yet</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Start a conversation to see it here
+              </p>
+            </div>
+          </div>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  }
+
+  const handleDelete = (id: string) => {
+    deleteSession(id);
+    // 如果删除的是当前会话，跳转到首页
+    if (id === currentSessionId) {
+      router.push('/');
+    }
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupContent>
-        <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">Chat history</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Coming soon - will be stored locally
-            </p>
-          </div>
+        <div className="space-y-1">
+          {sessions.map((session) => (
+            <ChatItem
+              key={session.id}
+              chat={session}
+              isActive={session.id === currentSessionId}
+              onDelete={handleDelete}
+              setOpenMobile={setOpenMobile}
+            />
+          ))}
         </div>
       </SidebarGroupContent>
     </SidebarGroup>

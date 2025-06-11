@@ -77,6 +77,18 @@ export function UserNav() {
                 Sign out
               </button>
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              data-testid="user-nav-item-clear-store"
+              className="cursor-pointer text-destructive"
+              onSelect={() => {
+                localStorage.removeItem('user-did-storage');
+                window.location.reload();
+              }}
+            >
+              清理所有存储（测试用）
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

@@ -1,8 +1,5 @@
 'use server';
 
-import { getSuggestionsByDocumentId } from '@/lib/db/queries';
-
-export async function getSuggestions({ documentId }: { documentId: string }) {
-  const suggestions = await getSuggestionsByDocumentId({ documentId });
-  return suggestions ?? [];
-}
+// Note: getSuggestions function has been removed as suggestion management
+// is now handled entirely on the client side through useDocumentStore.
+// Components should use the getSuggestionsByDocument method from the store instead.

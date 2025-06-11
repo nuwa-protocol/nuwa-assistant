@@ -26,7 +26,8 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
-import type { VisibilityType } from './visibility-selector';
+// Note: visibility feature has been removed for client-only mode
+import { useFileStore } from '@/lib/stores/file-store';
 
 function PureMultimodalInput({
   chatId,
@@ -41,7 +42,6 @@ function PureMultimodalInput({
   append,
   handleSubmit,
   className,
-  selectedVisibilityType,
 }: {
   chatId: string;
   input: UseChatHelpers['input'];
@@ -55,10 +55,10 @@ function PureMultimodalInput({
   append: UseChatHelpers['append'];
   handleSubmit: UseChatHelpers['handleSubmit'];
   className?: string;
-  selectedVisibilityType: VisibilityType;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const { uploadFile: storeFile, getFileURL, validateFile } = useFileStore();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -133,28 +133,32 @@ function PureMultimodalInput({
   ]);
 
   const uploadFile = async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const response = await fetch('/api/files/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const { url, pathname, contentType } = data;
-
-        return {
-          url,
-          name: pathname,
-          contentType: contentType,
-        };
+      // 验证文件
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error);
+        return;
       }
-      const { error } = await response.json();
-      toast.error(error);
+
+      // 使用客户端存储
+      const storedFile = await storeFile(file);
+      
+      // 获取文件访问 URL
+      const url = await getFileURL(storedFile.id);
+      
+      if (!url) {
+        toast.error('Failed to create file URL');
+        return;
+      }
+
+      return {
+        url,
+        name: storedFile.name,
+        contentType: storedFile.type,
+      };
     } catch (error) {
+      console.error('Failed to upload file:', error);
       toast.error('Failed to upload file, please try again!');
     }
   };
@@ -182,7 +186,7 @@ function PureMultimodalInput({
         setUploadQueue([]);
       }
     },
-    [setAttachments],
+    [setAttachments, uploadFile],
   );
 
   const { isAtBottom, scrollToBottom } = useScrollToBottom();
@@ -226,7 +230,6 @@ function PureMultimodalInput({
           <SuggestedActions
             append={append}
             chatId={chatId}
-            selectedVisibilityType={selectedVisibilityType}
           />
         )}
 
@@ -316,8 +319,6 @@ export const MultimodalInput = memo(
     if (prevProps.input !== nextProps.input) return false;
     if (prevProps.status !== nextProps.status) return false;
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-    if (prevProps.selectedVisibilityType !== nextProps.selectedVisibilityType)
-      return false;
 
     return true;
   },

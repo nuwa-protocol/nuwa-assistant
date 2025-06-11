@@ -1,11 +1,11 @@
 'use client';
 
-import { ChatRequestOptions, Message } from 'ai';
+import type { Message } from 'ai';
 import { Button } from './ui/button';
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react';
 import { Textarea } from './ui/textarea';
-import { deleteTrailingMessages } from '@/app/(chat)/actions';
-import { UseChatHelpers } from '@ai-sdk/react';
+import type { UseChatHelpers } from '@ai-sdk/react';
+import { useChatStore } from '@/lib/stores/chat-store';
 
 export type MessageEditorProps = {
   message: Message;
@@ -21,9 +21,10 @@ export function MessageEditor({
   reload,
 }: MessageEditorProps) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
   const [draftContent, setDraftContent] = useState<string>(message.content);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const { currentSessionId, deleteMessagesAfterTimestamp } = useChatStore();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -71,9 +72,11 @@ export function MessageEditor({
           onClick={async () => {
             setIsSubmitting(true);
 
-            await deleteTrailingMessages({
-              id: message.id,
-            });
+            // Delete trailing messages using client store
+            if (currentSessionId && message.createdAt) {
+              const messageTime = new Date(message.createdAt).getTime();
+              deleteMessagesAfterTimestamp(currentSessionId, messageTime);
+            }
 
             // @ts-expect-error todo: support UIMessage in setMessages
             setMessages((messages) => {

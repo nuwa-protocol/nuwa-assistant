@@ -9,39 +9,34 @@ import { generateUUID } from '@/lib/utils';
 import { Artifact } from './artifact';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
-import type { VisibilityType } from './visibility-selector';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { useSearchParams } from 'next/navigation';
-import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
+import { useChatStore } from '@/lib/stores/chat-store';
+import { ErrorHandlers, handleAsyncError } from '@/lib/utils/error-handler';
 
 export function Chat({
   id,
   initialMessages,
   initialChatModel,
-  initialVisibilityType,
   isReadonly,
   autoResume,
 }: {
   id: string;
   initialMessages: Array<UIMessage>;
   initialChatModel: string;
-  initialVisibilityType: VisibilityType;
   isReadonly: boolean;
   autoResume: boolean;
 }) {
   const { mutate } = useSWRConfig();
-
-  const { visibilityType } = useChatVisibility({
-    chatId: id,
-    initialVisibilityType,
-  });
+  const { addMessage, updateMessage, updateSession } = useChatStore();
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     messages,
-    setMessages,
-    handleSubmit,
+    setMessages: setChatMessages,
+    handleSubmit: originalHandleSubmit,
     input,
     setInput,
     append,
@@ -61,16 +56,55 @@ export function Chat({
       message: body.messages.at(-1),
       messages: body.messages,
       selectedChatModel: initialChatModel,
-      selectedVisibilityType: visibilityType,
     }),
     onFinish: () => {
+      setIsLoading(false);
+      // 聊天完成后，同步消息到客户端存储
+      messages.forEach(message => {
+        addMessage(id, message);
+      });
     },
     onError: (error) => {
+      setIsLoading(false);
+      let errorMessage: UIMessage;
+      
       if (error instanceof ChatSDKError) {
-        console.error('Chat error:', error.message);
+        errorMessage = ErrorHandlers.api(error.message);
+      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorMessage = ErrorHandlers.network('Failed to connect to the AI service');
+      } else if (error.message.includes('timeout')) {
+        errorMessage = ErrorHandlers.timeout('AI response');
+      } else {
+        errorMessage = ErrorHandlers.generic(error.message);
       }
+      
+      // 将错误消息添加到聊天中
+      addMessage(id, errorMessage);
     },
   });
+
+  // 包装 handleSubmit 以添加加载状态
+  const handleSubmit = (event?: { preventDefault?: () => void }) => {
+    setIsLoading(true);
+    try {
+      originalHandleSubmit(event);
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Submit error:', error);
+      const errorMessage = ErrorHandlers.generic('Failed to send message');
+      addMessage(id, errorMessage);
+    }
+  };
+
+  // 同步会话元数据
+  useEffect(() => {
+    handleAsyncError(
+      Promise.resolve(updateSession(id, {
+        updatedAt: Date.now(),
+      })),
+      () => console.warn('Failed to update session metadata')
+    );
+  }, [id, updateSession]);
 
   const searchParams = useSearchParams();
   const query = searchParams.get('query');
@@ -89,8 +123,6 @@ export function Chat({
     }
   }, [query, append, hasAppendedQuery, id]);
 
-  const votes: any[] = []; // TODO: 实现客户端投票存储
-
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
@@ -99,8 +131,11 @@ export function Chat({
     initialMessages,
     experimental_resume,
     data,
-    setMessages,
+    setMessages: setChatMessages,
   });
+
+  // 检查是否正在加载
+  const isGenerating = status === 'streaming' || isLoading;
 
   return (
     <>
@@ -108,16 +143,14 @@ export function Chat({
         <ChatHeader
           chatId={id}
           selectedModelId={initialChatModel}
-          selectedVisibilityType={initialVisibilityType}
           isReadonly={isReadonly}
         />
 
         <Messages
           chatId={id}
           status={status}
-          votes={votes}
           messages={messages}
-          setMessages={setMessages}
+          setMessages={setChatMessages}
           reload={reload}
           isReadonly={isReadonly}
           isArtifactVisible={isArtifactVisible}
@@ -135,12 +168,21 @@ export function Chat({
               attachments={attachments}
               setAttachments={setAttachments}
               messages={messages}
-              setMessages={setMessages}
+              setMessages={setChatMessages}
               append={append}
-              selectedVisibilityType={visibilityType}
             />
           )}
         </form>
+
+        {/* 加载状态指示器 */}
+        {isGenerating && (
+          <div className="fixed bottom-20 right-4 bg-background border rounded-lg shadow-lg p-3 z-50">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground" />
+              <span>AI is thinking...</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <Artifact
@@ -154,11 +196,9 @@ export function Chat({
         setAttachments={setAttachments}
         append={append}
         messages={messages}
-        setMessages={setMessages}
+        setMessages={setChatMessages}
         reload={reload}
-        votes={votes}
         isReadonly={isReadonly}
-        selectedVisibilityType={visibilityType}
       />
     </>
   );

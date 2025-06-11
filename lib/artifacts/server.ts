@@ -2,11 +2,19 @@ import { codeDocumentHandler } from '@/artifacts/code/server';
 import { imageDocumentHandler } from '@/artifacts/image/server';
 import { sheetDocumentHandler } from '@/artifacts/sheet/server';
 import { textDocumentHandler } from '@/artifacts/text/server';
-import { ArtifactKind } from '@/components/artifact';
-import { DataStreamWriter } from 'ai';
-import { Document } from '../db/schema';
-import { saveDocument } from '../db/queries';
-import { Session } from 'next-auth';
+import type { ArtifactKind } from '@/components/artifact';
+import type { DataStreamWriter } from 'ai';
+import type { Session } from 'next-auth';
+
+// Client document interface (replacing database Document)
+export interface ClientDocument {
+  id: string;
+  title: string;
+  content: string | null;
+  kind: ArtifactKind;
+  createdAt: number;
+  updatedAt: number;
+}
 
 export interface SaveDocumentProps {
   id: string;
@@ -24,7 +32,7 @@ export interface CreateDocumentCallbackProps {
 }
 
 export interface UpdateDocumentCallbackProps {
-  document: Document;
+  document: ClientDocument;
   description: string;
   dataStream: DataStreamWriter;
   session: Session;
@@ -51,16 +59,8 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
         session: args.session,
       });
 
-      if (args.session?.user?.id) {
-        await saveDocument({
-          id: args.id,
-          title: args.title,
-          content: draftContent,
-          kind: config.kind,
-          userId: args.session.user.id,
-        });
-      }
-
+      // Note: Document saving is now handled on the client side through useDocumentStore
+      // The server only generates the content and streams it back
       return;
     },
     onUpdateDocument: async (args: UpdateDocumentCallbackProps) => {
@@ -71,16 +71,8 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
         session: args.session,
       });
 
-      if (args.session?.user?.id) {
-        await saveDocument({
-          id: args.document.id,
-          title: args.document.title,
-          content: draftContent,
-          kind: config.kind,
-          userId: args.session.user.id,
-        });
-      }
-
+      // Note: Document saving is now handled on the client side through useDocumentStore
+      // The server only generates the content and streams it back
       return;
     },
   };

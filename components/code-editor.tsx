@@ -5,8 +5,8 @@ import { EditorState, Transaction } from '@codemirror/state';
 import { python } from '@codemirror/lang-python';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { basicSetup } from 'codemirror';
-import React, { memo, useEffect, useRef } from 'react';
-import { Suggestion } from '@/lib/db/schema';
+import { memo, useEffect, useRef } from 'react';
+import type { ClientSuggestion } from '@/lib/stores/document-store';
 
 type EditorProps = {
   content: string;
@@ -14,7 +14,7 @@ type EditorProps = {
   status: 'streaming' | 'idle';
   isCurrentVersion: boolean;
   currentVersionIndex: number;
-  suggestions: Array<Suggestion>;
+  suggestions: Array<ClientSuggestion>;
 };
 
 function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
