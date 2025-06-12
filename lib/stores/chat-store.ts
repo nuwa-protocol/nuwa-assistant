@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { generateUUID } from '@/lib/utils';
 import type { UIMessage, Message } from 'ai';
 import Dexie, { type Table } from 'dexie';
-import { generateTitleFromUserMessage } from '@/lib/ai/client-fetch';
+import { generateTitleFromUserMessage } from '@/lib/ai/ai';
 
 // 客户端聊天接口
 export interface ClientChat {

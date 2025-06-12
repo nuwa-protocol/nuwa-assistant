@@ -3,17 +3,17 @@
 import { type ReactNode, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import {
-  CheckCircleFillIcon,
-  ChevronDownIcon,
-  GlobeIcon,
-  LockIcon,
+    CheckCircleFillIcon,
+    ChevronDownIcon,
+    GlobeIcon,
+    LockIcon,
 } from './icons';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 

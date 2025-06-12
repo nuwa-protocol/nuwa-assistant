@@ -13,7 +13,7 @@ import { useSearchParams } from 'next/navigation';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
 import { useChatStore } from '@/lib/stores/chat-store';
-import { ErrorHandlers, handleAsyncError } from '@/lib/utils/error-handler';
+import { ErrorHandlers, handleAsyncError } from '@/lib/error-handler';
 import { createClientAIFetch } from '@/lib/ai/client-fetch';
 
 export function Chat({
@@ -52,9 +52,9 @@ export function Chat({
     fetch: createClientAIFetch(),
     experimental_prepareRequestBody: (body) => ({
       id,
-      message: body.messages.at(-1),
-      messages: body.messages,
       selectedChatModel: initialChatModel,
+      messages: body.messages,
+      lastMessage: body.messages.at(-1),
     }),
     onError: (error) => {
       let errorMessage: UIMessage;
