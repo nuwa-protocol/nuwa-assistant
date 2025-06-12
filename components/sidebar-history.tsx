@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -9,6 +10,7 @@ import {
 import { useDIDStore } from '@/lib/stores/did-store';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { ChatItem } from './sidebar-history-item';
+import { ChatHistoryModal } from './chat-history-modal';
 import { useRouter } from 'next/navigation';
 
 export function SidebarHistory() {
@@ -16,6 +18,7 @@ export function SidebarHistory() {
   const { isAuthenticated } = useDIDStore();
   const { sessions, deleteSession, currentSessionId } = useChatStore();
   const router = useRouter();
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   if (!isAuthenticated) {
     return (
@@ -29,12 +32,25 @@ export function SidebarHistory() {
     );
   }
 
-  // 在组件内部排序，确保响应式更新
-  const sortedSessions = Object.values(sessions).sort(
-    (a, b) => b.updatedAt - a.updatedAt,
-  );
+  // filter out sessions with messages in the last 24 hours
+  const now = Date.now();
+  const oneDayAgo = now - 24 * 60 * 60 * 1000;
+  
+  const recentSessions = Object.values(sessions)
+    .filter(session => 
+      session.messages.length > 0 && // only show sessions with messages
+      session.updatedAt > oneDayAgo   // updated in the last 24 hours
+    )
+    .sort((a, b) => b.updatedAt - a.updatedAt);
 
-  if (sortedSessions.length === 0) {
+  // check if there are more history records
+  const allSessionsWithMessages = Object.values(sessions)
+    .filter(session => session.messages.length > 0)
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+  
+  const hasMoreHistory = allSessionsWithMessages.length > recentSessions.length;
+
+  if (recentSessions.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
@@ -53,27 +69,44 @@ export function SidebarHistory() {
 
   const handleDelete = (id: string) => {
     deleteSession(id);
-    // 如果删除的是当前会话，跳转到首页
+    // if the deleted session is the current session, redirect to home page
     if (id === currentSessionId) {
       router.push('/');
     }
   };
 
   return (
-    <SidebarGroup>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {sortedSessions.map((session) => (
-            <ChatItem
-              key={session.id}
-              chat={session}
-              isActive={session.id === currentSessionId}
-              onDelete={handleDelete}
-              setOpenMobile={setOpenMobile}
-            />
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <>
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {recentSessions.map((session) => (
+              <ChatItem
+                key={session.id}
+                chat={session}
+                isActive={session.id === currentSessionId}
+                onDelete={handleDelete}
+                setOpenMobile={setOpenMobile}
+              />
+            ))}
+            {hasMoreHistory && (
+              <div className="px-2 py-2">
+                <button 
+                  className="w-full text-left text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setIsHistoryModalOpen(true)}
+                >
+                  View more history...
+                </button>
+              </div>
+            )}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <ChatHistoryModal 
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+      />
+    </>
   );
 }

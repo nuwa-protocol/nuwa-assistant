@@ -1,4 +1,4 @@
-import { generateText, UIMessage } from "ai";
+import { generateText, Message } from "ai";
 import { myProvider } from "./providers";
 import {
   streamText,
@@ -13,7 +13,7 @@ import { useChatStore } from '@/lib/stores/chat-store';
 async function generateTitleFromUserMessage({
     message,
   }: {
-    message: UIMessage;
+    message: Message;
   }) {
     const { text: title } = await generateText({
       model: myProvider.languageModel('title-model'),
@@ -54,14 +54,17 @@ const handleAIRequest = async ({
   signal,
 }: {
   sessionId: string;
-  lastMessage: UIMessage;
-  messages: UIMessage[];
+  lastMessage: Message;
+  messages: Message[];
   selectedChatModel: string;
   signal?: AbortSignal;
 }) => {
-  const { addMessage, updateTitle } = useChatStore.getState();
-  addMessage(sessionId, lastMessage);
+  const { updateMessages, updateTitle,updateSession } = useChatStore.getState();
 
+  updateSession(sessionId, {
+    updatedAt: Date.now(),
+  });
+  
   const hints = await getClientLocation();
 
   const result = streamText({
@@ -76,15 +79,16 @@ const handleAIRequest = async ({
     tools: { getWeather },
     abortSignal: signal,
     async onFinish({ response }) {
-      // this is actually converting ResponseMessage type to UIMessage type
-      const [assistantMessage] = appendResponseMessages({
-        messages: [],
+      const finalMessages = appendResponseMessages({
+        messages: messages,
         responseMessages: response.messages,
       });
-      await addMessage(sessionId, assistantMessage);
+    
+      await updateMessages(sessionId, finalMessages);
       await updateTitle(sessionId);
     },
   });
+
   return result.toDataStreamResponse({
     getErrorMessage: errorHandler,
   });

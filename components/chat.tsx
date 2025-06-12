@@ -13,7 +13,7 @@ import { useSearchParams } from 'next/navigation';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
 import { useChatStore } from '@/lib/stores/chat-store';
-import { ErrorHandlers, handleAsyncError } from '@/lib/error-handler';
+import { ErrorHandlers } from '@/lib/error-handler';
 import { createClientAIFetch } from '@/lib/ai/client-fetch';
 
 export function Chat({
@@ -78,18 +78,6 @@ export function Chat({
       setChatMessages((messages) => [...messages, errorMessage]);
     },
   });
-
-  // Sync session metadata
-  useEffect(() => {
-    handleAsyncError(
-      Promise.resolve(
-        updateSession(id, {
-          updatedAt: Date.now(),
-        }),
-      ),
-      () => console.warn('Failed to update session metadata'),
-    );
-  }, [id, updateSession]);
 
   const searchParams = useSearchParams();
   const query = searchParams.get('query');

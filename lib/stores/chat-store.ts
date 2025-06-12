@@ -1,34 +1,33 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { generateUUID } from '@/lib/utils';
-import type { UIMessage, Message } from 'ai';
+import type { Message } from 'ai';
 import Dexie, { type Table } from 'dexie';
 import { generateTitleFromUserMessage } from '@/lib/ai/ai';
 
-// 客户端聊天接口
+// client chat interface
 export interface ClientChat {
   id: string;
   title: string;
   createdAt: number;
   updatedAt: number;
-  messages: UIMessage[];
+  messages: Message[];
 }
 
-// 流 ID 管理接口
+// stream ID management interface
 export interface StreamRecord {
   id: string;
   chatId: string;
   createdAt: number;
 }
 
-// Dexie 数据库定义
+// Dexie database definition
 class ChatDatabase extends Dexie {
   chats!: Table<ClientChat>;
   streams!: Table<StreamRecord>;
 
   constructor() {
     if (typeof window === 'undefined') {
-      // 在服务器端返回一个空的 Dexie 实例
+      // return a dummy Dexie instance on server side
       super('dummy');
       return;
     }
@@ -42,43 +41,42 @@ class ChatDatabase extends Dexie {
 
 const chatDB = new ChatDatabase();
 
-// 聊天存储状态接口
+// chat store state interface
 interface ChatStoreState {
   sessions: Record<string, ClientChat>;
   currentSessionId: string | null;
 
-  // 会话管理
-  createSession: () => string;
+  // session management
   getSession: (id: string) => ClientChat | null;
   updateSession: (id: string, updates: Partial<Omit<ClientChat, 'id'>>) => void;
   deleteSession: (id: string) => void;
   setCurrentSession: (id: string | null) => void;
 
-  // 消息管理
-  addMessage: (sessionId: string, message: Message | UIMessage) => void;
-  updateMessage: (
+  // message management
+  updateMessages: (sessionId: string, messages: Message[]) => void;
+  updateSingleMessage: (
     sessionId: string,
     messageId: string,
-    updates: Partial<UIMessage>,
+    updates: Partial<Message>,
   ) => void;
   deleteMessage: (sessionId: string, messageId: string) => void;
   deleteMessagesAfterTimestamp: (sessionId: string, timestamp: number) => void;
-  getMessages: (sessionId: string) => UIMessage[];
+  getMessages: (sessionId: string) => Message[];
 
-  // 流管理
+  // stream management
   createStreamId: (streamId: string, chatId: string) => Promise<void>;
   getStreamIdsByChatId: (chatId: string) => Promise<string[]>;
 
-  // 工具方法
+  // tool methods
   updateTitle: (chatId: string) => Promise<void>;
   clearAllSessions: () => void;
 
-  // 数据持久化
+  // data persistence
   loadFromDB: () => Promise<void>;
   saveToDB: () => Promise<void>;
 }
 
-// 自定义存储适配器
+// custom storage adapter
 const isBrowser = typeof window !== 'undefined';
 
 const persistStorage = {
@@ -114,40 +112,6 @@ export const useChatStore = create<ChatStoreState>()(
     (set, get) => ({
       sessions: {},
       currentSessionId: null,
-
-      createSession: () => {
-        const { sessions } = get();
-        // 查找是否有空的会话（title 为 'New Chat' 且 messages 为空）
-        const emptySessionEntry = Object.entries(sessions).find(
-          ([, session]) => session.title === 'New Chat' && session.messages.length === 0
-        );
-        if (emptySessionEntry) {
-          const [emptySessionId] = emptySessionEntry;
-          // 切换当前会话为该空会话
-          set({ currentSessionId: emptySessionId });
-          return emptySessionId;
-        }
-        const id = generateUUID();
-        const newSession: ClientChat = {
-          id,
-          title: 'New Chat',
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          messages: [],
-        };
-
-        set((state) => ({
-          sessions: {
-            ...state.sessions,
-            [id]: newSession,
-          },
-          currentSessionId: id,
-        }));
-
-        // 异步保存到 IndexedDB
-        get().saveToDB();
-        return id;
-      },
 
       getSession: (id: string) => {
         const { sessions } = get();
@@ -186,7 +150,7 @@ export const useChatStore = create<ChatStoreState>()(
           };
         });
 
-        // 异步删除相关数据
+        // async delete related data
         const deleteFromDB = async () => {
           try {
             await chatDB.chats.delete(id);
@@ -202,35 +166,64 @@ export const useChatStore = create<ChatStoreState>()(
         set({ currentSessionId: id });
       },
 
-      addMessage: (sessionId: string, message: Message | UIMessage) => {
+      updateMessages: (sessionId: string, messages: Message[]) => {
         set((state) => {
-          const session = state.sessions[sessionId];
-          if (!session) return state;
+          let session = state.sessions[sessionId];
+          let isNewSession = false;
 
-          // 确保消息转换为 UIMessage 格式
-          const uiMessage: UIMessage = message as UIMessage;
+          // if session not found, create new session
+          if (!session) {
+            isNewSession = true;
+            session = {
+              id: sessionId,
+              title: 'New Chat',
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+              messages: [],
+            };
+          }
 
-          const updatedSession = {
-            ...session,
-            messages: [...session.messages, uiMessage],
-            updatedAt: Date.now(),
-          };
+          // check if there are new messages to add
+          const currentMessageIds = new Set(session.messages.map(msg => msg.id));
+          const hasNewMessages = messages.some(msg => !currentMessageIds.has(msg.id));
 
-          return {
-            sessions: {
-              ...state.sessions,
-              [sessionId]: updatedSession,
-            },
-          };
+          // only update when there are new messages
+          if (hasNewMessages || isNewSession) {
+            const updatedSession = {
+              ...session,
+              messages: [...messages], // completely replace message list
+              updatedAt: Date.now(),
+            };
+
+            const newState = {
+              sessions: {
+                ...state.sessions,
+                [sessionId]: updatedSession,
+              },
+              // if new session, set as current session
+              currentSessionId: state.currentSessionId || sessionId,
+            };
+
+            // async generate title (if new session and has user message)
+            if (isNewSession && messages.length > 0) {
+              setTimeout(() => {
+                get().updateTitle(sessionId);
+              }, 0);
+            }
+
+            return newState;
+          }
+
+          return state;
         });
 
         get().saveToDB();
       },
 
-      updateMessage: (
+      updateSingleMessage: (
         sessionId: string,
         messageId: string,
-        updates: Partial<UIMessage>,
+        updates: Partial<Message>,
       ) => {
         set((state) => {
           const session = state.sessions[sessionId];
@@ -330,7 +323,7 @@ export const useChatStore = create<ChatStoreState>()(
             .where('chatId')
             .equals(chatId)
             .toArray();
-          // 按创建时间排序
+          // sort by creation time
           const sortedStreams = streams.sort(
             (a, b) => a.createdAt - b.createdAt,
           );
@@ -345,10 +338,7 @@ export const useChatStore = create<ChatStoreState>()(
         const session = get().getSession(sessionId);
         if (!session || session.messages.length === 0) return;
 
-        // 如果标题已经被修改过了，就不需要再更改
-        if (session.title !== 'New Chat') return;
-
-        // 找到第一条用户消息
+        // find the first user message
         const firstUserMessage = session.messages.find((msg) => msg.role === 'user');
         if (!firstUserMessage) return;
 
@@ -357,7 +347,7 @@ export const useChatStore = create<ChatStoreState>()(
             message: firstUserMessage,
           });
           
-          // 直接更新会话标题
+          // directly update session title
           get().updateSession(sessionId, { title });
         } catch (error) {
           console.error('Failed to generate title with AI:', error);
@@ -370,7 +360,7 @@ export const useChatStore = create<ChatStoreState>()(
           currentSessionId: null,
         });
 
-        // 清理 IndexedDB
+        // clear IndexedDB
         const clearDB = async () => {
           try {
             await chatDB.chats.clear();
@@ -411,7 +401,7 @@ export const useChatStore = create<ChatStoreState>()(
           const { sessions } = get();
           const chatsToSave = Object.values(sessions);
 
-          // 使用 bulkPut 来高效更新数据
+          // use bulkPut to efficiently update data
           await chatDB.chats.bulkPut(chatsToSave);
         } catch (error) {
           console.error('Failed to save to DB:', error);
@@ -426,7 +416,7 @@ export const useChatStore = create<ChatStoreState>()(
         currentSessionId: state.currentSessionId,
       }),
       onRehydrateStorage: () => (state) => {
-        // 组件挂载后从 IndexedDB 加载数据
+        // load data from IndexedDB after component mount
         if (state) {
           state.loadFromDB();
         }

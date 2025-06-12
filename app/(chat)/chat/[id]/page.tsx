@@ -11,7 +11,7 @@ import { use } from 'react';
 
 export default function Page(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
-  const { getSession, setCurrentSession, createSession } = useChatStore();
+  const { getSession, setCurrentSession } = useChatStore();
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
   const router = useRouter();
@@ -19,23 +19,21 @@ export default function Page(props: { params: Promise<{ id: string }> }) {
   useEffect(() => {
     const loadSession = () => {
       try {
-        // 尝试从存储中获取会话
+        // try to get session from storage
         const existingSession = getSession(params.id);
         
         if (existingSession) {
           setSession(existingSession);
           setCurrentSession(params.id);
         } else {
-          // 如果会话不存在，创建新会话并重定向
-          const newId = createSession();
-          router.replace(`/chat/${newId}`);
+          // if session not found, redirect to new chat page
+          router.replace('/chat');
           return;
         }
       } catch (error) {
         console.error('Error loading session:', error);
-        // 发生错误时创建新会话
-        const newId = createSession();
-        router.replace(`/chat/${newId}`);
+        // if error, redirect to new chat page
+        router.replace('/chat');
         return;
       } finally {
         setIsLoading(false);
@@ -43,7 +41,7 @@ export default function Page(props: { params: Promise<{ id: string }> }) {
     };
 
     loadSession();
-  }, [params.id, getSession, setCurrentSession, createSession, router]);
+      }, [params.id, getSession, setCurrentSession, router]);
 
   if (isLoading) {
     return (
