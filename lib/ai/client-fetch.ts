@@ -26,6 +26,7 @@ export const createClientAIFetch = (): ((
         selectedChatModel,
         messages,
         lastMessage,
+        signal: init?.signal ?? undefined,
       });
 
       return response;

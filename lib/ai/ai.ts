@@ -8,7 +8,6 @@ import { useChatStore } from "@/lib/stores/chat-store";
 import { createDocument } from "./tools/create-document";
 import { updateDocument } from "./tools/update-document";
 import { requestSuggestions } from "./tools/request-suggestions";
-import { getStreamContext } from "./client-stream";
 
 async function generateTitleFromUserMessage({ message }: { message: Message }) {
   const { text: title } = await generateText({
@@ -64,7 +63,7 @@ const handleAIRequest = async ({
 
   const hints = await getClientLocation();
 
-  // 创建 streamId 用于断流恢复
+  // Create streamId for stream resumption
   const streamId = generateUUID();
   createStreamId(streamId, sessionId);
 
@@ -106,18 +105,20 @@ const handleAIRequest = async ({
     getErrorMessage: errorHandler,
   });
 
-  // 添加断流恢复功能
-  const streamContext = getStreamContext();
+  return dataStreamResponse;
 
-  if (streamContext) {
-    const resumedStream = await streamContext.resumableStream(
-      streamId,
-      () => dataStreamResponse.body!
-    );
-    return new Response(resumedStream);
-  } else {
-    return dataStreamResponse;
-  }
+  // To do: add stream resumption
+  // const streamContext = getStreamContext();
+
+  // if (streamContext) {
+  //   const resumedStream = await streamContext.resumableStream(
+  //     streamId,
+  //     () => dataStreamResponse.body!
+  //   );
+  //   return new Response(resumedStream);
+  // } else {
+  //   return dataStreamResponse;
+  // }
 };
 
 export { handleAIRequest, generateTitleFromUserMessage };
