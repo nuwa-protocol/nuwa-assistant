@@ -1,56 +1,108 @@
-import { Artifact } from '@/components/create-artifact';
-import { DiffView } from '@/components/diffview';
-import { DocumentSkeleton } from '@/components/document-skeleton';
-import { Editor } from '@/components/text-editor';
+import { Artifact } from "@/components/create-artifact";
+import { DiffView } from "@/components/diffview";
+import { DocumentSkeleton } from "@/components/document-skeleton";
+import { Editor } from "@/components/text-editor";
 import {
-    ClockRewind,
-    CopyIcon,
-    MessageIcon,
-    PenIcon,
-    RedoIcon,
-    UndoIcon,
-} from '@/components/icons';
-import type { ClientSuggestion } from '@/lib/stores/document-store';
-import { toast } from 'sonner';
+  ClockRewind,
+  CopyIcon,
+  MessageIcon,
+  PenIcon,
+  RedoIcon,
+  UndoIcon,
+} from "@/components/icons";
+import type { ClientSuggestion } from "@/lib/stores/document-store";
+import { smoothStream, streamText } from "ai";
+import { myProvider } from "@/lib/ai/providers";
+import { updateDocumentPrompt } from "@/lib/ai/prompts";
+import { toast } from "sonner";
+import { useDocumentStore } from "@/lib/stores/document-store";
 
 interface TextArtifactMetadata {
   suggestions: Array<ClientSuggestion>;
 }
 
-export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
-  kind: 'text',
-  description: 'Useful for text content, like drafting essays and emails.',
+async function generateTextContent(
+  title: string,
+  onDelta: (delta: string) => void
+): Promise<string> {
+  let draftContent = "";
+
+  const { fullStream } = streamText({
+    model: myProvider.languageModel("artifact-model"),
+    system:
+      "Write about the given topic. Markdown is supported. Use headings wherever appropriate.",
+    experimental_transform: smoothStream({ chunking: "word" }),
+    prompt: title,
+  });
+
+  for await (const delta of fullStream) {
+    if (delta.type === "text-delta") {
+      const { textDelta } = delta;
+      draftContent += textDelta;
+      onDelta(textDelta);
+    }
+  }
+
+  return draftContent;
+}
+
+async function updateTextContent(
+  currentContent: string,
+  description: string,
+  onDelta: (delta: string) => void
+): Promise<string> {
+  let draftContent = "";
+
+  const { fullStream } = streamText({
+    model: myProvider.languageModel("artifact-model"),
+    system: updateDocumentPrompt(currentContent, "text"),
+    experimental_transform: smoothStream({ chunking: "word" }),
+    prompt: description,
+    experimental_providerMetadata: {
+      openai: {
+        prediction: {
+          type: "content",
+          content: currentContent,
+        },
+      },
+    },
+  });
+
+  for await (const delta of fullStream) {
+    if (delta.type === "text-delta") {
+      const { textDelta } = delta;
+      draftContent += textDelta;
+      onDelta(textDelta);
+    }
+  }
+
+  return draftContent;
+}
+
+export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
+  kind: "text",
+  description: "Useful for text content, like drafting essays and emails.",
   initialize: async ({ documentId, setMetadata }) => {
-    // In client-only mode, suggestions are managed locally
-    // We'll start with an empty array and let the client manage suggestions
+    const { getSuggestionsByDocument } = useDocumentStore.getState();
+    const suggestions = getSuggestionsByDocument(documentId);
+
     setMetadata({
-      suggestions: [],
+      suggestions,
     });
   },
   onStreamPart: ({ streamPart, setMetadata, setArtifact }) => {
-    if (streamPart.type === 'suggestion') {
-      setMetadata((metadata) => {
-        return {
-          suggestions: [
-            ...metadata.suggestions,
-            streamPart.content as ClientSuggestion,
-          ],
-        };
-      });
-    }
-
-    if (streamPart.type === 'text-delta') {
+    if (streamPart.type === "text-delta") {
       setArtifact((draftArtifact) => {
         return {
           ...draftArtifact,
           content: draftArtifact.content + (streamPart.content as string),
           isVisible:
-            draftArtifact.status === 'streaming' &&
+            draftArtifact.status === "streaming" &&
             draftArtifact.content.length > 400 &&
             draftArtifact.content.length < 450
               ? true
               : draftArtifact.isVisible,
-          status: 'streaming',
+          status: "streaming",
         };
       });
     }
@@ -70,7 +122,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
       return <DocumentSkeleton artifactKind="text" />;
     }
 
-    if (mode === 'diff') {
+    if (mode === "diff") {
       const oldContent = getDocumentContentById(currentVersionIndex - 1);
       const newContent = getDocumentContentById(currentVersionIndex);
 
@@ -89,8 +141,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
             onSaveContent={onSaveContent}
           />
 
-          {metadata?.suggestions &&
-          metadata.suggestions.length > 0 ? (
+          {metadata?.suggestions && metadata.suggestions.length > 0 ? (
             <div className="md:hidden h-dvh w-12 shrink-0" />
           ) : null}
         </div>
@@ -100,9 +151,9 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
   actions: [
     {
       icon: <ClockRewind size={18} />,
-      description: 'View changes',
+      description: "View changes",
       onClick: ({ handleVersionChange }) => {
-        handleVersionChange('toggle');
+        handleVersionChange("toggle");
       },
       isDisabled: ({ currentVersionIndex, setMetadata }) => {
         if (currentVersionIndex === 0) {
@@ -114,9 +165,9 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
     },
     {
       icon: <UndoIcon size={18} />,
-      description: 'View Previous version',
+      description: "View Previous version",
       onClick: ({ handleVersionChange }) => {
-        handleVersionChange('prev');
+        handleVersionChange("prev");
       },
       isDisabled: ({ currentVersionIndex }) => {
         if (currentVersionIndex === 0) {
@@ -128,9 +179,9 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
     },
     {
       icon: <RedoIcon size={18} />,
-      description: 'View Next version',
+      description: "View Next version",
       onClick: ({ handleVersionChange }) => {
-        handleVersionChange('next');
+        handleVersionChange("next");
       },
       isDisabled: ({ isCurrentVersion }) => {
         if (isCurrentVersion) {
@@ -142,35 +193,37 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
     },
     {
       icon: <CopyIcon size={18} />,
-      description: 'Copy to clipboard',
+      description: "Copy to clipboard",
       onClick: ({ content }) => {
         navigator.clipboard.writeText(content);
-        toast.success('Copied to clipboard!');
+        toast.success("Copied to clipboard!");
       },
     },
   ],
   toolbar: [
     {
       icon: <PenIcon />,
-      description: 'Add final polish',
+      description: "Add final polish",
       onClick: ({ appendMessage }) => {
         appendMessage({
-          role: 'user',
+          role: "user",
           content:
-            'Please add final polish and check for grammar, add section titles for better structure, and ensure everything reads smoothly.',
+            "Please add final polish and check for grammar, add section titles for better structure, and ensure everything reads smoothly.",
         });
       },
     },
     {
       icon: <MessageIcon />,
-      description: 'Request suggestions',
+      description: "Request suggestions",
       onClick: ({ appendMessage }) => {
         appendMessage({
-          role: 'user',
+          role: "user",
           content:
-            'Please add suggestions you have that could improve the writing.',
+            "Please add suggestions you have that could improve the writing.",
         });
       },
     },
   ],
 });
+
+export { generateTextContent, updateTextContent };

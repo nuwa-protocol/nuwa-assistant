@@ -1,19 +1,19 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { generateUUID } from '@/lib/utils';
-import Dexie, { type Table } from 'dexie';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { generateUUID } from "@/lib/utils";
+import Dexie, { type Table } from "dexie";
 
-// 文档接口
+// document interface
 export interface ClientDocument {
   id: string;
   title: string;
   content: string | null;
-  kind: 'text' | 'code' | 'image' | 'sheet';
+  kind: "text" | "code" | "image" | "sheet";
   createdAt: number;
   updatedAt: number;
 }
 
-// 建议接口
+// suggestion interface
 export interface ClientSuggestion {
   id: string;
   documentId: string;
@@ -24,40 +24,49 @@ export interface ClientSuggestion {
   createdAt: number;
 }
 
-// Dexie 数据库定义
+// Dexie database definition
 class DocumentDatabase extends Dexie {
   documents!: Table<ClientDocument>;
   suggestions!: Table<ClientSuggestion>;
 
   constructor() {
-    if (typeof window === 'undefined') {
-      // 在服务器端返回一个空的 Dexie 实例
-      super('dummy');
+    if (typeof window === "undefined") {
+      // return a dummy Dexie instance on the server side
+      super("dummy");
       return;
     }
-    super('DocumentDatabase');
+    super("DocumentDatabase");
     this.version(1).stores({
-      documents: 'id, createdAt, updatedAt, kind',
-      suggestions: 'id, documentId, createdAt, isResolved'
+      documents: "id, createdAt, updatedAt, kind",
+      suggestions: "id, documentId, createdAt, isResolved",
     });
   }
 }
 
 const documentDB = new DocumentDatabase();
 
-// 文档存储状态接口
+// document store state interface
 interface DocumentStoreState {
   documents: Record<string, ClientDocument>;
   suggestions: Record<string, ClientSuggestion>;
-  
-  // 文档管理
-  createDocument: (title: string, kind: ClientDocument['kind']) => string;
+
+  // document management
+  createDocument: (title: string, kind: ClientDocument["kind"]) => string;
+  createDocumentWithId: (
+    id: string,
+    title: string,
+    kind: ClientDocument["kind"],
+    content?: string
+  ) => void;
   getDocument: (id: string) => ClientDocument | null;
-  updateDocument: (id: string, updates: Partial<Omit<ClientDocument, 'id' | 'createdAt'>>) => void;
+  updateDocument: (
+    id: string,
+    updates: Partial<Omit<ClientDocument, "id" | "createdAt">>
+  ) => void;
   deleteDocument: (id: string) => void;
   setDocumentContent: (id: string, content: string) => void;
-  
-  // 建议管理
+
+  // suggestion management
   createSuggestion: (
     documentId: string,
     originalText: string,
@@ -65,31 +74,33 @@ interface DocumentStoreState {
     description?: string
   ) => string;
   getSuggestionsByDocument: (documentId: string) => ClientSuggestion[];
-  updateSuggestion: (id: string, updates: Partial<Omit<ClientSuggestion, 'id' | 'createdAt'>>) => void;
+  updateSuggestion: (
+    id: string,
+    updates: Partial<Omit<ClientSuggestion, "id" | "createdAt">>
+  ) => void;
   resolveSuggestion: (id: string) => void;
   deleteSuggestion: (id: string) => void;
-  
-  // 工具方法
+
+  // utility methods
   getSortedDocuments: () => ClientDocument[];
   clearAllDocuments: () => void;
   clearAllSuggestions: () => void;
-  
-  // 数据持久化
+
+  // data persistence
   loadFromDB: () => Promise<void>;
   saveToDB: () => Promise<void>;
 }
 
+const isBrowser = typeof window !== "undefined";
 
-const isBrowser = typeof window !== 'undefined';
-
-// 自定义存储适配器
+// custom storage adapter
 const persistStorage = {
   getItem: async (name: string): Promise<string | null> => {
     if (!isBrowser) return null;
     try {
       return localStorage.getItem(name);
     } catch (error) {
-      console.error('Error reading from localStorage:', error);
+      console.error("Error reading from localStorage:", error);
       return null;
     }
   },
@@ -98,7 +109,7 @@ const persistStorage = {
     try {
       localStorage.setItem(name, value);
     } catch (error) {
-      console.error('Error writing to localStorage:', error);
+      console.error("Error writing to localStorage:", error);
     }
   },
   removeItem: async (name: string): Promise<void> => {
@@ -106,7 +117,7 @@ const persistStorage = {
     try {
       localStorage.removeItem(name);
     } catch (error) {
-      console.error('Error removing from localStorage:', error);
+      console.error("Error removing from localStorage:", error);
     }
   },
 };
@@ -117,7 +128,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
       documents: {},
       suggestions: {},
 
-      createDocument: (title: string, kind: ClientDocument['kind']) => {
+      createDocument: (title: string, kind: ClientDocument["kind"]) => {
         const id = generateUUID();
         const now = Date.now();
 
@@ -137,9 +148,37 @@ export const useDocumentStore = create<DocumentStoreState>()(
           },
         }));
 
-        // 异步保存到 IndexedDB
+        // save to IndexedDB asynchronously
         get().saveToDB();
         return id;
+      },
+
+      createDocumentWithId: (
+        id: string,
+        title: string,
+        kind: ClientDocument["kind"],
+        content?: string
+      ) => {
+        const now = Date.now();
+
+        const newDocument: ClientDocument = {
+          id,
+          title,
+          content: content || null,
+          kind,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        set((state) => ({
+          documents: {
+            ...state.documents,
+            [id]: newDocument,
+          },
+        }));
+
+        // save to IndexedDB asynchronously
+        get().saveToDB();
       },
 
       getDocument: (id: string) => {
@@ -147,7 +186,10 @@ export const useDocumentStore = create<DocumentStoreState>()(
         return documents[id] || null;
       },
 
-      updateDocument: (id: string, updates: Partial<Omit<ClientDocument, 'id' | 'createdAt'>>) => {
+      updateDocument: (
+        id: string,
+        updates: Partial<Omit<ClientDocument, "id" | "createdAt">>
+      ) => {
         set((state) => {
           const document = state.documents[id];
           if (!document) return state;
@@ -172,10 +214,12 @@ export const useDocumentStore = create<DocumentStoreState>()(
       deleteDocument: (id: string) => {
         set((state) => {
           const { [id]: deleted, ...restDocuments } = state.documents;
-          
-          // 同时删除相关的建议
+
+          // delete related suggestions
           const filteredSuggestions = Object.fromEntries(
-            Object.entries(state.suggestions).filter(([_, suggestion]) => suggestion.documentId !== id)
+            Object.entries(state.suggestions).filter(
+              ([_, suggestion]) => suggestion.documentId !== id
+            )
           );
 
           return {
@@ -184,13 +228,16 @@ export const useDocumentStore = create<DocumentStoreState>()(
           };
         });
 
-        // 异步删除相关数据
+        // delete related data asynchronously
         const deleteFromDB = async () => {
           try {
             await documentDB.documents.delete(id);
-            await documentDB.suggestions.where('documentId').equals(id).delete();
+            await documentDB.suggestions
+              .where("documentId")
+              .equals(id)
+              .delete();
           } catch (error) {
-            console.error('Failed to delete from DB:', error);
+            console.error("Failed to delete from DB:", error);
           }
         };
         deleteFromDB();
@@ -225,12 +272,12 @@ export const useDocumentStore = create<DocumentStoreState>()(
           },
         }));
 
-        // 异步保存建议到 IndexedDB
+        // save suggestion to IndexedDB asynchronously
         const saveSuggestionToDB = async () => {
           try {
             await documentDB.suggestions.add(newSuggestion);
           } catch (error) {
-            console.error('Failed to save suggestion to DB:', error);
+            console.error("Failed to save suggestion to DB:", error);
           }
         };
         saveSuggestionToDB();
@@ -245,7 +292,10 @@ export const useDocumentStore = create<DocumentStoreState>()(
           .sort((a, b) => b.createdAt - a.createdAt);
       },
 
-      updateSuggestion: (id: string, updates: Partial<Omit<ClientSuggestion, 'id' | 'createdAt'>>) => {
+      updateSuggestion: (
+        id: string,
+        updates: Partial<Omit<ClientSuggestion, "id" | "createdAt">>
+      ) => {
         set((state) => {
           const suggestion = state.suggestions[id];
           if (!suggestion) return state;
@@ -263,7 +313,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
           };
         });
 
-        // 异步保存到 IndexedDB
+        // save to IndexedDB asynchronously
         const saveSuggestionToDB = async () => {
           try {
             const { suggestions } = get();
@@ -272,7 +322,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
               await documentDB.suggestions.put(suggestion);
             }
           } catch (error) {
-            console.error('Failed to save suggestion to DB:', error);
+            console.error("Failed to save suggestion to DB:", error);
           }
         };
         saveSuggestionToDB();
@@ -290,12 +340,12 @@ export const useDocumentStore = create<DocumentStoreState>()(
           };
         });
 
-        // 异步删除
+        // delete asynchronously
         const deleteFromDB = async () => {
           try {
             await documentDB.suggestions.delete(id);
           } catch (error) {
-            console.error('Failed to delete suggestion from DB:', error);
+            console.error("Failed to delete suggestion from DB:", error);
           }
         };
         deleteFromDB();
@@ -303,7 +353,9 @@ export const useDocumentStore = create<DocumentStoreState>()(
 
       getSortedDocuments: () => {
         const { documents } = get();
-        return Object.values(documents).sort((a, b) => b.updatedAt - a.updatedAt);
+        return Object.values(documents).sort(
+          (a, b) => b.updatedAt - a.updatedAt
+        );
       },
 
       clearAllDocuments: () => {
@@ -311,12 +363,12 @@ export const useDocumentStore = create<DocumentStoreState>()(
           documents: {},
         });
 
-        // 清理 IndexedDB
+        // clear IndexedDB
         const clearDB = async () => {
           try {
             await documentDB.documents.clear();
           } catch (error) {
-            console.error('Failed to clear documents from DB:', error);
+            console.error("Failed to clear documents from DB:", error);
           }
         };
         clearDB();
@@ -327,49 +379,49 @@ export const useDocumentStore = create<DocumentStoreState>()(
           suggestions: {},
         });
 
-        // 清理 IndexedDB
+        // clear IndexedDB
         const clearDB = async () => {
           try {
             await documentDB.suggestions.clear();
           } catch (error) {
-            console.error('Failed to clear suggestions from DB:', error);
+            console.error("Failed to clear suggestions from DB:", error);
           }
         };
         clearDB();
       },
 
       loadFromDB: async () => {
-        if (typeof window === 'undefined') return;
-        
+        if (typeof window === "undefined") return;
+
         try {
           const [documents, suggestions] = await Promise.all([
             documentDB.documents.toArray(),
-            documentDB.suggestions.toArray()
+            documentDB.suggestions.toArray(),
           ]);
 
           const documentsMap: Record<string, ClientDocument> = {};
           const suggestionsMap: Record<string, ClientSuggestion> = {};
 
-          documents.forEach(doc => {
+          documents.forEach((doc) => {
             documentsMap[doc.id] = doc;
           });
 
-          suggestions.forEach(suggestion => {
+          suggestions.forEach((suggestion) => {
             suggestionsMap[suggestion.id] = suggestion;
           });
 
           set((state) => ({
             documents: { ...state.documents, ...documentsMap },
-            suggestions: { ...state.suggestions, ...suggestionsMap }
+            suggestions: { ...state.suggestions, ...suggestionsMap },
           }));
         } catch (error) {
-          console.error('Failed to load from DB:', error);
+          console.error("Failed to load from DB:", error);
         }
       },
 
       saveToDB: async () => {
-        if (typeof window === 'undefined') return;
-        
+        if (typeof window === "undefined") return;
+
         try {
           const { documents, suggestions } = get();
           const documentsToSave = Object.values(documents);
@@ -377,26 +429,26 @@ export const useDocumentStore = create<DocumentStoreState>()(
 
           await Promise.all([
             documentDB.documents.bulkPut(documentsToSave),
-            documentDB.suggestions.bulkPut(suggestionsToSave)
+            documentDB.suggestions.bulkPut(suggestionsToSave),
           ]);
         } catch (error) {
-          console.error('Failed to save to DB:', error);
+          console.error("Failed to save to DB:", error);
         }
       },
     }),
     {
-      name: 'document-storage',
+      name: "document-storage",
       storage: createJSONStorage(() => persistStorage),
       partialize: (state) => ({
         documents: state.documents,
         suggestions: state.suggestions,
       }),
       onRehydrateStorage: () => (state) => {
-        // 组件挂载后从 IndexedDB 加载数据
+        // load data from IndexedDB after component mount
         if (state) {
           state.loadFromDB();
         }
       },
     }
   )
-); 
+);

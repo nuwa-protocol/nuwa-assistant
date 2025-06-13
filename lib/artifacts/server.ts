@@ -1,10 +1,9 @@
-import { codeDocumentHandler } from '@/artifacts/code/server';
-import { imageDocumentHandler } from '@/artifacts/image/server';
-import { sheetDocumentHandler } from '@/artifacts/sheet/server';
-import { textDocumentHandler } from '@/artifacts/text/server';
-import type { ArtifactKind } from '@/components/artifact';
-import type { DataStreamWriter } from 'ai';
-import type { Session } from 'next-auth';
+import { codeDocumentHandler } from "@/artifacts/code/server";
+import { imageDocumentHandler } from "@/artifacts/image/server";
+import { sheetDocumentHandler } from "@/artifacts/sheet/server";
+import { textDocumentHandler } from "@/artifacts/text/server";
+import type { ArtifactKind } from "@/components/artifact";
+import type { DataStreamWriter } from "ai";
 
 // Client document interface (replacing database Document)
 export interface ClientDocument {
@@ -21,21 +20,18 @@ export interface SaveDocumentProps {
   title: string;
   kind: ArtifactKind;
   content: string;
-  userId: string;
 }
 
 export interface CreateDocumentCallbackProps {
   id: string;
   title: string;
   dataStream: DataStreamWriter;
-  session: Session;
 }
 
 export interface UpdateDocumentCallbackProps {
   document: ClientDocument;
   description: string;
   dataStream: DataStreamWriter;
-  session: Session;
 }
 
 export interface DocumentHandler<T = ArtifactKind> {
@@ -56,11 +52,19 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
         id: args.id,
         title: args.title,
         dataStream: args.dataStream,
-        session: args.session,
       });
 
-      // Note: Document saving is now handled on the client side through useDocumentStore
-      // The server only generates the content and streams it back
+      // send the complete content to the client for saving
+      args.dataStream.writeData({
+        type: "save-document",
+        content: JSON.stringify({
+          id: args.id,
+          title: args.title,
+          content: draftContent,
+          kind: config.kind,
+        }),
+      });
+
       return;
     },
     onUpdateDocument: async (args: UpdateDocumentCallbackProps) => {
@@ -68,11 +72,19 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
         document: args.document,
         description: args.description,
         dataStream: args.dataStream,
-        session: args.session,
       });
 
-      // Note: Document saving is now handled on the client side through useDocumentStore
-      // The server only generates the content and streams it back
+      // send the updated content to the client for saving
+      args.dataStream.writeData({
+        type: "save-document",
+        content: JSON.stringify({
+          id: args.document.id,
+          title: args.document.title,
+          content: draftContent,
+          kind: config.kind,
+        }),
+      });
+
       return;
     },
   };
@@ -88,4 +100,4 @@ export const documentHandlersByArtifactKind: Array<DocumentHandler> = [
   sheetDocumentHandler,
 ];
 
-export const artifactKinds = ['text', 'code', 'image', 'sheet'] as const;
+export const artifactKinds = ["text", "code", "image", "sheet"] as const;

@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
-import type { UIArtifact } from '@/components/artifact';
-import { useCallback, useMemo } from 'react';
+import useSWR from "swr";
+import type { UIArtifact } from "@/components/artifact";
+import { useCallback, useMemo } from "react";
 
 export const initialArtifactData: UIArtifact = {
-  documentId: 'init',
-  content: '',
-  kind: 'text',
-  title: '',
-  status: 'idle',
+  documentId: "init",
+  content: "",
+  kind: "text",
+  title: "",
+  status: "idle",
   isVisible: false,
   boundingBox: {
     top: 0,
@@ -19,10 +19,26 @@ export const initialArtifactData: UIArtifact = {
   },
 };
 
+// global artifact state management
+let globalArtifactMutate:
+  | ((
+      updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)
+    ) => void)
+  | null = null;
+
+// global update function for external tools
+export const updateGlobalArtifact = (
+  updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)
+) => {
+  if (globalArtifactMutate) {
+    globalArtifactMutate(updaterFn);
+  }
+};
+
 type Selector<T> = (state: UIArtifact) => T;
 
 export function useArtifactSelector<Selected>(selector: Selector<Selected>) {
-  const { data: localArtifact } = useSWR<UIArtifact>('artifact', null, {
+  const { data: localArtifact } = useSWR<UIArtifact>("artifact", null, {
     fallbackData: initialArtifactData,
   });
 
@@ -36,11 +52,11 @@ export function useArtifactSelector<Selected>(selector: Selector<Selected>) {
 
 export function useArtifact() {
   const { data: localArtifact, mutate: setLocalArtifact } = useSWR<UIArtifact>(
-    'artifact',
+    "artifact",
     null,
     {
       fallbackData: initialArtifactData,
-    },
+    }
   );
 
   const artifact = useMemo(() => {
@@ -53,15 +69,20 @@ export function useArtifact() {
       setLocalArtifact((currentArtifact) => {
         const artifactToUpdate = currentArtifact || initialArtifactData;
 
-        if (typeof updaterFn === 'function') {
+        if (typeof updaterFn === "function") {
           return updaterFn(artifactToUpdate);
         }
 
         return updaterFn;
       });
     },
-    [setLocalArtifact],
+    [setLocalArtifact]
   );
+
+  // register global update function
+  useMemo(() => {
+    globalArtifactMutate = setArtifact;
+  }, [setArtifact]);
 
   const { data: localArtifactMetadata, mutate: setLocalArtifactMetadata } =
     useSWR<any>(
@@ -70,7 +91,7 @@ export function useArtifact() {
       null,
       {
         fallbackData: null,
-      },
+      }
     );
 
   return useMemo(
@@ -80,6 +101,6 @@ export function useArtifact() {
       metadata: localArtifactMetadata,
       setMetadata: setLocalArtifactMetadata,
     }),
-    [artifact, setArtifact, localArtifactMetadata, setLocalArtifactMetadata],
+    [artifact, setArtifact, localArtifactMetadata, setLocalArtifactMetadata]
   );
 }

@@ -1,20 +1,19 @@
-'use client';
+"use client";
 
-import type { Attachment, UIMessage } from 'ai';
-import { useChat } from '@ai-sdk/react';
-import { useEffect, useState } from 'react';
-import { ChatHeader } from '@/components/chat-header';
-import { generateUUID } from '@/lib/utils';
-import { Artifact } from './artifact';
-import { MultimodalInput } from './multimodal-input';
-import { Messages } from './messages';
-import { useArtifactSelector } from '@/hooks/use-artifact';
-import { useSearchParams } from 'next/navigation';
-import { useAutoResume } from '@/hooks/use-auto-resume';
-import { ChatSDKError } from '@/lib/errors';
-import { useChatStore } from '@/lib/stores/chat-store';
-import { ErrorHandlers } from '@/lib/error-handler';
-import { createClientAIFetch } from '@/lib/ai/client-fetch';
+import type { Attachment, UIMessage } from "ai";
+import { useChat } from "@ai-sdk/react";
+import { useEffect, useState } from "react";
+import { ChatHeader } from "@/components/chat-header";
+import { generateUUID } from "@/lib/utils";
+import { Artifact } from "./artifact";
+import { MultimodalInput } from "./multimodal-input";
+import { Messages } from "./messages";
+import { useArtifactSelector } from "@/hooks/use-artifact";
+import { useSearchParams } from "next/navigation";
+import { useAutoResume } from "@/hooks/use-auto-resume";
+import { ChatSDKError } from "@/lib/errors";
+import { ErrorHandlers } from "@/lib/error-handler";
+import { createClientAIFetch } from "@/lib/ai/client-fetch";
 
 export function Chat({
   id,
@@ -29,8 +28,6 @@ export function Chat({
   isReadonly: boolean;
   autoResume: boolean;
 }) {
-  const { updateSession } = useChatStore();
-
   const {
     messages,
     setMessages: setChatMessages,
@@ -62,14 +59,14 @@ export function Chat({
       if (error instanceof ChatSDKError) {
         errorMessage = ErrorHandlers.api(error.message);
       } else if (
-        error.name === 'TypeError' &&
-        error.message.includes('fetch')
+        error.name === "TypeError" &&
+        error.message.includes("fetch")
       ) {
         errorMessage = ErrorHandlers.network(
-          'Failed to connect to the AI service',
+          "Failed to connect to the AI service"
         );
-      } else if (error.message.includes('timeout')) {
-        errorMessage = ErrorHandlers.timeout('AI response');
+      } else if (error.message.includes("timeout")) {
+        errorMessage = ErrorHandlers.timeout("AI response");
       } else {
         errorMessage = ErrorHandlers.generic(error.message);
       }
@@ -80,19 +77,19 @@ export function Chat({
   });
 
   const searchParams = useSearchParams();
-  const query = searchParams.get('query');
+  const query = searchParams.get("query");
 
   const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
 
   useEffect(() => {
     if (query && !hasAppendedQuery) {
       append({
-        role: 'user',
+        role: "user",
         content: query,
       });
 
       setHasAppendedQuery(true);
-      window.history.replaceState({}, '', `/chat/${id}`);
+      window.history.replaceState({}, "", `/chat/${id}`);
     }
   }, [query, append, hasAppendedQuery, id]);
 

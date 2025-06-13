@@ -1,20 +1,18 @@
-'use client';
+"use client";
 
-import { isAfter } from 'date-fns';
-import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { useSWRConfig } from 'swr';
-import { useWindowSize } from 'usehooks-ts';
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { useWindowSize } from "usehooks-ts";
 
-import type { ClientDocument } from '@/lib/stores/document-store';
-import { getDocumentTimestampByIndex } from '@/lib/utils';
+import type { ClientDocument } from "@/lib/stores/document-store";
+import { useDocumentStore } from "@/lib/stores/document-store";
 
-import { LoaderIcon } from './icons';
-import { Button } from './ui/button';
-import { useArtifact } from '@/hooks/use-artifact';
+import { LoaderIcon } from "./icons";
+import { Button } from "./ui/button";
+import { useArtifact } from "@/hooks/use-artifact";
 
 interface VersionFooterProps {
-  handleVersionChange: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
+  handleVersionChange: (type: "next" | "prev" | "toggle" | "latest") => void;
   documents: Array<ClientDocument> | undefined;
   currentVersionIndex: number;
 }
@@ -25,11 +23,11 @@ export const VersionFooter = ({
   currentVersionIndex,
 }: VersionFooterProps) => {
   const { artifact } = useArtifact();
+  const { deleteDocument, updateDocument } = useDocumentStore();
 
   const { width } = useWindowSize();
   const isMobile = width < 768;
 
-  const { mutate } = useSWRConfig();
   const [isMutating, setIsMutating] = useState(false);
 
   if (!documents) return;
@@ -40,7 +38,7 @@ export const VersionFooter = ({
       initial={{ y: isMobile ? 200 : 77 }}
       animate={{ y: 0 }}
       exit={{ y: isMobile ? 200 : 77 }}
-      transition={{ type: 'spring', stiffness: 140, damping: 20 }}
+      transition={{ type: "spring", stiffness: 140, damping: 20 }}
     >
       <div>
         <div>You are viewing a previous version</div>
@@ -55,35 +53,24 @@ export const VersionFooter = ({
           onClick={async () => {
             setIsMutating(true);
 
-            mutate(
-              `/api/document?id=${artifact.documentId}`,
-              await fetch(
-                `/api/document?id=${artifact.documentId}&timestamp=${getDocumentTimestampByIndex(
-                  documents,
-                  currentVersionIndex,
-                )}`,
-                {
-                  method: 'DELETE',
-                },
-              ),
-              {
-                optimisticData: documents
-                  ? [
-                      ...documents.filter((document) =>
-                        isAfter(
-                          new Date(document.createdAt),
-                          new Date(
-                            getDocumentTimestampByIndex(
-                              documents,
-                              currentVersionIndex,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ]
-                  : [],
-              },
-            );
+            try {
+              // Get the current version's content
+              const currentDocument = documents[currentVersionIndex];
+              if (currentDocument) {
+                // Update document to the selected version's content
+                updateDocument(artifact.documentId, {
+                  content: currentDocument.content,
+                  updatedAt: Date.now(),
+                });
+
+                // Go back to latest version
+                handleVersionChange("latest");
+              }
+            } catch (error) {
+              console.error("Failed to restore version:", error);
+            } finally {
+              setIsMutating(false);
+            }
           }}
         >
           <div>Restore this version</div>
@@ -96,7 +83,7 @@ export const VersionFooter = ({
         <Button
           variant="outline"
           onClick={() => {
-            handleVersionChange('latest');
+            handleVersionChange("latest");
           }}
         >
           Back to latest version

@@ -1,18 +1,51 @@
-import { Artifact } from '@/components/create-artifact';
-import { CopyIcon, RedoIcon, UndoIcon } from '@/components/icons';
-import { ImageEditor } from '@/components/image-editor';
-import { toast } from 'sonner';
+import { Artifact } from "@/components/create-artifact";
+import { CopyIcon, RedoIcon, UndoIcon } from "@/components/icons";
+import { ImageEditor } from "@/components/image-editor";
+import { toast } from "sonner";
+import { myProvider } from "@/lib/ai/providers";
+import { experimental_generateImage } from "ai";
+
+// 客户端AI生成函数
+async function generateImageContent(
+  title: string,
+  onComplete: (imageBase64: string) => void
+): Promise<string> {
+  const { image } = await experimental_generateImage({
+    model: myProvider.imageModel("small-model"),
+    prompt: title,
+    n: 1,
+  });
+
+  const base64Content = image.base64;
+  onComplete(base64Content);
+  return base64Content;
+}
+
+async function updateImageContent(
+  description: string,
+  onComplete: (imageBase64: string) => void
+): Promise<string> {
+  const { image } = await experimental_generateImage({
+    model: myProvider.imageModel("small-model"),
+    prompt: description,
+    n: 1,
+  });
+
+  const base64Content = image.base64;
+  onComplete(base64Content);
+  return base64Content;
+}
 
 export const imageArtifact = new Artifact({
-  kind: 'image',
-  description: 'Useful for image generation',
+  kind: "image",
+  description: "Useful for image generation",
   onStreamPart: ({ streamPart, setArtifact }) => {
-    if (streamPart.type === 'image-delta') {
+    if (streamPart.type === "image-delta") {
       setArtifact((draftArtifact) => ({
         ...draftArtifact,
         content: streamPart.content as string,
         isVisible: true,
-        status: 'streaming',
+        status: "streaming",
       }));
     }
   },
@@ -20,9 +53,9 @@ export const imageArtifact = new Artifact({
   actions: [
     {
       icon: <UndoIcon size={18} />,
-      description: 'View Previous version',
+      description: "View Previous version",
       onClick: ({ handleVersionChange }) => {
-        handleVersionChange('prev');
+        handleVersionChange("prev");
       },
       isDisabled: ({ currentVersionIndex }) => {
         if (currentVersionIndex === 0) {
@@ -34,9 +67,9 @@ export const imageArtifact = new Artifact({
     },
     {
       icon: <RedoIcon size={18} />,
-      description: 'View Next version',
+      description: "View Next version",
       onClick: ({ handleVersionChange }) => {
-        handleVersionChange('next');
+        handleVersionChange("next");
       },
       isDisabled: ({ isCurrentVersion }) => {
         if (isCurrentVersion) {
@@ -48,29 +81,32 @@ export const imageArtifact = new Artifact({
     },
     {
       icon: <CopyIcon size={18} />,
-      description: 'Copy image to clipboard',
+      description: "Copy image to clipboard",
       onClick: ({ content }) => {
         const img = new Image();
         img.src = `data:image/png;base64,${content}`;
 
         img.onload = () => {
-          const canvas = document.createElement('canvas');
+          const canvas = document.createElement("canvas");
           canvas.width = img.width;
           canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext("2d");
           ctx?.drawImage(img, 0, 0);
           canvas.toBlob((blob) => {
             if (blob) {
               navigator.clipboard.write([
-                new ClipboardItem({ 'image/png': blob }),
+                new ClipboardItem({ "image/png": blob }),
               ]);
             }
-          }, 'image/png');
+          }, "image/png");
         };
 
-        toast.success('Copied image to clipboard!');
+        toast.success("Copied image to clipboard!");
       },
     },
   ],
   toolbar: [],
 });
+
+// 导出生成函数供外部使用
+export { generateImageContent, updateImageContent };
