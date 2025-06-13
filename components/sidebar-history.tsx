@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,7 +9,6 @@ import {
 import { useDIDStore } from '@/lib/stores/did-store';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { ChatItem } from './sidebar-history-item';
-import { ChatHistoryModal } from './chat-history-modal';
 import { useRouter } from 'next/navigation';
 
 export function SidebarHistory() {
@@ -18,7 +16,6 @@ export function SidebarHistory() {
   const { isAuthenticated } = useDIDStore();
   const { sessions, deleteSession, currentSessionId } = useChatStore();
   const router = useRouter();
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   if (!isAuthenticated) {
     return (
@@ -32,25 +29,47 @@ export function SidebarHistory() {
     );
   }
 
-  // filter out sessions with messages in the last 24 hours
+  // 获取所有有消息的 session 并按时间排序
   const now = Date.now();
-  const oneDayAgo = now - 24 * 60 * 60 * 1000;
-  
-  const recentSessions = Object.values(sessions)
-    .filter(session => 
-      session.messages.length > 0 && // only show sessions with messages
-      session.updatedAt > oneDayAgo   // updated in the last 24 hours
-    )
-    .sort((a, b) => b.updatedAt - a.updatedAt);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const todayStart = startOfToday.getTime();
+  const oneDay = 24 * 60 * 60 * 1000;
+  const sevenDaysAgo = now - 7 * oneDay;
+  const thirtyDaysAgo = now - 30 * oneDay;
 
-  // check if there are more history records
   const allSessionsWithMessages = Object.values(sessions)
     .filter(session => session.messages.length > 0)
     .sort((a, b) => b.updatedAt - a.updatedAt);
-  
-  const hasMoreHistory = allSessionsWithMessages.length > recentSessions.length;
 
-  if (recentSessions.length === 0) {
+  // 分组
+  const grouped = {
+    today: [] as typeof allSessionsWithMessages,
+    last7: [] as typeof allSessionsWithMessages,
+    last30: [] as typeof allSessionsWithMessages,
+    older: [] as typeof allSessionsWithMessages,
+  };
+
+  allSessionsWithMessages.forEach(session => {
+    if (session.updatedAt >= todayStart) {
+      grouped.today.push(session);
+    } else if (session.updatedAt >= sevenDaysAgo) {
+      grouped.last7.push(session);
+    } else if (session.updatedAt >= thirtyDaysAgo) {
+      grouped.last30.push(session);
+    } else {
+      grouped.older.push(session);
+    }
+  });
+
+  // 判断是否所有分组都为空
+  const isAllEmpty =
+    grouped.today.length === 0 &&
+    grouped.last7.length === 0 &&
+    grouped.last30.length === 0 &&
+    grouped.older.length === 0;
+
+  if (isAllEmpty) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
@@ -69,44 +88,42 @@ export function SidebarHistory() {
 
   const handleDelete = (id: string) => {
     deleteSession(id);
-    // if the deleted session is the current session, redirect to home page
     if (id === currentSessionId) {
       router.push('/');
     }
   };
 
-  return (
-    <>
-      <SidebarGroup>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {recentSessions.map((session) => (
-              <ChatItem
-                key={session.id}
-                chat={session}
-                isActive={session.id === currentSessionId}
-                onDelete={handleDelete}
-                setOpenMobile={setOpenMobile}
-              />
-            ))}
-            {hasMoreHistory && (
-              <div className="px-2 py-2">
-                <button 
-                  className="w-full text-left text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setIsHistoryModalOpen(true)}
-                >
-                  View more history...
-                </button>
-              </div>
-            )}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
+  // 分组渲染函数
+  const renderGroup = (title: string, items: typeof allSessionsWithMessages) => {
+    if (items.length === 0) return null;
+    return (
+      <div className="mb-2">
+        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+          {title}
+        </div>
+        {items.map(session => (
+          <ChatItem
+            key={session.id}
+            chat={session}
+            isActive={session.id === currentSessionId}
+            onDelete={handleDelete}
+            setOpenMobile={setOpenMobile}
+          />
+        ))}
+      </div>
+    );
+  };
 
-      <ChatHistoryModal 
-        isOpen={isHistoryModalOpen}
-        onClose={() => setIsHistoryModalOpen(false)}
-      />
-    </>
+  return (
+    <SidebarGroup>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {renderGroup('Today', grouped.today)}
+          {renderGroup('Last 7 days', grouped.last7)}
+          {renderGroup('Last 30 days', grouped.last30)}
+          {renderGroup('Older than last month', grouped.older)}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }
