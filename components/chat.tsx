@@ -13,6 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { ChatSDKError } from "@/lib/errors";
 import { ErrorHandlers } from "@/lib/error-handler";
 import { createClientAIFetch } from "@/lib/ai/client-fetch";
+import { useChatStore } from "@/lib/stores/chat-store";
 
 export function Chat({
   id,
@@ -25,6 +26,8 @@ export function Chat({
   initialChatModel: string;
   isReadonly: boolean;
 }) {
+  const { setCurrentSessionId } = useChatStore();
+  
   const {
     messages,
     setMessages: setChatMessages,
@@ -78,15 +81,17 @@ export function Chat({
 
   useEffect(() => {
     if (query && !hasAppendedQuery) {
+      // make sure current session is active
+      setCurrentSessionId(id);
+      
       append({
         role: "user",
         content: query,
       });
 
       setHasAppendedQuery(true);
-      window.history.replaceState({}, "", `/chat/${id}`);
     }
-  }, [query, append, hasAppendedQuery, id]);
+  }, [query, append, hasAppendedQuery, id, setCurrentSessionId]);
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);

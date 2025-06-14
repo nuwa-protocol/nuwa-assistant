@@ -5,7 +5,7 @@ import Dexie, { type Table } from 'dexie';
 import { generateTitleFromUserMessage } from '@/lib/ai/ai';
 
 // client chat interface
-export interface ClientChat {
+export interface ChatSession {
   id: string;
   title: string;
   createdAt: number;
@@ -22,7 +22,7 @@ export interface StreamRecord {
 
 // Dexie database definition
 class ChatDatabase extends Dexie {
-  chats!: Table<ClientChat>;
+  chats!: Table<ChatSession>;
   streams!: Table<StreamRecord>;
 
   constructor() {
@@ -43,14 +43,14 @@ const chatDB = new ChatDatabase();
 
 // chat store state interface
 interface ChatStoreState {
-  sessions: Record<string, ClientChat>;
+  sessions: Record<string, ChatSession>;
   currentSessionId: string | null;
 
   // session management
-  getSession: (id: string) => ClientChat | null;
-  updateSession: (id: string, updates: Partial<Omit<ClientChat, 'id'>>) => void;
+  getSession: (id: string) => ChatSession | null;
+  updateSession: (id: string, updates: Partial<Omit<ChatSession, 'id'>>) => void;
   deleteSession: (id: string) => void;
-  setCurrentSession: (id: string | null) => void;
+  setCurrentSessionId: (id: string | null) => void;
 
   // message management
   updateMessages: (sessionId: string, messages: Message[]) => void;
@@ -118,7 +118,7 @@ export const useChatStore = create<ChatStoreState>()(
         return sessions[id] || null;
       },
 
-      updateSession: (id: string, updates: Partial<Omit<ClientChat, 'id'>>) => {
+      updateSession: (id: string, updates: Partial<Omit<ChatSession, 'id'>>) => {
         set((state) => {
           const session = state.sessions[id];
           if (!session) return state;
@@ -162,7 +162,7 @@ export const useChatStore = create<ChatStoreState>()(
         deleteFromDB();
       },
 
-      setCurrentSession: (id: string | null) => {
+      setCurrentSessionId: (id: string | null) => {
         set({ currentSessionId: id });
       },
 
@@ -380,7 +380,7 @@ export const useChatStore = create<ChatStoreState>()(
             .orderBy('updatedAt')
             .reverse()
             .toArray();
-          const sessionsMap: Record<string, ClientChat> = {};
+          const sessionsMap: Record<string, ChatSession> = {};
 
           chats.forEach((chat) => {
             sessionsMap[chat.id] = chat;

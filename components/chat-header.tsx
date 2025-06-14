@@ -10,6 +10,9 @@ import { PlusIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { generateUUID } from '@/lib/utils';
+import { useChatStore } from '@/lib/stores/chat-store';
+import { AssistantNav } from '@/components/assistant-nav';
 
 function PureChatHeader({
   isReadonly,
@@ -20,6 +23,7 @@ function PureChatHeader({
   const { open } = useSidebar();
 
   const { width: windowWidth } = useWindowSize();
+  const { setCurrentSessionId } = useChatStore();
 
   return (
     <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
@@ -30,10 +34,9 @@ function PureChatHeader({
           <TooltipTrigger asChild>
             <Button
               variant="outline"
-              className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0"
+              className="md:px-2 px-2 md:h-fit"
               onClick={() => {
-                router.push('/');
-                router.refresh();
+                setCurrentSessionId(generateUUID());
               }}
             >
               <PlusIcon />
@@ -45,10 +48,13 @@ function PureChatHeader({
       )}
 
       {!isReadonly && (
-        <ModelSelector
-          className="order-1 md:order-2"
-        />
+        <ModelSelector />
       )}
+
+      <div className="flex-1" />
+      <div className="flex items-center">
+        <AssistantNav />
+      </div>
     </header>
   );
 }

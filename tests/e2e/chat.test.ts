@@ -17,15 +17,6 @@ test.describe('Chat activity', () => {
     expect(assistantMessage.content).toContain("It's just green duh!");
   });
 
-  test('Redirect to /chat/:id after submitting message', async () => {
-    await chatPage.sendUserMessage('Why is grass green?');
-    await chatPage.isGenerationComplete();
-
-    const assistantMessage = await chatPage.getRecentAssistantMessage();
-    expect(assistantMessage.content).toContain("It's just green duh!");
-    await chatPage.hasChatIdInUrl();
-  });
-
   test('Send a user message from suggestion', async () => {
     await chatPage.sendUserMessageFromSuggestion();
     await chatPage.isGenerationComplete();

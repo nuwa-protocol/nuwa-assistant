@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { memo } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import { useChatStore } from '@/lib/stores/chat-store';
 
 interface SuggestedActionsProps {
   chatId: string;
@@ -14,6 +15,8 @@ function PureSuggestedActions({
   chatId,
   append,
 }: SuggestedActionsProps) {
+  const { setCurrentSessionId } = useChatStore();
+  
   const suggestedActions = [
     {
       title: 'What are the advantages',
@@ -54,7 +57,8 @@ function PureSuggestedActions({
           <Button
             variant="ghost"
             onClick={async () => {
-              window.history.replaceState({}, '', `/chat/${chatId}`);
+              // make sure current session is active
+              setCurrentSessionId(chatId);
 
               append({
                 role: 'user',

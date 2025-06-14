@@ -1,10 +1,10 @@
-import type { ClientChat } from '@/lib/stores/chat-store';
+import type { ChatSession } from '@/lib/stores/chat-store';
 import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
 } from './ui/sidebar';
-import Link from 'next/link';
+import { useChatStore } from '@/lib/stores/chat-store';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,17 +23,24 @@ const PureChatItem = ({
   onDelete,
   setOpenMobile,
 }: {
-  chat: ClientChat;
+  chat: ChatSession;
   isActive: boolean;
   onDelete: (chatId: string) => void;
   setOpenMobile: (open: boolean) => void;
 }) => {
+  const { setCurrentSessionId } = useChatStore();
+
+  const handleChatSelect = () => {
+    setCurrentSessionId(chat.id);
+    setOpenMobile(false);
+  };
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive}>
-        <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
+        <button onClick={handleChatSelect}>
           <span>{chat.title}</span>
-        </Link>
+        </button>
       </SidebarMenuButton>
 
       <DropdownMenu modal={true}>

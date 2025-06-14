@@ -27,6 +27,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import { useFileStore } from "@/lib/stores/file-store";
+import { useChatStore } from '@/lib/stores/chat-store';
 
 function PureMultimodalInput({
   chatId,
@@ -58,6 +59,7 @@ function PureMultimodalInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
   const { uploadFile: storeFile, getFileURL, validateFile } = useFileStore();
+  const { setCurrentSessionId } = useChatStore();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -111,7 +113,8 @@ function PureMultimodalInput({
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
   const submitForm = useCallback(() => {
-    window.history.replaceState({}, "", `/chat/${chatId}`);
+    // make sure current session is active
+    setCurrentSessionId(chatId);
 
     handleSubmit(undefined, {
       experimental_attachments: attachments,
@@ -131,6 +134,7 @@ function PureMultimodalInput({
     setLocalStorageInput,
     width,
     chatId,
+    setCurrentSessionId,
   ]);
 
   const uploadFile = async (file: File) => {
@@ -317,7 +321,7 @@ export const MultimodalInput = memo(
     if (prevProps.input !== nextProps.input) return false;
     if (prevProps.status !== nextProps.status) return false;
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-
+    if (!equal(prevProps.messages, nextProps.messages)) return false;
     return true;
   }
 );
