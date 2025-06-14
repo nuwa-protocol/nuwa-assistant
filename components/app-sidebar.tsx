@@ -1,7 +1,6 @@
 'use client';
 
-
-import { PlusIcon } from '@/components/icons';
+import { useState } from 'react';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,10 +15,15 @@ import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { generateUUID } from '@/lib/utils';
 import { useChatStore } from '@/lib/stores/chat-store';
+import { useLocale } from '@/locales/use-locale';
+import { ChatHistorySearchModal } from '@/components/chat-history-search-modal';
+import { Search } from 'lucide-react';
 
 export function AppSidebar() {
   const { setOpenMobile } = useSidebar();
   const { setCurrentSessionId } = useChatStore();
+  const { t } = useLocale();
+  const [searchOpen, setSearchOpen] = useState(false);
   
   const handleNewChat = () => {
     setOpenMobile(false);
@@ -39,7 +43,7 @@ export function AppSidebar() {
               className="flex flex-row gap-3 items-center"
             >
               <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                Chatbot
+                {t('chat.chatbot')}
               </span>
             </Link>
             <Tooltip>
@@ -48,12 +52,12 @@ export function AppSidebar() {
                   variant="ghost"
                   type="button"
                   className="p-2 h-fit"
-                  onClick={handleNewChat}
+                  onClick={() => setSearchOpen(true)}
                 >
-                  <PlusIcon />
+                  <Search size={18} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent align="end">New Chat</TooltipContent>
+              <TooltipContent align="end">{t('chat.search')}</TooltipContent>
             </Tooltip>
           </div>
         </SidebarMenu>
@@ -63,6 +67,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
       </SidebarFooter>
+      <ChatHistorySearchModal open={searchOpen} onOpenChange={setSearchOpen} />
     </Sidebar>
   );
 }

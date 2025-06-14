@@ -1,11 +1,11 @@
 'use client';
 
 import { Chat } from '@/components/chat';
-import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import { AuthGuard } from '@/components/auth-guard';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { useEffect, useState } from 'react';
 import { generateId } from 'ai';
+import { useLocale } from '@/locales/use-locale';
 
 export default function Page() {
   const {
@@ -16,6 +16,7 @@ export default function Page() {
   } = useChatStore();
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
+  const { t } = useLocale();
 
   useEffect(() => {
     // render only based on currentSessionId, if not exist, create new
@@ -24,7 +25,7 @@ export default function Page() {
       const newId = generateId();
       updateMessages(newId, []);
       setCurrentSessionId(newId);
-      setSession({ id: newId, messages: [], model: DEFAULT_CHAT_MODEL });
+      setSession({ id: newId, messages: []});
       setIsLoading(false);
       return;
     }
@@ -36,7 +37,7 @@ export default function Page() {
     } else {
       // no corresponding session, create new
       updateMessages(currentSessionId, []);
-      setSession({ id: currentSessionId, messages: [], model: DEFAULT_CHAT_MODEL });
+      setSession({ id: currentSessionId, messages: []});
       setIsLoading(false);
     }
   }, [currentSessionId, getSession, setCurrentSessionId, updateMessages]);
@@ -48,7 +49,7 @@ export default function Page() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading chat...</p>
+              <p className="text-muted-foreground">{t('chat.loadingChat')}</p>
             </div>
           </div>
         </div>
@@ -61,7 +62,6 @@ export default function Page() {
       <Chat
         id={session.id}
         initialMessages={session.messages}
-        initialChatModel={session.model || DEFAULT_CHAT_MODEL}
         isReadonly={false}
       />
     </AuthGuard>

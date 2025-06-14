@@ -13,6 +13,7 @@ import { z } from "zod";
 import { streamObject } from "ai";
 import { myProvider } from "@/lib/ai/providers";
 import { sheetPrompt, updateDocumentPrompt } from "@/lib/ai/prompts";
+import { useLocale } from '@/locales/use-locale';
 
 // 客户端AI生成函数
 async function generateSheetContent(
@@ -70,7 +71,7 @@ type Metadata = any;
 
 export const sheetArtifact = new Artifact<"sheet", Metadata>({
   kind: "sheet",
-  description: "Useful for working with spreadsheets",
+  description: undefined as any,
   initialize: async () => {},
   onStreamPart: ({ setArtifact, streamPart }) => {
     if (streamPart.type === "sheet-delta") {
@@ -82,27 +83,21 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
       }));
     }
   },
-  content: ({
-    content,
-    currentVersionIndex,
-    isCurrentVersion,
-    onSaveContent,
-    status,
-  }) => {
+  content: (props) => {
     return (
       <SpreadsheetEditor
-        content={content}
-        currentVersionIndex={currentVersionIndex}
-        isCurrentVersion={isCurrentVersion}
-        saveContent={onSaveContent}
-        status={status}
+        content={props.content}
+        currentVersionIndex={props.currentVersionIndex}
+        isCurrentVersion={props.isCurrentVersion}
+        saveContent={props.onSaveContent}
+        status={props.status}
       />
     );
   },
   actions: [
     {
       icon: <UndoIcon size={18} />,
-      description: "View Previous version",
+      description: undefined as any,
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("prev");
       },
@@ -110,13 +105,12 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
         if (currentVersionIndex === 0) {
           return true;
         }
-
         return false;
       },
     },
     {
       icon: <RedoIcon size={18} />,
-      description: "View Next version",
+      description: undefined as any,
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("next");
       },
@@ -124,46 +118,44 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
         if (isCurrentVersion) {
           return true;
         }
-
         return false;
       },
     },
     {
       icon: <CopyIcon />,
-      description: "Copy as .csv",
+      description: undefined as any,
       onClick: ({ content }) => {
+        const { t } = useLocale();
         const parsed = parse<string[]>(content, { skipEmptyLines: true });
-
         const nonEmptyRows = parsed.data.filter((row) =>
           row.some((cell) => cell.trim() !== "")
         );
-
         const cleanedCsv = unparse(nonEmptyRows);
-
         navigator.clipboard.writeText(cleanedCsv);
-        toast.success("Copied csv to clipboard!");
+        toast.success(t('artifact.sheet.copiedCsv'));
       },
     },
   ],
   toolbar: [
     {
-      description: "Format and clean data",
+      description: undefined as any,
       icon: <SparklesIcon />,
       onClick: ({ appendMessage }) => {
+        const { t } = useLocale();
         appendMessage({
           role: "user",
-          content: "Can you please format and clean the data?",
+          content: t('artifact.sheet.formatPrompt'),
         });
       },
     },
     {
-      description: "Analyze and visualize data",
+      description: undefined as any,
       icon: <LineChartIcon />,
       onClick: ({ appendMessage }) => {
+        const { t } = useLocale();
         appendMessage({
           role: "user",
-          content:
-            "Can you please analyze and visualize the data by creating a new code artifact in python?",
+          content: t('artifact.sheet.analyzePrompt'),
         });
       },
     },

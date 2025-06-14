@@ -1,35 +1,30 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useWindowSize } from 'usehooks-ts';
+import { useLocale } from '@/locales/use-locale';
+import { useState } from 'react';
+import { useChatStore } from '@/lib/stores/chat-store';
+import { generateUUID } from '@/lib/utils';
 
-import { ModelSelector } from '@/components/model-selector';
 import { SidebarToggle } from '@/components/sidebar-toggle';
 import { Button } from '@/components/ui/button';
-import { PlusIcon } from './icons';
-import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { generateUUID } from '@/lib/utils';
-import { useChatStore } from '@/lib/stores/chat-store';
 import { AssistantNav } from '@/components/assistant-nav';
+import { ChatHistorySearchModal } from '@/components/chat-history-search-modal';
 
 function PureChatHeader({
-  isReadonly,
+  isReadonly: _isReadonly,
 }: {
   isReadonly: boolean;
 }) {
-  const router = useRouter();
-  const { open } = useSidebar();
-
-  const { width: windowWidth } = useWindowSize();
+  const { t } = useLocale();
   const { setCurrentSessionId } = useChatStore();
+
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
       <SidebarToggle />
-
-      {(!open || windowWidth < 768) && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -39,18 +34,12 @@ function PureChatHeader({
                 setCurrentSessionId(generateUUID());
               }}
             >
-              <PlusIcon />
-              <span className="md:sr-only">New Chat</span>
+              {t('chat.new')}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>New Chat</TooltipContent>
+          <TooltipContent>{t('chat.new')}</TooltipContent>
         </Tooltip>
-      )}
-
-      {!isReadonly && (
-        <ModelSelector />
-      )}
-
+        <ChatHistorySearchModal open={searchOpen} onOpenChange={setSearchOpen} />
       <div className="flex-1" />
       <div className="flex items-center">
         <AssistantNav />

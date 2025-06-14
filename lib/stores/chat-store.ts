@@ -181,7 +181,10 @@ export const useChatStore = create<ChatStoreState>()(
               updatedAt: Date.now(),
               messages: [],
             };
+            console.log('create new session');
           }
+
+          
 
           // check if there are new messages to add
           const currentMessageIds = new Set(session.messages.map(msg => msg.id));

@@ -19,6 +19,7 @@ import {
   type ConsoleOutput,
   type ConsoleOutputContent,
 } from "@/components/console";
+import { useLocale } from '@/locales/use-locale';
 
 const OUTPUT_HANDLERS = {
   matplotlib: `
@@ -72,12 +73,9 @@ interface Metadata {
 
 export const codeArtifact = new Artifact<"code", Metadata>({
   kind: "code",
-  description:
-    "Useful for code generation; Code execution is only available for python code.",
+  description: undefined as any,
   initialize: async ({ setMetadata }) => {
-    setMetadata({
-      outputs: [],
-    });
+    setMetadata({ outputs: [] });
   },
   onStreamPart: ({ streamPart, setArtifact }) => {
     if (streamPart.type === "code-delta") {
@@ -94,19 +92,18 @@ export const codeArtifact = new Artifact<"code", Metadata>({
       }));
     }
   },
-  content: ({ metadata, setMetadata, ...props }) => {
+  content: (props) => {
     return (
       <>
         <div className="px-1">
           <CodeEditor {...props} />
         </div>
-
-        {metadata?.outputs && (
+        {props.metadata?.outputs && (
           <Console
-            consoleOutputs={metadata.outputs}
+            consoleOutputs={props.metadata.outputs}
             setConsoleOutputs={() => {
-              setMetadata({
-                ...metadata,
+              props.setMetadata({
+                ...props.metadata,
                 outputs: [],
               });
             }}
@@ -118,8 +115,8 @@ export const codeArtifact = new Artifact<"code", Metadata>({
   actions: [
     {
       icon: <PlayIcon size={18} />,
-      label: "Run",
-      description: "Execute code",
+      label: undefined as any,
+      description: undefined as any,
       onClick: async ({ content, setMetadata }) => {
         const runId = generateUUID();
         const outputContent: Array<ConsoleOutputContent> = [];
@@ -214,7 +211,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     },
     {
       icon: <UndoIcon size={18} />,
-      description: "View Previous version",
+      description: undefined as any,
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("prev");
       },
@@ -222,13 +219,12 @@ export const codeArtifact = new Artifact<"code", Metadata>({
         if (currentVersionIndex === 0) {
           return true;
         }
-
         return false;
       },
     },
     {
       icon: <RedoIcon size={18} />,
-      description: "View Next version",
+      description: undefined as any,
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("next");
       },
@@ -236,37 +232,39 @@ export const codeArtifact = new Artifact<"code", Metadata>({
         if (isCurrentVersion) {
           return true;
         }
-
         return false;
       },
     },
     {
       icon: <CopyIcon size={18} />,
-      description: "Copy code to clipboard",
+      description: undefined as any,
       onClick: ({ content }) => {
+        const { t } = useLocale();
         navigator.clipboard.writeText(content);
-        toast.success("Copied to clipboard!");
+        toast.success(t('artifact.copied'));
       },
     },
   ],
   toolbar: [
     {
       icon: <MessageIcon />,
-      description: "Add comments",
+      description: undefined as any,
       onClick: ({ appendMessage }) => {
+        const { t } = useLocale();
         appendMessage({
           role: "user",
-          content: "Add comments to the code snippet for understanding",
+          content: t('artifact.code.addCommentsPrompt'),
         });
       },
     },
     {
       icon: <LogsIcon />,
-      description: "Add logs",
+      description: undefined as any,
       onClick: ({ appendMessage }) => {
+        const { t } = useLocale();
         appendMessage({
           role: "user",
-          content: "Add logs to the code snippet for debugging",
+          content: t('artifact.code.addLogsPrompt'),
         });
       },
     },

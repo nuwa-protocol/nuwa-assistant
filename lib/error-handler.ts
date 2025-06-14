@@ -1,5 +1,6 @@
 import type { UIMessage } from 'ai';
 import { generateUUID } from '@/lib/utils';
+import { getLocale } from '@/locales';
 
 // 错误级别
 export type ErrorLevel = 'info' | 'warning' | 'error' | 'critical';
@@ -9,6 +10,8 @@ interface ErrorHandlerOptions {
   level?: ErrorLevel;
   showToUser?: boolean;
 }
+
+const locale = getLocale('en');
 
 // 创建错误消息
 export function createErrorMessage(
@@ -24,7 +27,7 @@ export function createErrorMessage(
     const errorText = error instanceof Error ? error.message : error;
 
     if (!showToUser) {
-      return createSystemMessage('An error occurred. Please try again.');
+      return createSystemMessage(locale.error.tryAgain);
     }
 
     return createSystemMessage(formatErrorForUser(errorText, validLevel as ErrorLevel));
@@ -45,9 +48,7 @@ function formatErrorForUser(errorText: string, level: ErrorLevel): string {
   const emoji = getErrorEmoji(level);
   const prefix = getErrorPrefix(level);
 
-  return `${emoji} **${prefix}**: ${errorText}
-
-*If this issue persists, please check your internet connection or try refreshing the page.*`;
+  return `${emoji} **${prefix}**: ${errorText}\n\n*${locale.error.persist}*`;
 }
 
 // 获取错误表情符号
@@ -70,15 +71,15 @@ function getErrorEmoji(level: ErrorLevel): string {
 function getErrorPrefix(level: ErrorLevel): string {
   switch (level) {
     case 'info':
-      return 'Information';
+      return locale.error.info;
     case 'warning':
-      return 'Warning';
+      return locale.error.warning;
     case 'error':
-      return 'Error';
+      return locale.error.error;
     case 'critical':
-      return 'Critical Error';
+      return locale.error.critical;
     default:
-      return 'Error';
+      return locale.error.error;
   }
 }
 
@@ -97,49 +98,47 @@ function createSystemMessage(content: string): UIMessage {
 export const ErrorHandlers = {
   network: (error?: string) =>
     createErrorMessage(
-      error ||
-        'Network connection failed. Please check your internet connection.',
+      error || locale.error.network,
       { level: 'error' },
     ),
 
   api: (error?: string) =>
     createErrorMessage(
-      error || 'Service temporarily unavailable. Please try again later.',
+      error || locale.error.api,
       { level: 'error' },
     ),
 
   storage: (error?: string) =>
     createErrorMessage(
-      error ||
-        'Unable to save data locally. Please check your browser storage settings.',
+      error || locale.error.storage,
       { level: 'warning' },
     ),
 
   validation: (error?: string) =>
     createErrorMessage(
-      error || 'Invalid input provided. Please check your data and try again.',
+      error || locale.error.validation,
       { level: 'warning' },
     ),
 
   permission: (error?: string) =>
     createErrorMessage(
-      error || 'Permission denied. Please check your access rights.',
+      error || locale.error.permission,
       { level: 'error' },
     ),
 
   notFound: (resource = 'resource') =>
-    createErrorMessage(`The requested ${resource} was not found.`, {
+    createErrorMessage(locale.error.notFound.replace('{{resource}}', resource), {
       level: 'warning',
     }),
 
   timeout: (operation = 'operation') =>
-    createErrorMessage(`The ${operation} timed out. Please try again.`, {
+    createErrorMessage(locale.error.timeout.replace('{{operation}}', operation), {
       level: 'warning',
     }),
 
   generic: (error?: string) =>
     createErrorMessage(
-      error || 'An unexpected error occurred. Please try again.',
+      error || locale.error.generic,
       { level: 'error' },
     ),
 };

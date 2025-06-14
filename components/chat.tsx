@@ -10,7 +10,7 @@ import { MultimodalInput } from "./multimodal-input";
 import { Messages } from "./messages";
 import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useSearchParams } from "next/navigation";
-import { ChatSDKError } from "@/lib/errors";
+import { ChatSDKError } from "@/lib/chatsdk-errors";
 import { ErrorHandlers } from "@/lib/error-handler";
 import { createClientAIFetch } from "@/lib/ai/client-fetch";
 import { useChatStore } from "@/lib/stores/chat-store";
@@ -18,12 +18,10 @@ import { useChatStore } from "@/lib/stores/chat-store";
 export function Chat({
   id,
   initialMessages,
-  initialChatModel,
   isReadonly,
 }: {
   id: string;
   initialMessages: Array<UIMessage>;
-  initialChatModel: string;
   isReadonly: boolean;
 }) {
   const { setCurrentSessionId } = useChatStore();
@@ -47,7 +45,6 @@ export function Chat({
     fetch: createClientAIFetch(),
     experimental_prepareRequestBody: (body) => ({
       id,
-      selectedChatModel: initialChatModel,
       messages: body.messages,
       lastMessage: body.messages.at(-1),
     }),

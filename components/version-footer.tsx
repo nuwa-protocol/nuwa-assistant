@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useWindowSize } from "usehooks-ts";
+import { useLocale } from '@/locales/use-locale';
 
 import type { ClientDocument } from "@/lib/stores/document-store";
 import { useDocumentStore } from "@/lib/stores/document-store";
@@ -24,11 +25,10 @@ export const VersionFooter = ({
 }: VersionFooterProps) => {
   const { artifact } = useArtifact();
   const { deleteDocument, updateDocument } = useDocumentStore();
-
   const { width } = useWindowSize();
   const isMobile = width < 768;
-
   const [isMutating, setIsMutating] = useState(false);
+  const { t } = useLocale();
 
   if (!documents) return;
 
@@ -41,9 +41,9 @@ export const VersionFooter = ({
       transition={{ type: "spring", stiffness: 140, damping: 20 }}
     >
       <div>
-        <div>You are viewing a previous version</div>
+        <div>{t('version.viewingPrevious')}</div>
         <div className="text-muted-foreground text-sm">
-          Restore this version to make edits
+          {t('version.restoreToEdit')}
         </div>
       </div>
 
@@ -67,13 +67,13 @@ export const VersionFooter = ({
                 handleVersionChange("latest");
               }
             } catch (error) {
-              console.error("Failed to restore version:", error);
+              console.error(t('version.failedRestore'), error);
             } finally {
               setIsMutating(false);
             }
           }}
         >
-          <div>Restore this version</div>
+          <div>{t('version.restore')}</div>
           {isMutating && (
             <div className="animate-spin">
               <LoaderIcon />
@@ -86,7 +86,7 @@ export const VersionFooter = ({
             handleVersionChange("latest");
           }}
         >
-          Back to latest version
+          {t('version.backToLatest')}
         </Button>
       </div>
     </motion.div>

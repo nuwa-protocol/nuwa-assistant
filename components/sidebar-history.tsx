@@ -10,19 +10,21 @@ import { useDIDStore } from '@/lib/stores/did-store';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { ChatItem } from './sidebar-history-item';
 import { useRouter } from 'next/navigation';
+import { useLocale } from '@/locales/use-locale';
 
 export function SidebarHistory() {
   const { setOpenMobile } = useSidebar();
   const { isAuthenticated } = useDIDStore();
   const { sessions, deleteSession, currentSessionId } = useChatStore();
   const router = useRouter();
+  const { t } = useLocale();
 
   if (!isAuthenticated) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
           <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
-            Login with your DID to save chat history!
+            {t('chat.loginToSave')}
           </div>
         </SidebarGroupContent>
       </SidebarGroup>
@@ -75,9 +77,9 @@ export function SidebarHistory() {
         <SidebarGroupContent>
           <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">No chats yet</p>
+              <p className="text-sm text-muted-foreground">{t('chat.noChats')}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Start a conversation to see it here
+                {t('chat.startConversation')}
               </p>
             </div>
           </div>
@@ -99,7 +101,7 @@ export function SidebarHistory() {
     return (
       <div className="mb-2">
         <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
-          {title}
+          {t('chat.' + title.replace(/\s/g, '').replace('ThisWeek', 'thisWeek').replace('AWeekAgo', 'aWeekAgo').toLowerCase())}
         </div>
         {items.map(session => (
           <ChatItem

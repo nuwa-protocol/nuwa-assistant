@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { memo } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { useChatStore } from '@/lib/stores/chat-store';
+import { useLocale } from '@/locales/use-locale';
 
 interface SuggestedActionsProps {
   chatId: string;
@@ -16,29 +17,8 @@ function PureSuggestedActions({
   append,
 }: SuggestedActionsProps) {
   const { setCurrentSessionId } = useChatStore();
-  
-  const suggestedActions = [
-    {
-      title: 'What are the advantages',
-      label: 'of using Next.js?',
-      action: 'What are the advantages of using Next.js?',
-    },
-    {
-      title: 'Write code to',
-      label: `demonstrate djikstra's algorithm`,
-      action: `Write code to demonstrate djikstra's algorithm`,
-    },
-    {
-      title: 'Help me write an essay',
-      label: `about silicon valley`,
-      action: `Help me write an essay about silicon valley`,
-    },
-    {
-      title: 'What is the weather',
-      label: 'in San Francisco?',
-      action: 'What is the weather in San Francisco?',
-    },
-  ];
+  const { t } = useLocale();
+  const suggestedActions = t('suggestedActions') as Array<{title: string; label: string; action: string}>;
 
   return (
     <div

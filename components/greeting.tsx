@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
+import { useLocale } from '@/locales/use-locale';
 
 export const Greeting = () => {
+  const { t } = useLocale();
   return (
     <div
       key="overview"
@@ -13,7 +15,7 @@ export const Greeting = () => {
         transition={{ delay: 0.5 }}
         className="text-2xl font-semibold"
       >
-        Hello there!
+        {t('greeting.hello')}
       </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -22,7 +24,7 @@ export const Greeting = () => {
         transition={{ delay: 0.6 }}
         className="text-2xl text-zinc-500"
       >
-        How can I help you today?
+        {t('greeting.help')}
       </motion.div>
     </div>
   );

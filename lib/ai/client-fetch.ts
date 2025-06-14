@@ -1,6 +1,6 @@
 "use client";
 
-import { ChatSDKError } from "../errors";
+import { ChatSDKError } from "../chatsdk-errors";
 import { handleAIRequest } from "./ai";
 
 export const createClientAIFetch = (): ((
@@ -16,14 +16,12 @@ export const createClientAIFetch = (): ((
       const requestBody = JSON.parse(init.body as string);
       const {
         id: sessionId,
-        selectedChatModel,
         messages,
         lastMessage,
       } = requestBody;
 
       const response = await handleAIRequest({
         sessionId,
-        selectedChatModel,
         messages,
         lastMessage,
         signal: init?.signal ?? undefined,

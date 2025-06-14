@@ -8,7 +8,7 @@ import { useDocumentStore } from './document-store';
 const isBrowser = typeof window !== 'undefined';
 
 /**
- * 清除所有客户端存储的数据，包括：
+ * clear all client storage data, including:
  * - LocalStorage
  * - IndexedDB
  * - SessionStorage
@@ -20,17 +20,17 @@ export async function clearAllStorage() {
     return;
   }
 
-  // 重置所有 Zustand stores
+  // reset all Zustand stores
   useDIDStore.getState().logout();
   useChatStore.persist.clearStorage();
   useSettingsStore.persist.clearStorage();
   useFileStore.persist.clearStorage();
   useDocumentStore.persist.clearStorage();
   
-  // 清除 localStorage
+  // clear localStorage
   localStorage.clear();
   
-  // 清除 IndexedDB
+  // clear IndexedDB
   const databases = await window.indexedDB.databases();
   for (const { name } of databases) {
     if (name) {
@@ -38,10 +38,10 @@ export async function clearAllStorage() {
     }
   }
   
-  // 清除 sessionStorage
+  // clear sessionStorage
   sessionStorage.clear();
   
-  // 清除 cookies
+  // clear cookies
   document.cookie.split(";").forEach((c) => {
     document.cookie = c
       .replace(/^ +/, "")

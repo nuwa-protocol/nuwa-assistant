@@ -9,6 +9,9 @@ import { createDocument } from "./tools/create-document";
 import { updateDocument } from "./tools/update-document";
 import { requestSuggestions } from "./tools/request-suggestions";
 
+// Default model to use
+const DEFAULT_CHAT_MODEL = "chat-model";
+
 async function generateTitleFromUserMessage({ message }: { message: Message }) {
   const { text: title } = await generateText({
     model: myProvider.languageModel("title-model"),
@@ -43,7 +46,6 @@ function errorHandler(error: unknown) {
 // Handle AI request, entrance of the AI workflow
 const handleAIRequest = async ({
   sessionId,
-  selectedChatModel,
   messages,
   lastMessage,
   signal,
@@ -51,7 +53,6 @@ const handleAIRequest = async ({
   sessionId: string;
   lastMessage: Message;
   messages: Message[];
-  selectedChatModel: string;
   signal?: AbortSignal;
 }) => {
   const { updateMessages, updateTitle, updateSession, createStreamId } =
@@ -68,19 +69,16 @@ const handleAIRequest = async ({
   createStreamId(streamId, sessionId);
 
   const result = streamText({
-    model: myProvider.languageModel(selectedChatModel),
-    system: systemPrompt({ selectedChatModel, requestHints: hints }),
+    model: myProvider.languageModel(DEFAULT_CHAT_MODEL),
+    system: systemPrompt({ requestHints: hints }),
     messages,
     maxSteps: 5,
-    experimental_activeTools:
-      selectedChatModel === "chat-model-reasoning"
-        ? []
-        : [
-            "getWeather",
-            "createDocument",
-            "updateDocument",
-            "requestSuggestions",
-          ],
+    experimental_activeTools: [
+      "getWeather",
+      "createDocument",
+      "updateDocument",
+      "requestSuggestions",
+    ],
     experimental_transform: smoothStream({ chunking: "word" }),
     experimental_generateMessageId: generateUUID,
     tools: {

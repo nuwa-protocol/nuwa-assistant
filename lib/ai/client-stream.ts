@@ -1,4 +1,4 @@
-import { ChatSDKError } from "../errors";
+import { ChatSDKError } from "../chatsdk-errors";
 import { useChatStore } from "../stores/chat-store";
 
 // define stream state

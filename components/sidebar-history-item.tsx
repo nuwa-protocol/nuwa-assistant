@@ -16,6 +16,7 @@ import {
   TrashIcon,
 } from './icons';
 import { memo } from 'react';
+import { useLocale } from '@/locales/use-locale';
 
 const PureChatItem = ({
   chat,
@@ -29,6 +30,7 @@ const PureChatItem = ({
   setOpenMobile: (open: boolean) => void;
 }) => {
   const { setCurrentSessionId } = useChatStore();
+  const { t } = useLocale();
 
   const handleChatSelect = () => {
     setCurrentSessionId(chat.id);
@@ -50,7 +52,7 @@ const PureChatItem = ({
             showOnHover={!isActive}
           >
             <MoreHorizontalIcon />
-            <span className="sr-only">More</span>
+            <span className="sr-only">{t('actions.more')}</span>
           </SidebarMenuAction>
         </DropdownMenuTrigger>
 
@@ -60,7 +62,7 @@ const PureChatItem = ({
             onSelect={() => onDelete(chat.id)}
           >
             <TrashIcon />
-            <span>Delete</span>
+            <span>{t('actions.delete')}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

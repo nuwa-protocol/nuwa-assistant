@@ -1,6 +1,7 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
+import { useLocale } from '@/locales/use-locale';
 
 import { LoaderIcon } from '@/components/icons';
 
@@ -14,6 +15,7 @@ export function SubmitButton({
   isSuccessful: boolean;
 }) {
   const { pending } = useFormStatus();
+  const { t } = useLocale();
 
   return (
     <Button
@@ -31,7 +33,7 @@ export function SubmitButton({
       )}
 
       <output aria-live="polite" className="sr-only">
-        {pending || isSuccessful ? 'Loading' : 'Submit form'}
+        {pending || isSuccessful ? t('submit.loading') : t('submit.submit')}
       </output>
     </Button>
   );

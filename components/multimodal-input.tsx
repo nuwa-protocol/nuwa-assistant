@@ -15,6 +15,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
+import { useLocale } from '@/locales/use-locale';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
@@ -60,6 +61,7 @@ function PureMultimodalInput({
   const { width } = useWindowSize();
   const { uploadFile: storeFile, getFileURL, validateFile } = useFileStore();
   const { setCurrentSessionId } = useChatStore();
+  const { t } = useLocale();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -153,7 +155,7 @@ function PureMultimodalInput({
       const url = await getFileURL(storedFile.id);
 
       if (!url) {
-        toast.error("Failed to create file URL");
+        toast.error(t('upload.failedCreateUrl'));
         return;
       }
 
@@ -164,7 +166,7 @@ function PureMultimodalInput({
       };
     } catch (error) {
       console.error("Failed to upload file:", error);
-      toast.error("Failed to upload file, please try again!");
+      toast.error(t('upload.failedUpload'));
     }
   };
 
@@ -186,7 +188,7 @@ function PureMultimodalInput({
           ...successfullyUploadedAttachments,
         ]);
       } catch (error) {
-        console.error("Error uploading files!", error);
+        console.error(t('upload.errorUploading'), error);
       } finally {
         setUploadQueue([]);
       }

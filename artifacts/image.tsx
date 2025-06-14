@@ -4,6 +4,7 @@ import { ImageEditor } from "@/components/image-editor";
 import { toast } from "sonner";
 import { myProvider } from "@/lib/ai/providers";
 import { experimental_generateImage } from "ai";
+import { useLocale } from '@/locales/use-locale';
 
 // 客户端AI生成函数
 async function generateImageContent(
@@ -38,7 +39,7 @@ async function updateImageContent(
 
 export const imageArtifact = new Artifact({
   kind: "image",
-  description: "Useful for image generation",
+  description: undefined as any,
   onStreamPart: ({ streamPart, setArtifact }) => {
     if (streamPart.type === "image-delta") {
       setArtifact((draftArtifact) => ({
@@ -53,7 +54,7 @@ export const imageArtifact = new Artifact({
   actions: [
     {
       icon: <UndoIcon size={18} />,
-      description: "View Previous version",
+      description: undefined as any,
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("prev");
       },
@@ -61,13 +62,12 @@ export const imageArtifact = new Artifact({
         if (currentVersionIndex === 0) {
           return true;
         }
-
         return false;
       },
     },
     {
       icon: <RedoIcon size={18} />,
-      description: "View Next version",
+      description: undefined as any,
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("next");
       },
@@ -75,17 +75,16 @@ export const imageArtifact = new Artifact({
         if (isCurrentVersion) {
           return true;
         }
-
         return false;
       },
     },
     {
       icon: <CopyIcon size={18} />,
-      description: "Copy image to clipboard",
+      description: undefined as any,
       onClick: ({ content }) => {
+        const { t } = useLocale();
         const img = new Image();
         img.src = `data:image/png;base64,${content}`;
-
         img.onload = () => {
           const canvas = document.createElement("canvas");
           canvas.width = img.width;
@@ -100,8 +99,7 @@ export const imageArtifact = new Artifact({
             }
           }, "image/png");
         };
-
-        toast.success("Copied image to clipboard!");
+        toast.success(t('artifact.image.copiedImage'));
       },
     },
   ],

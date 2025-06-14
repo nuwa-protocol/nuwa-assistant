@@ -16,6 +16,7 @@ import { myProvider } from "@/lib/ai/providers";
 import { updateDocumentPrompt } from "@/lib/ai/prompts";
 import { toast } from "sonner";
 import { useDocumentStore } from "@/lib/stores/document-store";
+import { useLocale } from '@/locales/use-locale';
 
 interface TextArtifactMetadata {
   suggestions: Array<ClientSuggestion>;
@@ -81,14 +82,11 @@ async function updateTextContent(
 
 export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
   kind: "text",
-  description: "Useful for text content, like drafting essays and emails.",
+  description: undefined as any,
   initialize: async ({ documentId, setMetadata }) => {
     const { getSuggestionsByDocument } = useDocumentStore.getState();
     const suggestions = getSuggestionsByDocument(documentId);
-
-    setMetadata({
-      suggestions,
-    });
+    setMetadata({ suggestions });
   },
   onStreamPart: ({ streamPart, setMetadata, setArtifact }) => {
     if (streamPart.type === "text-delta") {
@@ -107,28 +105,17 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
       });
     }
   },
-  content: ({
-    mode,
-    status,
-    content,
-    isCurrentVersion,
-    currentVersionIndex,
-    onSaveContent,
-    getDocumentContentById,
-    isLoading,
-    metadata,
-  }) => {
+  content: (props) => {
+    const { t } = useLocale();
+    const { mode, status, content, isCurrentVersion, currentVersionIndex, onSaveContent, getDocumentContentById, isLoading, metadata } = props;
     if (isLoading) {
       return <DocumentSkeleton artifactKind="text" />;
     }
-
     if (mode === "diff") {
       const oldContent = getDocumentContentById(currentVersionIndex - 1);
       const newContent = getDocumentContentById(currentVersionIndex);
-
       return <DiffView oldContent={oldContent} newContent={newContent} />;
     }
-
     return (
       <>
         <div className="flex flex-row py-8 md:p-20 px-4">
@@ -140,7 +127,6 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
             status={status}
             onSaveContent={onSaveContent}
           />
-
           {metadata?.suggestions && metadata.suggestions.length > 0 ? (
             <div className="md:hidden h-dvh w-12 shrink-0" />
           ) : null}
@@ -151,7 +137,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
   actions: [
     {
       icon: <ClockRewind size={18} />,
-      description: "View changes",
+      description: undefined as any,
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("toggle");
       },
@@ -159,13 +145,12 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
         if (currentVersionIndex === 0) {
           return true;
         }
-
         return false;
       },
     },
     {
       icon: <UndoIcon size={18} />,
-      description: "View Previous version",
+      description: undefined as any,
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("prev");
       },
@@ -173,13 +158,12 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
         if (currentVersionIndex === 0) {
           return true;
         }
-
         return false;
       },
     },
     {
       icon: <RedoIcon size={18} />,
-      description: "View Next version",
+      description: undefined as any,
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("next");
       },
@@ -187,39 +171,39 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
         if (isCurrentVersion) {
           return true;
         }
-
         return false;
       },
     },
     {
       icon: <CopyIcon size={18} />,
-      description: "Copy to clipboard",
+      description: undefined as any,
       onClick: ({ content }) => {
         navigator.clipboard.writeText(content);
-        toast.success("Copied to clipboard!");
+        const { t } = useLocale();
+        toast.success(t('artifact.copied'));
       },
     },
   ],
   toolbar: [
     {
       icon: <PenIcon />,
-      description: "Add final polish",
+      description: undefined as any,
       onClick: ({ appendMessage }) => {
+        const { t } = useLocale();
         appendMessage({
           role: "user",
-          content:
-            "Please add final polish and check for grammar, add section titles for better structure, and ensure everything reads smoothly.",
+          content: t('artifact.text.polishPrompt'),
         });
       },
     },
     {
       icon: <MessageIcon />,
-      description: "Request suggestions",
+      description: undefined as any,
       onClick: ({ appendMessage }) => {
+        const { t } = useLocale();
         appendMessage({
           role: "user",
-          content:
-            "Please add suggestions you have that could improve the writing.",
+          content: t('artifact.text.suggestionsPrompt'),
         });
       },
     },

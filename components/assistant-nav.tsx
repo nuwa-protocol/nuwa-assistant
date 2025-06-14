@@ -5,6 +5,7 @@ import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { useDIDStore } from '@/lib/stores/did-store';
 import { clearAllStorage } from '@/lib/stores/storage-utils';
+import { useLocale } from '@/locales/use-locale';
 
 import {
   DropdownMenu,
@@ -18,6 +19,7 @@ export function AssistantNav() {
   const router = useRouter();
   const { setTheme, resolvedTheme } = useTheme();
   const { did, logout } = useDIDStore();
+  const { t } = useLocale();
 
   const handleLogout = () => {
     logout();
@@ -55,7 +57,7 @@ export function AssistantNav() {
           className="cursor-pointer"
           onSelect={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
         >
-          {`Toggle ${resolvedTheme === 'light' ? 'dark' : 'light'} mode`}
+          {t('nav.toggleTheme', { mode: resolvedTheme === 'light' ? 'dark' : 'light' })}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild data-testid="assistant-nav-item-auth">
@@ -64,7 +66,7 @@ export function AssistantNav() {
             className="w-full cursor-pointer text-left"
             onClick={handleLogout}
           >
-            Sign out
+            {t('nav.signOut')}
           </button>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -76,7 +78,7 @@ export function AssistantNav() {
             window.location.reload();
           }}
         >
-          清理所有存储（测试用）
+          {t('nav.clearStorage')}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
       </DropdownMenuContent>
