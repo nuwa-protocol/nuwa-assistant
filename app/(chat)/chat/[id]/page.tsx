@@ -79,7 +79,6 @@ export default function Page(props: { params: Promise<{ id: string }> }) {
         initialMessages={session.messages}
         initialChatModel={session.model || DEFAULT_CHAT_MODEL}
         isReadonly={false}
-        autoResume={false}
       />
       <DataStreamHandler id={session.id} />
     </AuthGuard>

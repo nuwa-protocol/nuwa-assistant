@@ -29,7 +29,7 @@ export function SidebarHistory() {
     );
   }
 
-  // 获取所有有消息的 session 并按时间排序
+  // get all sessions with messages and sort by time
   const now = Date.now();
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
@@ -42,7 +42,7 @@ export function SidebarHistory() {
     .filter(session => session.messages.length > 0)
     .sort((a, b) => b.updatedAt - a.updatedAt);
 
-  // 分组
+  // group by time
   const grouped = {
     today: [] as typeof allSessionsWithMessages,
     last7: [] as typeof allSessionsWithMessages,
@@ -62,7 +62,7 @@ export function SidebarHistory() {
     }
   });
 
-  // 判断是否所有分组都为空
+  // check if all groups are empty
   const isAllEmpty =
     grouped.today.length === 0 &&
     grouped.last7.length === 0 &&
@@ -93,7 +93,7 @@ export function SidebarHistory() {
     }
   };
 
-  // 分组渲染函数
+  // group render function
   const renderGroup = (title: string, items: typeof allSessionsWithMessages) => {
     if (items.length === 0) return null;
     return (
@@ -119,9 +119,9 @@ export function SidebarHistory() {
       <SidebarGroupContent>
         <SidebarMenu>
           {renderGroup('Today', grouped.today)}
-          {renderGroup('Last 7 days', grouped.last7)}
-          {renderGroup('Last 30 days', grouped.last30)}
-          {renderGroup('Older than last month', grouped.older)}
+          {renderGroup('This Week', grouped.last7)}
+          {renderGroup('A Week Ago', grouped.last30)}
+          {renderGroup('Older', grouped.older)}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

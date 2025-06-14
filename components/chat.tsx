@@ -10,7 +10,6 @@ import { MultimodalInput } from "./multimodal-input";
 import { Messages } from "./messages";
 import { useArtifactSelector } from "@/hooks/use-artifact";
 import { useSearchParams } from "next/navigation";
-import { useAutoResume } from "@/hooks/use-auto-resume";
 import { ChatSDKError } from "@/lib/errors";
 import { ErrorHandlers } from "@/lib/error-handler";
 import { createClientAIFetch } from "@/lib/ai/client-fetch";
@@ -20,13 +19,11 @@ export function Chat({
   initialMessages,
   initialChatModel,
   isReadonly,
-  autoResume,
 }: {
   id: string;
   initialMessages: Array<UIMessage>;
   initialChatModel: string;
   isReadonly: boolean;
-  autoResume: boolean;
 }) {
   const {
     messages,
@@ -37,9 +34,7 @@ export function Chat({
     append,
     status,
     stop,
-    reload,
-    experimental_resume,
-    data,
+    reload
   } = useChat({
     id,
     initialMessages,
@@ -95,14 +90,6 @@ export function Chat({
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
-
-  useAutoResume({
-    autoResume,
-    initialMessages,
-    experimental_resume,
-    data,
-    setMessages: setChatMessages,
-  });
 
   return (
     <>

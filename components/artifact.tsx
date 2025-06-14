@@ -20,13 +20,12 @@ import { ArtifactCloseButton } from "./artifact-close-button";
 import { ArtifactMessages } from "./artifact-messages";
 import { useSidebar } from "./ui/sidebar";
 import { useArtifact } from "@/hooks/use-artifact";
-import { imageArtifact } from "@/artifacts/image/client";
-import { codeArtifact } from "@/artifacts/code/client";
-import { sheetArtifact } from "@/artifacts/sheet/client";
-import { textArtifact } from "@/artifacts/text/client";
+import { imageArtifact } from "@/artifacts/image";
+import { codeArtifact } from "@/artifacts/code";
+import { sheetArtifact } from "@/artifacts/sheet";
+import { textArtifact } from "@/artifacts/text";
 import equal from "fast-deep-equal";
 import type { UseChatHelpers } from "@ai-sdk/react";
-// Note: visibility and voting features have been removed for client-only mode
 
 export const artifactDefinitions = [
   textArtifact,
@@ -315,7 +314,6 @@ function PureArtifact({
                     append={append}
                     className="bg-background dark:bg-muted"
                     setMessages={setMessages}
-                    // Note: selectedVisibilityType removed for client-only mode
                   />
                 </form>
               </div>

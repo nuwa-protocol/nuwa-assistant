@@ -22,7 +22,6 @@ export default function ChatPage() {
         initialMessages={[]}
         initialChatModel={DEFAULT_CHAT_MODEL}
         isReadonly={false}
-        autoResume={false}
       />
     </AuthGuard>
   );

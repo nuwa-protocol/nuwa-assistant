@@ -2,10 +2,10 @@ import { tool } from "ai";
 import { z } from "zod";
 import { useDocumentStore } from "@/lib/stores/document-store";
 import { updateGlobalArtifact } from "@/hooks/use-artifact";
-import { updateTextContent } from "@/artifacts/text/client";
-import { updateCodeContent } from "@/artifacts/code/client";
-import { updateSheetContent } from "@/artifacts/sheet/client";
-import { updateImageContent } from "@/artifacts/image/client";
+import { updateTextContent } from "@/artifacts/text";
+import { updateCodeContent } from "@/artifacts/code";
+import { updateSheetContent } from "@/artifacts/sheet";
+import { updateImageContent } from "@/artifacts/image";
 
 // update function mapping
 const updaters = {

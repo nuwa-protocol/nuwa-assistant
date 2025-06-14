@@ -26,7 +26,6 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
-// Note: visibility feature has been removed for client-only mode
 import { useFileStore } from "@/lib/stores/file-store";
 
 function PureMultimodalInput({

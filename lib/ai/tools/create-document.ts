@@ -3,10 +3,10 @@ import { tool } from "ai";
 import { z } from "zod";
 import { useDocumentStore } from "@/lib/stores/document-store";
 import { updateGlobalArtifact } from "@/hooks/use-artifact";
-import { generateTextContent } from "@/artifacts/text/client";
-import { generateCodeContent } from "@/artifacts/code/client";
-import { generateSheetContent } from "@/artifacts/sheet/client";
-import { generateImageContent } from "@/artifacts/image/client";
+import { generateTextContent } from "@/artifacts/text";
+import { generateCodeContent } from "@/artifacts/code";
+import { generateSheetContent } from "@/artifacts/sheet";
+import { generateImageContent } from "@/artifacts/image";
 
 const artifactKinds = ["text", "code", "image", "sheet"] as const;
 
