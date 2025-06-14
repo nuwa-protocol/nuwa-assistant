@@ -12,7 +12,6 @@ export default function Page() {
     currentSessionId,
     getSession,
     setCurrentSessionId,
-    updateMessages,
   } = useChatStore();
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
@@ -23,7 +22,6 @@ export default function Page() {
     if (!currentSessionId) {
       // no currentSessionId, create new
       const newId = generateId();
-      updateMessages(newId, []);
       setCurrentSessionId(newId);
       setSession({ id: newId, messages: []});
       setIsLoading(false);
@@ -36,11 +34,10 @@ export default function Page() {
       setIsLoading(false);
     } else {
       // no corresponding session, create new
-      updateMessages(currentSessionId, []);
       setSession({ id: currentSessionId, messages: []});
       setIsLoading(false);
     }
-  }, [currentSessionId, getSession, setCurrentSessionId, updateMessages]);
+  }, [currentSessionId, getSession, setCurrentSessionId]);
 
   if (isLoading) {
     return (

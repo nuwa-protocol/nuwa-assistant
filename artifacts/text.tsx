@@ -16,7 +16,8 @@ import { myProvider } from "@/lib/ai/providers";
 import { updateDocumentPrompt } from "@/lib/ai/prompts";
 import { toast } from "sonner";
 import { useDocumentStore } from "@/lib/stores/document-store";
-import { useLocale } from '@/locales/use-locale';
+import { getLocaleText } from '@/locales/use-locale';
+import { useSettingsStore } from '@/lib/stores/settings-store';
 
 interface TextArtifactMetadata {
   suggestions: Array<ClientSuggestion>;
@@ -80,9 +81,12 @@ async function updateTextContent(
   return draftContent;
 }
 
+const language = useSettingsStore.getState().language;
+const { t } = getLocaleText(language);
+
 export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
   kind: "text",
-  description: undefined as any,
+  description: t('artifact.text.description'),
   initialize: async ({ documentId, setMetadata }) => {
     const { getSuggestionsByDocument } = useDocumentStore.getState();
     const suggestions = getSuggestionsByDocument(documentId);
@@ -106,7 +110,6 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
     }
   },
   content: (props) => {
-    const { t } = useLocale();
     const { mode, status, content, isCurrentVersion, currentVersionIndex, onSaveContent, getDocumentContentById, isLoading, metadata } = props;
     if (isLoading) {
       return <DocumentSkeleton artifactKind="text" />;
@@ -137,7 +140,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
   actions: [
     {
       icon: <ClockRewind size={18} />,
-      description: undefined as any,
+      description: t('artifact.text.actions.versionChange'),
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("toggle");
       },
@@ -150,7 +153,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
     },
     {
       icon: <UndoIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.text.actions.undo'),
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("prev");
       },
@@ -163,7 +166,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
     },
     {
       icon: <RedoIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.text.actions.redo'),
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("next");
       },
@@ -176,10 +179,9 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
     },
     {
       icon: <CopyIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.text.actions.copy'),
       onClick: ({ content }) => {
         navigator.clipboard.writeText(content);
-        const { t } = useLocale();
         toast.success(t('artifact.copied'));
       },
     },
@@ -187,9 +189,8 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
   toolbar: [
     {
       icon: <PenIcon />,
-      description: undefined as any,
+      description: t('artifact.text.toolbar.polish'),
       onClick: ({ appendMessage }) => {
-        const { t } = useLocale();
         appendMessage({
           role: "user",
           content: t('artifact.text.polishPrompt'),
@@ -198,9 +199,8 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
     },
     {
       icon: <MessageIcon />,
-      description: undefined as any,
+      description: t('artifact.text.toolbar.suggestions'),
       onClick: ({ appendMessage }) => {
-        const { t } = useLocale();
         appendMessage({
           role: "user",
           content: t('artifact.text.suggestionsPrompt'),

@@ -4,7 +4,11 @@ import { ImageEditor } from "@/components/image-editor";
 import { toast } from "sonner";
 import { myProvider } from "@/lib/ai/providers";
 import { experimental_generateImage } from "ai";
-import { useLocale } from '@/locales/use-locale';
+import { getLocaleText } from '@/locales/use-locale';
+import { useSettingsStore } from '@/lib/stores/settings-store';
+
+const language = useSettingsStore.getState().language;
+const { t } = getLocaleText(language);
 
 // 客户端AI生成函数
 async function generateImageContent(
@@ -39,7 +43,7 @@ async function updateImageContent(
 
 export const imageArtifact = new Artifact({
   kind: "image",
-  description: undefined as any,
+  description: t('artifact.image.description'),
   onStreamPart: ({ streamPart, setArtifact }) => {
     if (streamPart.type === "image-delta") {
       setArtifact((draftArtifact) => ({
@@ -54,7 +58,7 @@ export const imageArtifact = new Artifact({
   actions: [
     {
       icon: <UndoIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.image.actions.undo'),
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("prev");
       },
@@ -67,7 +71,7 @@ export const imageArtifact = new Artifact({
     },
     {
       icon: <RedoIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.image.actions.redo'),
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("next");
       },
@@ -80,9 +84,9 @@ export const imageArtifact = new Artifact({
     },
     {
       icon: <CopyIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.image.actions.copy'),
       onClick: ({ content }) => {
-        const { t } = useLocale();
+        const { t } = getLocaleText(language);
         const img = new Image();
         img.src = `data:image/png;base64,${content}`;
         img.onload = () => {

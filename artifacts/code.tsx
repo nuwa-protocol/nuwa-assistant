@@ -19,7 +19,8 @@ import {
   type ConsoleOutput,
   type ConsoleOutputContent,
 } from "@/components/console";
-import { useLocale } from '@/locales/use-locale';
+import { getLocaleText } from '@/locales/use-locale';
+import { useSettingsStore } from '@/lib/stores/settings-store';
 
 const OUTPUT_HANDLERS = {
   matplotlib: `
@@ -71,9 +72,12 @@ interface Metadata {
   outputs: Array<ConsoleOutput>;
 }
 
+const language = useSettingsStore.getState().language;
+const { t } = getLocaleText(language);
+
 export const codeArtifact = new Artifact<"code", Metadata>({
   kind: "code",
-  description: undefined as any,
+  description: t('artifact.code.description'),
   initialize: async ({ setMetadata }) => {
     setMetadata({ outputs: [] });
   },
@@ -116,7 +120,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     {
       icon: <PlayIcon size={18} />,
       label: undefined as any,
-      description: undefined as any,
+      description: t('artifact.code.actions.run'),
       onClick: async ({ content, setMetadata }) => {
         const runId = generateUUID();
         const outputContent: Array<ConsoleOutputContent> = [];
@@ -211,7 +215,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     },
     {
       icon: <UndoIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.code.actions.undo'),
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("prev");
       },
@@ -224,7 +228,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     },
     {
       icon: <RedoIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.code.actions.redo'),
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("next");
       },
@@ -237,9 +241,9 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     },
     {
       icon: <CopyIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.code.actions.copy'),
       onClick: ({ content }) => {
-        const { t } = useLocale();
+        const { t } = getLocaleText(language);
         navigator.clipboard.writeText(content);
         toast.success(t('artifact.copied'));
       },
@@ -248,9 +252,9 @@ export const codeArtifact = new Artifact<"code", Metadata>({
   toolbar: [
     {
       icon: <MessageIcon />,
-      description: undefined as any,
+      description: t('artifact.code.toolbar.comments'),
       onClick: ({ appendMessage }) => {
-        const { t } = useLocale();
+        const { t } = getLocaleText(language);
         appendMessage({
           role: "user",
           content: t('artifact.code.addCommentsPrompt'),
@@ -259,9 +263,9 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     },
     {
       icon: <LogsIcon />,
-      description: undefined as any,
+      description: t('artifact.code.toolbar.logs'),
       onClick: ({ appendMessage }) => {
-        const { t } = useLocale();
+        const { t } = getLocaleText(language);
         appendMessage({
           role: "user",
           content: t('artifact.code.addLogsPrompt'),

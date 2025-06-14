@@ -128,6 +128,16 @@ export const en = {
     
     text: {
       description: 'Useful for text content like drafting essays and emails.',
+      actions: {
+        versionChange: 'View diff',
+        undo: 'Undo change',
+        redo: 'Redo change',
+        copy: 'Copy text',
+      },
+      toolbar: {
+        polish: 'Polish writing',
+        suggestions: 'Writing suggestions',
+      },
       addPolish: 'Add final polish',
       requestSuggestions: 'Request suggestions',
       polishPrompt: 'Please add final polish, check grammar, add section titles to improve structure, and ensure everything flows smoothly.',
@@ -136,6 +146,16 @@ export const en = {
     
     code: {
       description: 'Useful for code generation; code execution is only available for Python code.',
+      actions: {
+        run: 'Run code',
+        undo: 'Undo change',
+        redo: 'Redo change',
+        copy: 'Copy code',
+      },
+      toolbar: {
+        comments: 'Add comments',
+        logs: 'Add logs',
+      },
       run: 'Run',
       executeCode: 'Execute code',
       copyCode: 'Copy code to clipboard',
@@ -153,10 +173,24 @@ export const en = {
       analyzeData: 'Analyze and visualize data',
       formatPrompt: 'Could you help format and clean the data?',
       analyzePrompt: 'Could you analyze and visualize the data by creating a new Python code artifact?',
+      actions: {
+        undo: 'Undo change',
+        redo: 'Redo change',
+        copy: 'Copy table as CSV',
+      },
+      toolbar: {
+        format: 'Format and clean data',
+        analyze: 'Analyze and visualize data',
+      },
     },
     
     image: {
       description: 'Useful for image generation',
+      actions: {
+        undo: 'Undo change',
+        redo: 'Redo change',
+        copy: 'Copy image',
+      },
       copyImage: 'Copy image to clipboard',
       copiedImage: 'Copied image to clipboard!',
     },

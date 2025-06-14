@@ -13,7 +13,11 @@ import { z } from "zod";
 import { streamObject } from "ai";
 import { myProvider } from "@/lib/ai/providers";
 import { sheetPrompt, updateDocumentPrompt } from "@/lib/ai/prompts";
-import { useLocale } from '@/locales/use-locale';
+import { getLocaleText } from '@/locales/use-locale';
+import { useSettingsStore } from '@/lib/stores/settings-store';
+
+const language = useSettingsStore.getState().language;
+const { t } = getLocaleText(language);
 
 // 客户端AI生成函数
 async function generateSheetContent(
@@ -71,7 +75,7 @@ type Metadata = any;
 
 export const sheetArtifact = new Artifact<"sheet", Metadata>({
   kind: "sheet",
-  description: undefined as any,
+  description: t('artifact.sheet.description'),
   initialize: async () => {},
   onStreamPart: ({ setArtifact, streamPart }) => {
     if (streamPart.type === "sheet-delta") {
@@ -97,7 +101,7 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
   actions: [
     {
       icon: <UndoIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.sheet.actions.undo'),
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("prev");
       },
@@ -110,7 +114,7 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
     },
     {
       icon: <RedoIcon size={18} />,
-      description: undefined as any,
+      description: t('artifact.sheet.actions.redo'),
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("next");
       },
@@ -123,9 +127,8 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
     },
     {
       icon: <CopyIcon />,
-      description: undefined as any,
+      description: t('artifact.sheet.actions.copy'),
       onClick: ({ content }) => {
-        const { t } = useLocale();
         const parsed = parse<string[]>(content, { skipEmptyLines: true });
         const nonEmptyRows = parsed.data.filter((row) =>
           row.some((cell) => cell.trim() !== "")
@@ -138,10 +141,9 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
   ],
   toolbar: [
     {
-      description: undefined as any,
+      description: t('artifact.sheet.toolbar.format'),
       icon: <SparklesIcon />,
       onClick: ({ appendMessage }) => {
-        const { t } = useLocale();
         appendMessage({
           role: "user",
           content: t('artifact.sheet.formatPrompt'),
@@ -149,10 +151,9 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
       },
     },
     {
-      description: undefined as any,
+      description: t('artifact.sheet.toolbar.analyze'),
       icon: <LineChartIcon />,
       onClick: ({ appendMessage }) => {
-        const { t } = useLocale();
         appendMessage({
           role: "user",
           content: t('artifact.sheet.analyzePrompt'),

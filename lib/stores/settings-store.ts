@@ -1,11 +1,12 @@
+import { Locale } from '@/locales';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 // settings interface
 interface SettingsState {
   // language settings
-  language: string;
-  setLanguage: (lang: string) => void;
+  language: Locale;
+  setLanguage: (lang: Locale) => void;
 
   // reset settings
   resetSettings: () => void;
@@ -45,7 +46,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       language: 'en',
-      setLanguage: (lang: string) => set({ language: lang }),
+      setLanguage: (lang: Locale) => set({ language: lang }),
       resetSettings: () => {
         set({
           language: 'en',
