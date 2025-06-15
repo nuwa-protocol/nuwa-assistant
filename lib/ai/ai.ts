@@ -1,4 +1,4 @@
-import { generateText, streamText, smoothStream, appendResponseMessages, type Message } from "ai";
+import { streamText, smoothStream, appendResponseMessages, type Message } from "ai";
 import { myProvider } from "./providers";
 import { systemPrompt } from "./prompts";
 import { getWeather } from "./tools/get-weather";
@@ -10,20 +10,6 @@ import { requestSuggestions } from "./tools/request-suggestions";
 
 // Default model to use
 const DEFAULT_CHAT_MODEL = "chat-model";
-
-async function generateTitleFromUserMessage({ message }: { message: Message }) {
-  const { text: title } = await generateText({
-    model: myProvider.languageModel("title-model"),
-    system: `\n
-      - you will generate a short title based on the first message a user begins a conversation with
-      - ensure it is not more than 80 characters long
-      - the title should be a summary of the user's message
-      - do not use quotes or colons`,
-    prompt: JSON.stringify(message),
-  });
-
-  return title;
-}
 
 // Error handling function
 function errorHandler(error: unknown) {
@@ -118,4 +104,4 @@ const handleAIRequest = async ({
   // }
 };
 
-export { handleAIRequest, generateTitleFromUserMessage };
+export { handleAIRequest };

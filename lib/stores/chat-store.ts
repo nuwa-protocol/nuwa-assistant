@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Message } from 'ai';
-import { generateTitleFromUserMessage } from '@/lib/ai/ai';
+import { generateTitleFromUserMessage } from '@/lib/utils';
 // eslint-disable-next-line import/no-named-as-default
 import Dexie, { type Table } from 'dexie';
 
