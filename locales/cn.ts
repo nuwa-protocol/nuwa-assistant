@@ -24,7 +24,7 @@ export const cn: typeof en = {
     backToLatest: '返回最新版本',
     viewingPrevious: '正在查看历史版本',
     restoreToEdit: '恢复此版本以进行编辑',
-    chatbot: '聊天机器人',
+    logo: 'Nuwa AI',
     loading: '加载中...',
     loadingChat: '正在加载聊天...',
     search: '搜索',

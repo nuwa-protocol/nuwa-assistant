@@ -15,8 +15,9 @@ import {
   MoreHorizontalIcon,
   TrashIcon,
 } from './icons';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { useLocale } from '@/locales/use-locale';
+import { useFloatingSidebar } from './floating-sidebar';
 
 const PureChatItem = ({
   chat,
@@ -31,6 +32,8 @@ const PureChatItem = ({
 }) => {
   const { setCurrentSessionId } = useChatStore();
   const { t } = useLocale();
+  const floatingContext = useFloatingSidebar();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleChatSelect = () => {
     setCurrentSessionId(chat.id);
@@ -45,7 +48,14 @@ const PureChatItem = ({
         </button>
       </SidebarMenuButton>
 
-      <DropdownMenu modal={true}>
+      <DropdownMenu
+        modal={true}
+        open={menuOpen}
+        onOpenChange={(open) => {
+          setMenuOpen(open);
+          floatingContext.stayHovering(open);
+        }}
+      >
         <DropdownMenuTrigger asChild>
           <SidebarMenuAction
             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground mr-0.5"

@@ -11,6 +11,8 @@ interface SettingsState {
   // sidebar state
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  sidebarMode: 'pinned' | 'floating';
+  setSidebarMode: (mode: 'pinned' | 'floating') => void;
 
   // reset settings
   resetSettings: () => void;
@@ -53,10 +55,13 @@ export const useSettingsStore = create<SettingsState>()(
       setLanguage: (lang: Locale) => set({ language: lang }),
       sidebarCollapsed: false,
       setSidebarCollapsed: (collapsed: boolean) => set({ sidebarCollapsed: collapsed }),
+      sidebarMode: 'pinned',
+      setSidebarMode: (mode: 'pinned' | 'floating') => set({ sidebarMode: mode }),
       resetSettings: () => {
         set({
           language: 'en',
           sidebarCollapsed: false,
+          sidebarMode: 'pinned',
         });
       },
     }),
@@ -66,6 +71,7 @@ export const useSettingsStore = create<SettingsState>()(
       partialize: (state) => ({
         language: state.language,
         sidebarCollapsed: state.sidebarCollapsed,
+        sidebarMode: state.sidebarMode,
       }),
     }
   )

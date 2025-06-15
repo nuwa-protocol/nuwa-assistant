@@ -7,27 +7,47 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-import { SidebarLeftIcon } from './icons';
 import { Button } from './ui/button';
+import { useSettingsStore } from '@/lib/stores/settings-store';
+import { Pin, PinOff } from 'lucide-react';
 
 export function SidebarToggle({
   className,
 }: ComponentProps<typeof SidebarTrigger>) {
-  const { toggleSidebar } = useSidebar();
+  const { setOpen } = useSidebar();
+  const sidebarMode = useSettingsStore(state => state.sidebarMode);
+  const setSidebarMode = useSettingsStore(state => state.setSidebarMode);
+
+  const handleToggleMode = () => {
+    const newMode = sidebarMode === 'pinned' ? 'floating' : 'pinned';
+    setSidebarMode(newMode);
+    
+    // In pinned mode, open the sidebar by default
+    // In floating mode, let hover logic control it
+    if (newMode === 'pinned') {
+      setOpen(true);
+    }
+  };
+
+  const isPinned = sidebarMode === 'pinned';
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
           data-testid="sidebar-toggle-button"
-          onClick={toggleSidebar}
-          variant="outline"
-          className="md:px-2 md:h-fit"
+          onClick={handleToggleMode}
+          variant="ghost"
+          className="md:px-2 md:h-fit transition-all duration-200 ease-in-out hover:scale-105 border-none bg-transparent shadow-none"
         >
-          <SidebarLeftIcon size={16} />
+          <div className="transition-transform duration-200 ease-in-out">
+            {isPinned ? <Pin size={16} /> : <PinOff size={16} />}
+          </div>
         </Button>
       </TooltipTrigger>
-      <TooltipContent align="start">Toggle Sidebar</TooltipContent>
+      <TooltipContent align="start">
+        {isPinned ? 'Switch to Floating Mode' : 'Switch to Pinned Mode'}
+      </TooltipContent>
     </Tooltip>
   );
 }

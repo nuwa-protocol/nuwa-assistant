@@ -23,7 +23,7 @@ export const en = {
     backToLatest: 'Back to latest',
     viewingPrevious: 'Viewing previous version',
     restoreToEdit: 'Restore this version to edit',
-    chatbot: 'Chatbot',
+    logo: 'Nuwa AI',
     loading: 'Loading...',
     loadingChat: 'Loading chat...',
     search: 'Search',
