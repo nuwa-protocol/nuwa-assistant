@@ -8,16 +8,15 @@ import {
   useMemo,
   useRef,
 } from "react";
-import type { ArtifactKind, UIArtifact } from "./artifact";
+import type { ArtifactKind } from "@/artifacts";
 import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from "./icons";
 import { cn } from "@/lib/utils";
-import type { ClientDocument } from "@/lib/stores/document-store";
-import { useDocumentStore } from "@/lib/stores/document-store";
+import { useDocumentStore, type ClientDocument, type UIArtifact } from "@/lib/stores/document-store";
 import { InlineDocumentSkeleton } from "./document-skeleton";
 import { Editor } from "./text-editor";
 import { DocumentToolCall, DocumentToolResult } from "./document";
 import { CodeEditor } from "./code-editor";
-import { useArtifact } from "@/hooks/use-artifact";
+import { useArtifact } from "@/lib/stores/document-store";
 import equal from "fast-deep-equal";
 import { SpreadsheetEditor } from "./sheet-editor";
 import { ImageEditor } from "./image-editor";
@@ -253,11 +252,15 @@ const DocumentContent = ({ document }: { document: ClientDocument }) => {
     }
   );
 
+  // Map artifact status to editor status
+  const editorStatus: "streaming" | "idle" = 
+    artifact.status === "streaming" ? "streaming" : "idle";
+
   const commonProps = {
     content: document.content ?? "",
     isCurrentVersion: true,
     currentVersionIndex: 0,
-    status: artifact.status,
+    status: editorStatus,
     saveContent: () => {},
     suggestions: [],
   };

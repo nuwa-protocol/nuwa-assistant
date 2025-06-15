@@ -1,9 +1,9 @@
 import { memo } from 'react';
 
-import type { ArtifactKind } from './artifact';
+import type { ArtifactKind } from '@/artifacts';
 import { FileIcon, LoaderIcon, MessageIcon, PencilEditIcon } from './icons';
 import { toast } from 'sonner';
-import { useArtifact } from '@/hooks/use-artifact';
+import { useArtifact } from '@/lib/stores/document-store';
 import { useLocale } from '@/locales/use-locale';
 
 const getActionText = (

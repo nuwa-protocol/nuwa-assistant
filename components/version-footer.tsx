@@ -5,12 +5,11 @@ import { useState } from "react";
 import { useWindowSize } from "usehooks-ts";
 import { useLocale } from '@/locales/use-locale';
 
-import type { ClientDocument } from "@/lib/stores/document-store";
-import { useDocumentStore } from "@/lib/stores/document-store";
+import { useDocumentStore, type ClientDocument } from "@/lib/stores/document-store";
 
 import { LoaderIcon } from "./icons";
 import { Button } from "./ui/button";
-import { useArtifact } from "@/hooks/use-artifact";
+import { useArtifact } from "@/lib/stores/document-store";
 
 interface VersionFooterProps {
   handleVersionChange: (type: "next" | "prev" | "toggle" | "latest") => void;

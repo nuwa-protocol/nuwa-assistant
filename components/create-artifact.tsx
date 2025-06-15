@@ -1,7 +1,6 @@
-import type { ClientSuggestion } from '@/lib/stores/document-store';
+import type { ClientSuggestion, UIArtifact } from '@/lib/stores/document-store';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ComponentType, Dispatch, ReactNode, SetStateAction } from 'react';
-import type { UIArtifact } from './artifact';
 
 export type DataStreamDelta = {
   type:

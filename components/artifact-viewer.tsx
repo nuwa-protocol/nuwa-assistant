@@ -5,41 +5,14 @@ import {
   useState,
 } from "react";
 import { useDebounceCallback, useWindowSize } from "usehooks-ts";
-import type { ClientDocument } from "@/lib/stores/document-store";
-import { useDocumentStore } from "@/lib/stores/document-store";
+import { useDocumentStore, type ClientDocument } from "@/lib/stores/document-store";
 import { Toolbar } from "./toolbar";
 import { VersionFooter } from "./version-footer";
 import { ArtifactActions } from "./artifact-actions";
 import { ArtifactCloseButton } from "./artifact-close-button";
-import { useArtifact } from "@/hooks/use-artifact";
-import { imageArtifact } from "@/artifacts/image";
-import { codeArtifact } from "@/artifacts/code";
-import { sheetArtifact } from "@/artifacts/sheet";
-import { textArtifact } from "@/artifacts/text";
+import { useArtifact } from "@/lib/stores/document-store";
+import { artifactDefinitions } from "@/artifacts";
 import type { UseChatHelpers } from "@ai-sdk/react";
-
-export const artifactDefinitions = [
-  textArtifact,
-  codeArtifact,
-  imageArtifact,
-  sheetArtifact,
-];
-export type ArtifactKind = (typeof artifactDefinitions)[number]["kind"];
-
-export interface UIArtifact {
-  title: string;
-  documentId: string;
-  kind: ArtifactKind;
-  content: string;
-  isVisible: boolean;
-  status: "streaming" | "idle";
-  boundingBox: {
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-  };
-}
 
 interface ArtifactViewerProps {
   status: UseChatHelpers["status"];
@@ -261,7 +234,7 @@ export function ArtifactViewer({
               : getDocumentContentById(currentVersionIndex)
           }
           mode={mode}
-          status={artifact.status}
+          status={artifact.status === "streaming" ? "streaming" : "idle"}
           currentVersionIndex={currentVersionIndex}
           suggestions={[]}
           onSaveContent={saveContent}

@@ -8,7 +8,7 @@ import { generateUUID } from "@/lib/utils";
 import { ArtifactViewer } from "./artifact-viewer";
 import { MultimodalInput } from "./multimodal-input";
 import { Messages } from "./messages";
-import { useArtifactSelector } from "@/hooks/use-artifact";
+import { useArtifactSelector } from "@/lib/stores/document-store";
 import { useSearchParams } from "next/navigation";
 import { ChatSDKError } from "@/lib/chatsdk-errors";
 import { ErrorHandlers } from "@/lib/error-handler";

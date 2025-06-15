@@ -1,8 +1,7 @@
 import { generateUUID } from "@/lib/utils";
 import { tool } from "ai";
 import { z } from "zod";
-import { useDocumentStore } from "@/lib/stores/document-store";
-import { updateGlobalArtifact } from "@/hooks/use-artifact";
+import { useDocumentStore, updateGlobalArtifact } from "@/lib/stores/document-store";
 import { generateTextContent } from "@/artifacts/text";
 import { generateCodeContent } from "@/artifacts/code";
 import { generateSheetContent } from "@/artifacts/sheet";

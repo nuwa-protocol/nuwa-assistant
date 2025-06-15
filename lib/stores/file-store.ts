@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { generateUUID } from '@/lib/utils';
+// eslint-disable-next-line import/no-named-as-default
 import Dexie, { type Table } from 'dexie';
 
 /**

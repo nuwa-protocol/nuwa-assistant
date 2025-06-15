@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { generateUUID } from "@/lib/utils";
-import Dexie, { type Table } from "dexie";
+// eslint-disable-next-line import/no-named-as-default
+import Dexie, { type Table } from 'dexie';
 
 // document interface
 export interface ClientDocument {
@@ -23,6 +24,39 @@ export interface ClientSuggestion {
   isResolved: boolean;
   createdAt: number;
 }
+
+
+// artifact interface (merged from use-artifact.ts)
+export interface UIArtifact {
+  documentId: string;
+  content: string;
+  kind: "text" | "code" | "image" | "sheet";
+  title: string;
+  status: "streaming" | "idle" | "loading" | "error" | "success";
+  isVisible: boolean;
+  boundingBox: {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  };
+}
+
+// initial artifact data
+export const initialArtifactData: UIArtifact = {
+  documentId: "init",
+  content: "",
+  kind: "text",
+  title: "",
+  status: "idle",
+  isVisible: false,
+  boundingBox: {
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+  },
+};
 
 // Dexie database definition
 class DocumentDatabase extends Dexie {
@@ -49,6 +83,10 @@ const documentDB = new DocumentDatabase();
 interface DocumentStoreState {
   documents: Record<string, ClientDocument>;
   suggestions: Record<string, ClientSuggestion>;
+  
+  // artifact state (merged from use-artifact.ts)
+  currentArtifact: UIArtifact;
+  artifactMetadata: Record<string, any>;
 
   // document management
   createDocument: (title: string, kind: ClientDocument["kind"]) => string;
@@ -80,6 +118,16 @@ interface DocumentStoreState {
   ) => void;
   resolveSuggestion: (id: string) => void;
   deleteSuggestion: (id: string) => void;
+
+  // artifact management (merged from use-artifact.ts)
+  setArtifact: (updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)) => void;
+  updateArtifact: (updates: Partial<UIArtifact>) => void;
+  setArtifactMetadata: (documentId: string, metadata: any) => void;
+  getArtifactMetadata: (documentId: string) => any;
+  resetArtifact: () => void;
+  
+  // artifact selectors
+  selectArtifact: <T>(selector: (artifact: UIArtifact) => T) => T;
 
   // utility methods
   getSortedDocuments: () => ClientDocument[];
@@ -127,6 +175,8 @@ export const useDocumentStore = create<DocumentStoreState>()(
     (set, get) => ({
       documents: {},
       suggestions: {},
+      currentArtifact: initialArtifactData,
+      artifactMetadata: {},
 
       createDocument: (title: string, kind: ClientDocument["kind"]) => {
         const id = generateUUID();
@@ -351,6 +401,53 @@ export const useDocumentStore = create<DocumentStoreState>()(
         deleteFromDB();
       },
 
+      // artifact management methods (merged from use-artifact.ts)
+      setArtifact: (updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)) => {
+        set((state) => {
+          const newArtifact = typeof updaterFn === "function" 
+            ? updaterFn(state.currentArtifact)
+            : updaterFn;
+          
+          return {
+            currentArtifact: newArtifact,
+          };
+        });
+      },
+
+      updateArtifact: (updates: Partial<UIArtifact>) => {
+        set((state) => ({
+          currentArtifact: {
+            ...state.currentArtifact,
+            ...updates,
+          },
+        }));
+      },
+
+      setArtifactMetadata: (documentId: string, metadata: any) => {
+        set((state) => ({
+          artifactMetadata: {
+            ...state.artifactMetadata,
+            [documentId]: metadata,
+          },
+        }));
+      },
+
+      getArtifactMetadata: (documentId: string) => {
+        const { artifactMetadata } = get();
+        return artifactMetadata[documentId] || null;
+      },
+
+      resetArtifact: () => {
+        set({
+          currentArtifact: initialArtifactData,
+        });
+      },
+
+      selectArtifact: <T>(selector: (artifact: UIArtifact) => T): T => {
+        const { currentArtifact } = get();
+        return selector(currentArtifact);
+      },
+
       getSortedDocuments: () => {
         const { documents } = get();
         return Object.values(documents).sort(
@@ -442,6 +539,8 @@ export const useDocumentStore = create<DocumentStoreState>()(
       partialize: (state) => ({
         documents: state.documents,
         suggestions: state.suggestions,
+        currentArtifact: state.currentArtifact,
+        artifactMetadata: state.artifactMetadata,
       }),
       onRehydrateStorage: () => (state) => {
         // load data from IndexedDB after component mount
@@ -452,3 +551,27 @@ export const useDocumentStore = create<DocumentStoreState>()(
     }
   )
 );
+
+// global update function for external tools (backward compatibility)
+export const updateGlobalArtifact = (
+  updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)
+) => {
+  useDocumentStore.getState().setArtifact(updaterFn);
+};
+
+// convenience hooks for artifact management
+export const useArtifact = () => {
+  const store = useDocumentStore();
+  return {
+    artifact: store.currentArtifact,
+    setArtifact: store.setArtifact,
+    updateArtifact: store.updateArtifact,
+    metadata: store.getArtifactMetadata(store.currentArtifact.documentId),
+    setMetadata: (metadata: any) => store.setArtifactMetadata(store.currentArtifact.documentId, metadata),
+    resetArtifact: store.resetArtifact,
+  };
+};
+
+export const useArtifactSelector = <T>(selector: (artifact: UIArtifact) => T): T => {
+  return useDocumentStore((state) => selector(state.currentArtifact));
+};

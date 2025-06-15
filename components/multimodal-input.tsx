@@ -139,36 +139,39 @@ function PureMultimodalInput({
     setCurrentSessionId,
   ]);
 
-  const uploadFile = async (file: File) => {
-    try {
-      // 验证文件
-      const validation = validateFile(file);
-      if (!validation.valid) {
-        toast.error(validation.error);
-        return;
+  const uploadFile = useCallback(
+    async (file: File) => {
+      try {
+        // 验证文件
+        const validation = validateFile(file);
+        if (!validation.valid) {
+          toast.error(validation.error);
+          return;
+        }
+
+        // 使用客户端存储
+        const storedFile = await storeFile(file);
+
+        // 获取文件访问 URL
+        const url = await getFileURL(storedFile.id);
+
+        if (!url) {
+          toast.error(t('upload.failedCreateUrl'));
+          return;
+        }
+
+        return {
+          url,
+          name: storedFile.name,
+          contentType: storedFile.type,
+        };
+      } catch (error) {
+        console.error("Failed to upload file:", error);
+        toast.error(t('upload.failedUpload'));
       }
-
-      // 使用客户端存储
-      const storedFile = await storeFile(file);
-
-      // 获取文件访问 URL
-      const url = await getFileURL(storedFile.id);
-
-      if (!url) {
-        toast.error(t('upload.failedCreateUrl'));
-        return;
-      }
-
-      return {
-        url,
-        name: storedFile.name,
-        contentType: storedFile.type,
-      };
-    } catch (error) {
-      console.error("Failed to upload file:", error);
-      toast.error(t('upload.failedUpload'));
-    }
-  };
+    },
+    [validateFile, storeFile, getFileURL, t]
+  );
 
   const handleFileChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -193,7 +196,7 @@ function PureMultimodalInput({
         setUploadQueue([]);
       }
     },
-    [setAttachments, uploadFile]
+    [setAttachments, uploadFile, t]
   );
 
   const { isAtBottom, scrollToBottom } = useScrollToBottom();

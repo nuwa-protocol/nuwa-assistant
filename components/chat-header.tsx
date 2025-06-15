@@ -1,13 +1,12 @@
 'use client';
 
 import { useLocale } from '@/locales/use-locale';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { generateUUID } from '@/lib/utils';
 
 import { SidebarToggle } from '@/components/sidebar-toggle';
 import { Button } from '@/components/ui/button';
-import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { AssistantNav } from '@/components/assistant-nav';
 import { ChatHistorySearchModal } from '@/components/chat-history-search-modal';

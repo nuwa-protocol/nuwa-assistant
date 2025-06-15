@@ -1,6 +1,5 @@
-import { generateText, Message } from "ai";
+import { generateText, streamText, smoothStream, appendResponseMessages, type Message } from "ai";
 import { myProvider } from "./providers";
-import { streamText, smoothStream, appendResponseMessages } from "ai";
 import { systemPrompt } from "./prompts";
 import { getWeather } from "./tools/get-weather";
 import { generateUUID, getClientLocation } from "@/lib/utils";

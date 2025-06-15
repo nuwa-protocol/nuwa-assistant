@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Message } from 'ai';
-import Dexie, { type Table } from 'dexie';
 import { generateTitleFromUserMessage } from '@/lib/ai/ai';
+// eslint-disable-next-line import/no-named-as-default
+import Dexie, { type Table } from 'dexie';
 
 // client chat interface
 export interface ChatSession {
