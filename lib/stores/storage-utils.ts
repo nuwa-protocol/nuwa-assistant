@@ -12,7 +12,6 @@ const isBrowser = typeof window !== 'undefined';
  * - LocalStorage
  * - IndexedDB
  * - SessionStorage
- * - Cookies
  * - Zustand Stores
  */
 export async function clearAllStorage() {
@@ -40,11 +39,4 @@ export async function clearAllStorage() {
   
   // clear sessionStorage
   sessionStorage.clear();
-  
-  // clear cookies
-  document.cookie.split(";").forEach((c) => {
-    document.cookie = c
-      .replace(/^ +/, "")
-      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-  });
 } 

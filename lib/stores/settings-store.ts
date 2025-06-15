@@ -8,6 +8,10 @@ interface SettingsState {
   language: Locale;
   setLanguage: (lang: Locale) => void;
 
+  // sidebar state
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+
   // reset settings
   resetSettings: () => void;
 }
@@ -47,9 +51,12 @@ export const useSettingsStore = create<SettingsState>()(
     (set, get) => ({
       language: 'en',
       setLanguage: (lang: Locale) => set({ language: lang }),
+      sidebarCollapsed: false,
+      setSidebarCollapsed: (collapsed: boolean) => set({ sidebarCollapsed: collapsed }),
       resetSettings: () => {
         set({
           language: 'en',
+          sidebarCollapsed: false,
         });
       },
     }),
@@ -58,6 +65,7 @@ export const useSettingsStore = create<SettingsState>()(
       storage: createJSONStorage(() => persistStorage),
       partialize: (state) => ({
         language: state.language,
+        sidebarCollapsed: state.sidebarCollapsed,
       }),
     }
   )

@@ -1,8 +1,8 @@
 import { formatDistance } from "date-fns";
 import {
-    useCallback,
-    useEffect,
-    useState,
+  useCallback,
+  useEffect,
+  useState,
 } from "react";
 import { useDebounceCallback, useWindowSize } from "usehooks-ts";
 import type { ClientDocument } from "@/lib/stores/document-store";
