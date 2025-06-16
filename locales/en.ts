@@ -7,6 +7,10 @@ export const en = {
   home: {
     loading: 'Loading...',
   },
+  language: {
+    english: 'English',
+    chinese: 'Chinese',
+  },
   nav: {
     sidebar: {
       new: 'New Chat',
@@ -15,11 +19,21 @@ export const en = {
       search: 'Search',
       capStore: 'Cap Store',
       artifact: 'Files',
+      togglePin: 'Pin',
+      toggleUnpin: 'Unpin',
     },
     profile: {
       toggleTheme: 'Toggle {{mode}} mode',
       signOut: 'Sign Out',
       clearStorage: 'Clear all storage (for testing)',
+    },
+    menu: {
+      preferences: 'Preferences',
+      theme: 'Theme',
+      language: 'Language',
+      system: 'System',
+      light: 'Light',
+      dark: 'Dark',
     },
   },
   chatHistory: {
@@ -257,6 +271,11 @@ export const en = {
         description: 'Security and privacy settings',
         subtitle: 'Manage your security and privacy settings.',
       },
+      system: {
+        title: 'System',
+        description: 'System settings and maintenance',
+        subtitle: 'Manage system-level settings and data.',
+      },
     },
     profile: {
       didInformation: {
@@ -295,6 +314,31 @@ export const en = {
         description: 'Security settings will be available in a future update.',
         details:
           'Two-factor authentication, privacy controls, and other security options will be added here.',
+      },
+    },
+    system: {
+      clearAllStorage: {
+        title: 'Clear All Storage',
+        description:
+          'Permanently delete all stored data including chats, settings, and files',
+        warning: 'Warning: This action cannot be undone',
+        warningDescription:
+          'This will permanently delete all your data including chat history, settings, uploaded files, and documents. You will need to sign in again.',
+        button: 'Clear All Data',
+        confirmTitle: 'Are you absolutely sure?',
+        confirmDescription:
+          'This action cannot be undone. This will permanently delete all of your data:',
+        confirmButton: 'Yes, clear everything',
+        cancel: 'Cancel',
+        clearing: 'Clearing...',
+        success: 'All storage has been cleared successfully',
+        error: 'Failed to clear storage. Please try again.',
+        dataTypes: {
+          chats: 'All chat conversations and history',
+          settings: 'User preferences and settings',
+          files: 'Uploaded files and attachments',
+          documents: 'Created documents and artifacts',
+        },
       },
     },
   },

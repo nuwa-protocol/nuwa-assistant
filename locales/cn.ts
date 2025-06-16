@@ -8,18 +8,33 @@ export const cn: typeof en = {
   home: {
     loading: '加载中...',
   },
+  language: {
+    english: '英文',
+    chinese: '中文',
+  },
   nav: {
     sidebar: {
       new: '新建聊天',
+      chat: '聊天',
       settings: '设置',
       search: '搜索',
       capStore: 'Cap 商店',
       artifact: '文件',
+      togglePin: '固定',
+      toggleUnpin: '取消固定',
     },
     profile: {
       toggleTheme: '切换{{mode}}模式',
       signOut: '退出登录',
       clearStorage: '清理所有存储（测试用）',
+    },
+    menu: {
+      preferences: '偏好设置',
+      theme: '主题',
+      language: '语言',
+      system: '跟随系统',
+      light: '浅色',
+      dark: '深色',
     },
   },
   chatHistory: {
@@ -241,6 +256,11 @@ export const cn: typeof en = {
         description: '安全和隐私设置',
         subtitle: '管理您的安全和隐私设置。',
       },
+      system: {
+        title: '系统',
+        description: '系统设置和维护',
+        subtitle: '管理系统级设置和数据。',
+      },
     },
     profile: {
       didInformation: {
@@ -250,6 +270,8 @@ export const cn: typeof en = {
         notSet: '未设置',
         authenticated: '已认证',
         notAuthenticated: '未认证',
+        copy: '复制',
+        copied: 'DID 已复制到剪贴板！',
       },
       photo: {
         title: '头像',
@@ -275,6 +297,29 @@ export const cn: typeof en = {
       security: {
         description: '安全设置将在未来的更新中提供。',
         details: '双因素认证、隐私控制和其他安全选项将在这里添加。',
+      },
+    },
+    system: {
+      clearAllStorage: {
+        title: '清空所有存储',
+        description: '永久删除所有存储的数据，包括聊天、设置和文件',
+        warning: '警告：此操作无法撤销',
+        warningDescription:
+          '这将永久删除您的所有数据，包括聊天记录、设置、上传的文件和文档。您需要重新登录。',
+        button: '清空所有数据',
+        confirmTitle: '您确定要这样做吗？',
+        confirmDescription: '此操作无法撤销。这将永久删除您的所有数据：',
+        confirmButton: '是的，清空一切',
+        cancel: '取消',
+        clearing: '正在清空...',
+        success: '所有存储已成功清空',
+        error: '清空存储失败。请重试。',
+        dataTypes: {
+          chats: '所有聊天对话和历史记录',
+          settings: '用户偏好和设置',
+          files: '上传的文件和附件',
+          documents: '创建的文档和工件',
+        },
       },
     },
   },

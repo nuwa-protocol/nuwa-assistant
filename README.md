@@ -16,11 +16,6 @@
 
 -
 
-### add settings page
-
-- add the settings entrace to the sidebar
-- add theme and language settings to the profile dropdown
-
 ### LLM Gateway
 
 - add openai original API

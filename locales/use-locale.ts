@@ -1,13 +1,13 @@
 'use client';
 
 import { useSettingsStore } from '@/lib/stores/settings-store';
-import { getLocale, Locale } from './index';
+import { getLocale, type Locale } from './index';
 import { useMemo } from 'react';
 
 // non-hook version, can be used anywhere
 export function getLocaleText(language: Locale = 'en') {
   const localeObj = getLocale(language);
-  
+
   function t<T = any>(path: string, vars?: Record<string, any>): T {
     const keys = path.split('.');
     let value: any = localeObj;
@@ -16,7 +16,10 @@ export function getLocaleText(language: Locale = 'en') {
       if (value === undefined) return path as any;
     }
     if (typeof value === 'string' && vars) {
-      return value.replace(/\{\{(.*?)\}\}/g, (_, k) => vars[k.trim()] ?? '') as any;
+      return value.replace(
+        /\{\{(.*?)\}\}/g,
+        (_, k) => vars[k.trim()] ?? '',
+      ) as any;
     }
     return value;
   }
@@ -26,7 +29,7 @@ export function getLocaleText(language: Locale = 'en') {
 
 // React hook version, for components
 export function useLocale() {
-  const language = useSettingsStore((s) => s.language) as Locale;
+  const language = useSettingsStore((s) => s.settings.language) as Locale;
   const localeObj = useMemo(() => getLocale(language), [language]);
 
   // type-safe t method
@@ -38,7 +41,10 @@ export function useLocale() {
       if (value === undefined) return path as any;
     }
     if (typeof value === 'string' && vars) {
-      return value.replace(/\{\{(.*?)\}\}/g, (_, k) => vars[k.trim()] ?? '') as any;
+      return value.replace(
+        /\{\{(.*?)\}\}/g,
+        (_, k) => vars[k.trim()] ?? '',
+      ) as any;
     }
     return value;
   }

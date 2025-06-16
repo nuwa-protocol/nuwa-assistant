@@ -2,23 +2,28 @@ import type { Locale } from '@/locales';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
+// user settings interface
+interface UserSettings {
+  language: Locale;
+  name: string;
+  avatar: string | null;
+}
+
 // settings interface
 interface SettingsState {
-  // language settings
-  language: Locale;
-  setLanguage: (lang: Locale) => void;
+  // grouped user settings
+  settings: UserSettings;
+  setSettings: (settings: UserSettings) => void;
+  setSetting: <K extends keyof UserSettings>(
+    key: K,
+    value: UserSettings[K],
+  ) => void;
 
   // sidebar state
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   sidebarMode: 'pinned' | 'floating';
   setSidebarMode: (mode: 'pinned' | 'floating') => void;
-
-  // profile settings
-  name: string;
-  avatar: string | null;
-  setName: (name: string) => void;
-  setAvatar: (avatar: string | null) => void;
 
   // reset settings
   resetSettings: () => void;
@@ -57,25 +62,34 @@ const persistStorage = {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
-      language: 'en',
-      setLanguage: (lang: Locale) => set({ language: lang }),
+      settings: {
+        language: 'en',
+        name: '',
+        avatar: null,
+      },
+      setSettings: (settings: UserSettings) => set({ settings }),
+      setSetting: (key, value) =>
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            [key]: value,
+          },
+        })),
       sidebarCollapsed: false,
       setSidebarCollapsed: (collapsed: boolean) =>
         set({ sidebarCollapsed: collapsed }),
       sidebarMode: 'pinned',
       setSidebarMode: (mode: 'pinned' | 'floating') =>
         set({ sidebarMode: mode }),
-      name: '',
-      avatar: null,
-      setName: (name: string) => set({ name }),
-      setAvatar: (avatar: string | null) => set({ avatar }),
       resetSettings: () => {
         set({
-          language: 'en',
+          settings: {
+            language: 'en',
+            name: '',
+            avatar: null,
+          },
           sidebarCollapsed: false,
           sidebarMode: 'pinned',
-          name: '',
-          avatar: null,
         });
       },
     }),
@@ -83,11 +97,9 @@ export const useSettingsStore = create<SettingsState>()(
       name: 'user-settings-storage',
       storage: createJSONStorage(() => persistStorage),
       partialize: (state) => ({
-        language: state.language,
+        settings: state.settings,
         sidebarCollapsed: state.sidebarCollapsed,
         sidebarMode: state.sidebarMode,
-        name: state.name,
-        avatar: state.avatar,
       }),
     },
   ),

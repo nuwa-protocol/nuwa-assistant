@@ -10,18 +10,20 @@ import {
 import { Button } from './ui/button';
 import { useSettingsStore } from '@/lib/stores/settings-store';
 import { Pin, PinOff } from 'lucide-react';
+import { useLocale } from '@/locales/use-locale';
 
 export function SidebarToggle({
   className,
 }: ComponentProps<typeof SidebarTrigger>) {
   const { setOpen } = useSidebar();
-  const sidebarMode = useSettingsStore(state => state.sidebarMode);
-  const setSidebarMode = useSettingsStore(state => state.setSidebarMode);
+  const sidebarMode = useSettingsStore((state) => state.sidebarMode);
+  const setSidebarMode = useSettingsStore((state) => state.setSidebarMode);
+  const { t } = useLocale();
 
   const handleToggleMode = () => {
     const newMode = sidebarMode === 'pinned' ? 'floating' : 'pinned';
     setSidebarMode(newMode);
-    
+
     // In pinned mode, open the sidebar by default
     // In floating mode, let hover logic control it
     if (newMode === 'pinned') {
@@ -46,7 +48,7 @@ export function SidebarToggle({
         </Button>
       </TooltipTrigger>
       <TooltipContent align="start">
-        {isPinned ? 'Switch to Floating Mode' : 'Switch to Pinned Mode'}
+        {isPinned ? t('nav.sidebar.toggleUnpin') : t('nav.sidebar.togglePin')}
       </TooltipContent>
     </Tooltip>
   );

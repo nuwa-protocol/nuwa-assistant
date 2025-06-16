@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Camera, Shield, User } from 'lucide-react';
+import { Camera, Monitor, Shield, User, AlertTriangle } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
+import { clearAllStorage } from '@/lib/stores/storage-utils';
 
 // Define the type for settingsSections
 interface SettingsSection {
@@ -32,14 +33,27 @@ interface SettingsSection {
   cardItems: SettingCardProps[];
 }
 
-export function SettingsModal({ children }: { children: React.ReactNode }) {
+// Update props to support controlled and uncontrolled usage
+interface SettingsModalProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children?: React.ReactNode;
+}
+
+export function SettingsModal({
+  open,
+  onOpenChange,
+  children,
+}: SettingsModalProps) {
   const { t } = useLocale();
   const [activeSectionIndex, setActiveSectionIndex] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
-  const { name, avatar, setName, setAvatar } = useSettingsStore();
+  const { settings, setSetting } = useSettingsStore();
   const { did } = useDIDStore();
-  const [tempName, setTempName] = useState(name);
+  const [tempName, setTempName] = useState(settings.name);
 
   const [_, copyToClipboard] = useCopyToClipboard();
 
@@ -50,7 +64,7 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
       reader.onload = (e) => {
         const result = e.target?.result;
         if (typeof result === 'string') {
-          setAvatar(result);
+          setSetting('avatar', result);
         }
       };
       reader.readAsDataURL(file);
@@ -58,7 +72,7 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
   };
 
   const handleRemoveAvatar = () => {
-    setAvatar(null);
+    setSetting('avatar', null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -99,8 +113,8 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20">
-            {avatar ? (
-              <AvatarImage src={avatar} alt="Profile" />
+            {settings.avatar ? (
+              <AvatarImage src={settings.avatar} alt="Profile" />
             ) : (
               <AvatarFallback asChild>
                 <Image
@@ -129,7 +143,7 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
                 <Camera className="h-4 w-4 mr-2" />
                 {t('settings.profile.photo.changePhoto')}
               </Button>
-              {avatar && (
+              {settings.avatar && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -160,8 +174,8 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
             className="max-w-md"
           />
           <Button
-            onClick={() => setName(tempName)}
-            disabled={tempName === name}
+            onClick={() => setSetting('name', tempName)}
+            disabled={tempName === settings.name}
             size="sm"
           >
             {t('settings.profile.displayName.save')}
@@ -176,6 +190,103 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
       <p className="text-sm text-muted-foreground">
         {t('settings.comingSoon.details')}
       </p>
+    );
+  };
+
+  const clearAllStorageContent = () => {
+    const handleClearStorage = async () => {
+      setIsClearing(true);
+      try {
+        await clearAllStorage();
+        toast({
+          type: 'success',
+          description: t('settings.system.clearAllStorage.success'),
+        });
+        setShowClearConfirmation(false);
+        // Reload the page to reflect the cleared state
+        window.location.reload();
+      } catch (error) {
+        console.error('Failed to clear storage:', error);
+        toast({
+          type: 'error',
+          description: t('settings.system.clearAllStorage.error'),
+        });
+      } finally {
+        setIsClearing(false);
+      }
+    };
+
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+          <AlertTriangle className="h-4 w-4" />
+          <span className="text-sm font-medium">
+            {t('settings.system.clearAllStorage.warning')}
+          </span>
+        </div>
+
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => setShowClearConfirmation(true)}
+          disabled={isClearing}
+        >
+          {t('settings.system.clearAllStorage.button')}
+        </Button>
+
+        <Dialog.Dialog
+          open={showClearConfirmation}
+          onOpenChange={setShowClearConfirmation}
+        >
+          <Dialog.DialogContent className="sm:max-w-md">
+            <Dialog.DialogTitle>
+              {t('settings.system.clearAllStorage.confirmTitle')}
+            </Dialog.DialogTitle>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    {t('settings.system.clearAllStorage.confirmDescription')}
+                  </p>
+                  <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                    <li>
+                      {t('settings.system.clearAllStorage.dataTypes.chats')}
+                    </li>
+                    <li>
+                      {t('settings.system.clearAllStorage.dataTypes.settings')}
+                    </li>
+                    <li>
+                      {t('settings.system.clearAllStorage.dataTypes.files')}
+                    </li>
+                    <li>
+                      {t('settings.system.clearAllStorage.dataTypes.documents')}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowClearConfirmation(false)}
+                  disabled={isClearing}
+                >
+                  {t('settings.system.clearAllStorage.cancel')}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleClearStorage}
+                  disabled={isClearing}
+                >
+                  {isClearing
+                    ? t('settings.system.clearAllStorage.clearing')
+                    : t('settings.system.clearAllStorage.confirmButton')}
+                </Button>
+              </div>
+            </div>
+          </Dialog.DialogContent>
+        </Dialog.Dialog>
+      </div>
     );
   };
 
@@ -216,13 +327,30 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
         },
       ],
     },
+    {
+      id: 'system',
+      icon: Monitor,
+      name: t('settings.sections.system.title'),
+      description: t('settings.sections.system.subtitle'),
+      cardItems: [
+        {
+          title: t('settings.system.clearAllStorage.title'),
+          description: t('settings.system.clearAllStorage.description'),
+          content: clearAllStorageContent(),
+        },
+      ],
+    },
   ];
 
   const activeSection = settingsSections[activeSectionIndex];
 
   return (
-    <Dialog.Dialog>
-      <Dialog.DialogTrigger asChild>{children}</Dialog.DialogTrigger>
+    <Dialog.Dialog
+      {...(open !== undefined && onOpenChange ? { open, onOpenChange } : {})}
+    >
+      {children && (
+        <Dialog.DialogTrigger asChild>{children}</Dialog.DialogTrigger>
+      )}
       <Dialog.DialogContent
         className="fixed left-1/2 top-1/2 z-50 grid -translate-x-1/2 -translate-y-1/2 gap-0 border bg-background p-0 shadow-lg sm:rounded-lg overflow-hidden"
         style={{
