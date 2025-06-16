@@ -5,10 +5,8 @@ import { Camera, Shield, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import * as Dialog from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { useSettingsStore } from '@/lib/stores/settings-store';
 import { useDIDStore } from '@/lib/stores/did-store';
 import { useLocale } from '@/locales/use-locale';
@@ -18,6 +16,12 @@ import { useCopyToClipboard } from 'usehooks-ts';
 import { toast } from '@/components/toast';
 import type { SettingCardProps } from './setting-card';
 import { SettingsNav } from './settings-nav';
+import Image from 'next/image';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 
 // Define the type for settingsSections
 interface SettingsSection {
@@ -62,36 +66,30 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
 
   const didInformationContent = () => {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-                {did || t('settings.profile.didInformation.notSet')}
-              </code>
-              {did && (
-                <Badge
-                  className="cursor-pointer hover:bg/80"
-                  onClick={async () => {
-                    await copyToClipboard(did);
-                    toast({
-                      type: 'success',
-                      description: t('settings.profile.didInformation.copied'),
-                    });
-                  }}
-                  style={{ userSelect: 'none' }}
-                >
-                  <span className="flex items-center">
-                    <CopyIcon size={14} />
-                    <span className="ml-1">
-                      {t('settings.profile.didInformation.copy')}
-                    </span>
-                  </span>
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
+      <div>
+        {did && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className="cursor-pointer select-none flex items-center"
+                role="button"
+                onClick={async () => {
+                  await copyToClipboard(did);
+                  toast({
+                    type: 'success',
+                    description: t('settings.profile.didInformation.copied'),
+                  });
+                }}
+              >
+                <CopyIcon size={14} />
+                <span className="ml-1 font-mono text-sm">{did}</span>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              {t('settings.profile.didInformation.copy') || 'Click to copy'}
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
     );
   };
@@ -105,9 +103,11 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
               <AvatarImage src={avatar} alt="Profile" />
             ) : (
               <AvatarFallback asChild>
-                <AvatarImage
+                <Image
                   src={`https://avatar.vercel.sh/${did}`}
                   alt="Avatar"
+                  width={80}
+                  height={80}
                 />
               </AvatarFallback>
             )}
@@ -151,24 +151,21 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
   const displayNameContent = () => {
     return (
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">{t('settings.profile.displayName.name')}</Label>
-          <div className="flex gap-2">
-            <Input
-              id="name"
-              value={tempName}
-              onChange={(e) => setTempName(e.target.value)}
-              placeholder={t('settings.profile.displayName.placeholder')}
-              className="max-w-md"
-            />
-            <Button
-              onClick={() => setName(tempName)}
-              disabled={tempName === name}
-              size="sm"
-            >
-              {t('settings.profile.displayName.save')}
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Input
+            id="name"
+            value={tempName}
+            onChange={(e) => setTempName(e.target.value)}
+            placeholder={t('settings.profile.displayName.placeholder')}
+            className="max-w-md"
+          />
+          <Button
+            onClick={() => setName(tempName)}
+            disabled={tempName === name}
+            size="sm"
+          >
+            {t('settings.profile.displayName.save')}
+          </Button>
         </div>
       </div>
     );
@@ -238,7 +235,7 @@ export function SettingsModal({ children }: { children: React.ReactNode }) {
       >
         <Dialog.DialogTitle className="sr-only">Settings</Dialog.DialogTitle>
         <div className="w-full h-full overflow-auto hide-scrollbar">
-          <div className="mx-auto w-full px-16 py-8">
+          <div className="mx-auto w-full px-16 pb-8">
             <SettingsNav
               settingsSections={settingsSections}
               setActiveSectionIndex={setActiveSectionIndex}

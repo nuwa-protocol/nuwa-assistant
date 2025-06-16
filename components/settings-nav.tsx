@@ -10,7 +10,7 @@ export function SettingsNav({
   activeSectionIndex: number;
 }) {
   return (
-    <div className="mb-8">
+    <div className="sticky top-0 z-10 bg-background mb-6 pb-2 pt-2">
       <div className="border-b border-border">
         <nav className="flex space-x-8" aria-label="Tabs">
           {settingsSections.map((section, index) => {

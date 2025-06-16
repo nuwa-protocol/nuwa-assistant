@@ -1,11 +1,4 @@
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 
 export interface SettingCardProps {
   title: string;
@@ -15,12 +8,12 @@ export interface SettingCardProps {
 
 export function SettingCard({ title, description, content }: SettingCardProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>{content}</CardContent>
-    </Card>
+    <div className="flex items-center gap-8 p-6 border rounded-lg bg-background shadow-sm">
+      <div className="flex-1 min-w-0">
+        <div className="text-base font-semibold mb-1">{title}</div>
+        <div className="text-muted-foreground text-sm">{description}</div>
+      </div>
+      <div className="flex-shrink-0">{content}</div>
+    </div>
   );
 }
