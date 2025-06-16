@@ -4,7 +4,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
-  useSidebar
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useDIDStore } from '@/lib/stores/did-store';
 import { useChatStore } from '@/lib/stores/chat-store';
@@ -24,7 +24,7 @@ export function SidebarHistory() {
       <SidebarGroup>
         <SidebarGroupContent>
           <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
-            {t('chat.loginToSave')}
+            {t('chatHistory.loginToSave')}
           </div>
         </SidebarGroupContent>
       </SidebarGroup>
@@ -41,7 +41,7 @@ export function SidebarHistory() {
   const thirtyDaysAgo = now - 30 * oneDay;
 
   const allSessionsWithMessages = Object.values(sessions)
-    .filter(session => session.messages.length > 0)
+    .filter((session) => session.messages.length > 0)
     .sort((a, b) => b.updatedAt - a.updatedAt);
 
   // group by time
@@ -52,7 +52,7 @@ export function SidebarHistory() {
     older: [] as typeof allSessionsWithMessages,
   };
 
-  allSessionsWithMessages.forEach(session => {
+  allSessionsWithMessages.forEach((session) => {
     if (session.updatedAt >= todayStart) {
       grouped.today.push(session);
     } else if (session.updatedAt >= sevenDaysAgo) {
@@ -77,9 +77,11 @@ export function SidebarHistory() {
         <SidebarGroupContent>
           <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">{t('chat.noChats')}</p>
+              <p className="text-sm text-muted-foreground">
+                {t('chatHistory.noChats')}
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {t('chat.startConversation')}
+                {t('chatHistory.startConversation')}
               </p>
             </div>
           </div>
@@ -96,14 +98,17 @@ export function SidebarHistory() {
   };
 
   // group render function
-  const renderGroup = (title: string, items: typeof allSessionsWithMessages) => {
+  const renderGroup = (
+    title: string,
+    items: typeof allSessionsWithMessages,
+  ) => {
     if (items.length === 0) return null;
     return (
       <div className="mb-2">
         <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
-          {t('chat.' + title.replace(/\s/g, '').replace('ThisWeek', 'thisWeek').replace('AWeekAgo', 'aWeekAgo').toLowerCase())}
+          {title}
         </div>
-        {items.map(session => (
+        {items.map((session) => (
           <ChatItem
             key={session.id}
             chat={session}
@@ -120,10 +125,10 @@ export function SidebarHistory() {
     <SidebarGroup>
       <SidebarGroupContent>
         <SidebarMenu>
-          {renderGroup('Today', grouped.today)}
-          {renderGroup('This Week', grouped.last7)}
-          {renderGroup('A Week Ago', grouped.last30)}
-          {renderGroup('Older', grouped.older)}
+          {renderGroup(t('chatHistory.today'), grouped.today)}
+          {renderGroup(t('chatHistory.thisWeek'), grouped.last7)}
+          {renderGroup(t('chatHistory.aWeekAgo'), grouped.last30)}
+          {renderGroup(t('chatHistory.older'), grouped.older)}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

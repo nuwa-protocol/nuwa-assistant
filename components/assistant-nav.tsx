@@ -34,6 +34,7 @@ export function AssistantNav() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
+          type="button"
           data-testid="assistant-nav-button"
           className="flex items-center rounded-full bg-background p-2 hover:shadow hover:bg-accent hover:text-accent-foreground focus:outline-none hover:cursor-pointer"
         >
@@ -57,7 +58,9 @@ export function AssistantNav() {
           className="cursor-pointer"
           onSelect={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
         >
-          {t('nav.toggleTheme', { mode: resolvedTheme === 'light' ? 'dark' : 'light' })}
+          {t('nav.toggleTheme', {
+            mode: resolvedTheme === 'light' ? 'dark' : 'light',
+          })}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild data-testid="assistant-nav-item-auth">
@@ -84,4 +87,4 @@ export function AssistantNav() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-} 
+}

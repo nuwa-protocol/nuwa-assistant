@@ -30,7 +30,9 @@ export function createErrorMessage(
       return createSystemMessage(locale.error.tryAgain);
     }
 
-    return createSystemMessage(formatErrorForUser(errorText, validLevel as ErrorLevel));
+    return createSystemMessage(
+      formatErrorForUser(errorText, validLevel as ErrorLevel),
+    );
   } catch (internalError) {
     // 返回一个最基本的错误消息
     return {
@@ -97,50 +99,38 @@ function createSystemMessage(content: string): UIMessage {
 // 常见错误类型处理
 export const ErrorHandlers = {
   network: (error?: string) =>
-    createErrorMessage(
-      error || locale.error.network,
-      { level: 'error' },
-    ),
+    createErrorMessage(error || locale.error.network, { level: 'error' }),
 
   api: (error?: string) =>
-    createErrorMessage(
-      error || locale.error.api,
-      { level: 'error' },
-    ),
+    createErrorMessage(error || locale.error.api, { level: 'error' }),
 
   storage: (error?: string) =>
-    createErrorMessage(
-      error || locale.error.storage,
-      { level: 'warning' },
-    ),
+    createErrorMessage(error || locale.error.storage, { level: 'warning' }),
 
   validation: (error?: string) =>
-    createErrorMessage(
-      error || locale.error.validation,
-      { level: 'warning' },
-    ),
+    createErrorMessage(error || locale.error.validation, { level: 'warning' }),
 
   permission: (error?: string) =>
-    createErrorMessage(
-      error || locale.error.permission,
-      { level: 'error' },
-    ),
+    createErrorMessage(error || locale.error.permission, { level: 'error' }),
 
   notFound: (resource = 'resource') =>
-    createErrorMessage(locale.error.notFound.replace('{{resource}}', resource), {
-      level: 'warning',
-    }),
+    createErrorMessage(
+      locale.error.notFound.replace('{{resource}}', resource),
+      {
+        level: 'warning',
+      },
+    ),
 
   timeout: (operation = 'operation') =>
-    createErrorMessage(locale.error.timeout.replace('{{operation}}', operation), {
-      level: 'warning',
-    }),
+    createErrorMessage(
+      locale.error.timeout.replace('{{operation}}', operation),
+      {
+        level: 'warning',
+      },
+    ),
 
   generic: (error?: string) =>
-    createErrorMessage(
-      error || locale.error.generic,
-      { level: 'error' },
-    ),
+    createErrorMessage(error || locale.error.generic, { level: 'error' }),
 };
 
 // 错误边界处理函数

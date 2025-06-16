@@ -20,7 +20,7 @@ export default function Page() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full size-8 border-b-2 border-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">{t('chat.loading')}</p>
+            <p className="text-muted-foreground">{t('home.loading')}</p>
           </div>
         </div>
       </div>

@@ -8,11 +8,7 @@ import { generateId } from 'ai';
 import { useLocale } from '@/locales/use-locale';
 
 export default function Page() {
-  const {
-    currentSessionId,
-    getSession,
-    setCurrentSessionId,
-  } = useChatStore();
+  const { currentSessionId, getSession, setCurrentSessionId } = useChatStore();
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
   const { t } = useLocale();
@@ -23,7 +19,7 @@ export default function Page() {
       // no currentSessionId, create new
       const newId = generateId();
       setCurrentSessionId(newId);
-      setSession({ id: newId, messages: []});
+      setSession({ id: newId, messages: [] });
       setIsLoading(false);
       return;
     }
@@ -34,7 +30,7 @@ export default function Page() {
       setIsLoading(false);
     } else {
       // no corresponding session, create new
-      setSession({ id: currentSessionId, messages: []});
+      setSession({ id: currentSessionId, messages: [] });
       setIsLoading(false);
     }
   }, [currentSessionId, getSession, setCurrentSessionId]);

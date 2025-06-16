@@ -4,32 +4,43 @@ export const cn: typeof en = {
     title: 'DID 登录',
     description: '请输入您的 DID 以访问聊天',
   },
-  nav: {
-    toggleTheme: '切换{{mode}}模式',
-    signOut: '退出登录',
-    clearStorage: '清理所有存储（测试用）',
+  logo: 'Nuwa AI',
+  home: {
+    loading: '加载中...',
   },
-  chat: {
-    new: '新建聊天',
+  nav: {
+    sidebar: {
+      new: '新建聊天',
+      settings: '设置',
+      search: '搜索',
+      capStore: 'Cap 商店',
+      artifact: '文件',
+    },
+    profile: {
+      toggleTheme: '切换{{mode}}模式',
+      signOut: '退出登录',
+      clearStorage: '清理所有存储（测试用）',
+    },
+  },
+  chatHistory: {
     noChats: '暂无聊天',
     startConversation: '开始对话后会显示在这里',
     today: '今天',
     thisWeek: '本周',
     aWeekAgo: '一周前',
     older: '更早',
-    delete: '删除',
-    more: '更多',
     loginToSave: '登录 DID 以保存聊天记录！',
+  },
+  search: {
+    searchPlaceholder: '搜索聊天、caps、文件...',
+    noChatsHistory: '没有找到聊天记录。',
+  },
+  chat: {
     restoreVersion: '恢复此版本',
     backToLatest: '返回最新版本',
     viewingPrevious: '正在查看历史版本',
     restoreToEdit: '恢复此版本以进行编辑',
-    logo: 'Nuwa AI',
-    loading: '加载中...',
     loadingChat: '正在加载聊天...',
-    search: '搜索',
-    searchHistory: '搜索聊天历史...',
-    noChatsHistory: '没有找到聊天记录。',
   },
   error: {
     info: '信息',
@@ -126,7 +137,7 @@ export const cn: typeof en = {
     viewNext: '查看下一个版本',
     copy: '复制到剪贴板',
     copied: '已复制到剪贴板！',
-    
+
     text: {
       description: '用于文本内容，如起草文章和邮件。',
       actions: {
@@ -141,10 +152,11 @@ export const cn: typeof en = {
       },
       addPolish: '最终润色',
       requestSuggestions: '请求建议',
-      polishPrompt: '请进行最终润色，检查语法，添加章节标题以改善结构，确保内容流畅易读。',
+      polishPrompt:
+        '请进行最终润色，检查语法，添加章节标题以改善结构，确保内容流畅易读。',
       suggestionsPrompt: '请提供可以改进写作的建议。',
     },
-    
+
     code: {
       description: '用于代码生成；代码执行仅支持 Python 代码。',
       actions: {
@@ -165,7 +177,7 @@ export const cn: typeof en = {
       addCommentsPrompt: '为代码片段添加注释以便理解',
       addLogsPrompt: '为代码片段添加日志以便调试',
     },
-    
+
     sheet: {
       description: '用于处理电子表格',
       copyAsCsv: '复制为 .csv',
@@ -184,7 +196,7 @@ export const cn: typeof en = {
         analyze: '分析和可视化数据',
       },
     },
-    
+
     image: {
       description: '用于图像生成',
       actions: {
@@ -210,4 +222,60 @@ export const cn: typeof en = {
     failedUpload: '文件上传失败，请重试！',
     errorUploading: '上传文件时出错！',
   },
-}; 
+  settings: {
+    title: '设置',
+    description: '管理您的账户设置和偏好。',
+    sections: {
+      profile: {
+        title: '个人资料',
+        description: '管理您的个人资料信息',
+        subtitle: '这是其他人在网站上看到您的方式。',
+      },
+      general: {
+        title: '通用',
+        description: '通用应用程序设置',
+        subtitle: '通用应用程序设置和偏好。',
+      },
+      security: {
+        title: '安全',
+        description: '安全和隐私设置',
+        subtitle: '管理您的安全和隐私设置。',
+      },
+    },
+    profile: {
+      didInformation: {
+        title: 'DID 信息',
+        description: '您的去中心化标识符和认证状态',
+        did: 'DID',
+        notSet: '未设置',
+        authenticated: '已认证',
+        notAuthenticated: '未认证',
+      },
+      photo: {
+        title: '头像',
+        description: '这将显示在您的个人资料中。',
+        changePhoto: '更换头像',
+        remove: '移除',
+        fileTypes: 'JPG、PNG 或 GIF 格式。最大 5MB。',
+      },
+      displayName: {
+        title: '显示名称',
+        description: '这是您的公开显示名称。',
+        name: '姓名',
+        placeholder: '输入您的姓名',
+        save: '保存',
+      },
+    },
+    comingSoon: {
+      title: '即将推出',
+      general: {
+        description: '通用设置将在未来的更新中提供。',
+        details: '语言偏好、主题设置和其他通用选项将在这里添加。',
+      },
+      security: {
+        description: '安全设置将在未来的更新中提供。',
+        details: '双因素认证、隐私控制和其他安全选项将在这里添加。',
+      },
+    },
+  },
+};

@@ -1,14 +1,13 @@
-import { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarButtonProps {
   icon?: LucideIcon;
   text: string;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   className?: string;
   variant?: 'primary' | 'secondary';
   active?: boolean;
-  href?: string;
 }
 
 export function SidebarButton({
@@ -18,17 +17,13 @@ export function SidebarButton({
   className,
   variant = 'secondary',
   active = false,
-  href = '#',
 }: SidebarButtonProps) {
   const isPrimary = variant === 'primary';
 
   return (
-    <a
-      href={href}
-      onClick={(e) => {
-        if (href === '#') e.preventDefault();
-        onClick?.();
-      }}
+    <button
+      type="button"
+      onClick={onClick}
       className={cn(
         'inline-flex items-center rounded-md text-sm transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
@@ -41,12 +36,16 @@ export function SidebarButton({
           'dark:text-gray-200 dark:hover:bg-gray-800',
         ],
         active && 'bg-gray-100 dark:bg-gray-800',
-        className
+        className,
       )}
     >
       {!isPrimary && Icon && <Icon size={16} className="shrink-0" />}
-      <span className={cn(!isPrimary && Icon && 'ml-2', isPrimary && 'font-medium')}>{text}</span>
+      <span
+        className={cn(!isPrimary && Icon && 'ml-2', isPrimary && 'font-medium')}
+      >
+        {text}
+      </span>
       {isPrimary && Icon && <Icon size={16} className="ml-2 shrink-0" />}
-    </a>
+    </button>
   );
-} 
+}

@@ -3,63 +3,87 @@ export const en = {
     title: 'DID Sign In',
     description: 'Enter your DID to access the chat',
   },
-  nav: {
-    toggleTheme: 'Toggle {{mode}} mode',
-    signOut: 'Sign Out',
-    clearStorage: 'Clear all storage (for testing)',
+  logo: 'Nuwa AI',
+  home: {
+    loading: 'Loading...',
   },
-  chat: {
-    new: 'New Chat',
+  nav: {
+    sidebar: {
+      new: 'New Chat',
+      settings: 'Settings',
+      search: 'Search',
+      capStore: 'Cap Store',
+      artifact: 'Files',
+    },
+    profile: {
+      toggleTheme: 'Toggle {{mode}} mode',
+      signOut: 'Sign Out',
+      clearStorage: 'Clear all storage (for testing)',
+    },
+  },
+  chatHistory: {
     noChats: 'No chats',
     startConversation: 'Conversations you have will appear here',
     today: 'Today',
     thisWeek: 'This week',
     aWeekAgo: 'A week ago',
     older: 'Older',
-    delete: 'Delete',
-    more: 'More',
     loginToSave: 'Sign in with DID to save chat history!',
+  },
+  search: {
+    searchPlaceholder: 'Search chats, caps, files...',
+    noChatsHistory: 'No chat history found.',
+  },
+  chat: {
     restoreVersion: 'Restore this version',
     backToLatest: 'Back to latest',
     viewingPrevious: 'Viewing previous version',
     restoreToEdit: 'Restore this version to edit',
-    logo: 'Nuwa AI',
-    loading: 'Loading...',
     loadingChat: 'Loading chat...',
-    search: 'Search',
-    searchHistory: 'Search chat history...',
-    noChatsHistory: 'No chat history found.',
   },
   error: {
     info: 'Info',
     warning: 'Warning',
     error: 'Error',
     critical: 'Critical Error',
-    network: 'Network connection failed. Please check your internet connection.',
+    network:
+      'Network connection failed. Please check your internet connection.',
     api: 'Service is temporarily unavailable. Please try again later.',
-    storage: 'Unable to save data locally. Please check your browser storage settings.',
+    storage:
+      'Unable to save data locally. Please check your browser storage settings.',
     validation: 'Invalid input. Please check your data and try again.',
     permission: 'Permission denied. Please check your access rights.',
     notFound: 'The requested {{resource}} was not found.',
     timeout: '{{operation}} timed out. Please try again.',
     generic: 'An unexpected error occurred. Please try again.',
     tryAgain: 'An error occurred. Please try again.',
-    persist: 'If the problem persists, please check your internet connection or reload the page.',
+    persist:
+      'If the problem persists, please check your internet connection or reload the page.',
   },
   errors: {
     database: 'An error occurred while executing the database query.',
-    badRequestApi: 'Unable to process the request. Please check your input and try again.',
+    badRequestApi:
+      'Unable to process the request. Please check your input and try again.',
     unauthorizedAuth: 'You need to sign in before you can continue.',
     forbiddenAuth: 'Your account does not have access to this feature.',
-    rateLimitChat: 'You have exceeded the maximum number of messages for today. Please try again later.',
-    notFoundChat: 'The requested chat was not found. Please check the chat ID and try again.',
-    forbiddenChat: 'This chat belongs to another user. Please check the chat ID and try again.',
-    unauthorizedChat: 'You need to sign in to view this chat. Please sign in and try again.',
-    offlineChat: 'There was a problem sending your message. Please check your internet connection and try again.',
-    notFoundDocument: 'The requested document was not found. Please check the document ID and try again.',
-    forbiddenDocument: 'This document belongs to another user. Please check the document ID and try again.',
-    unauthorizedDocument: 'You need to sign in to view this document. Please sign in and try again.',
-    badRequestDocument: 'The request to create or update the document was invalid. Please check your input and try again.',
+    rateLimitChat:
+      'You have exceeded the maximum number of messages for today. Please try again later.',
+    notFoundChat:
+      'The requested chat was not found. Please check the chat ID and try again.',
+    forbiddenChat:
+      'This chat belongs to another user. Please check the chat ID and try again.',
+    unauthorizedChat:
+      'You need to sign in to view this chat. Please sign in and try again.',
+    offlineChat:
+      'There was a problem sending your message. Please check your internet connection and try again.',
+    notFoundDocument:
+      'The requested document was not found. Please check the document ID and try again.',
+    forbiddenDocument:
+      'This document belongs to another user. Please check the document ID and try again.',
+    unauthorizedDocument:
+      'You need to sign in to view this document. Please sign in and try again.',
+    badRequestDocument:
+      'The request to create or update the document was invalid. Please check your input and try again.',
     default: 'Something went wrong. Please try again later.',
   },
   actions: {
@@ -125,7 +149,7 @@ export const en = {
     viewNext: 'View next version',
     copy: 'Copy to clipboard',
     copied: 'Copied to clipboard!',
-    
+
     text: {
       description: 'Useful for text content like drafting essays and emails.',
       actions: {
@@ -140,12 +164,15 @@ export const en = {
       },
       addPolish: 'Add final polish',
       requestSuggestions: 'Request suggestions',
-      polishPrompt: 'Please add final polish, check grammar, add section titles to improve structure, and ensure everything flows smoothly.',
-      suggestionsPrompt: 'Please provide suggestions that could improve the writing.',
+      polishPrompt:
+        'Please add final polish, check grammar, add section titles to improve structure, and ensure everything flows smoothly.',
+      suggestionsPrompt:
+        'Please provide suggestions that could improve the writing.',
     },
-    
+
     code: {
-      description: 'Useful for code generation; code execution is only available for Python code.',
+      description:
+        'Useful for code generation; code execution is only available for Python code.',
       actions: {
         run: 'Run code',
         undo: 'Undo change',
@@ -164,7 +191,7 @@ export const en = {
       addCommentsPrompt: 'Add comments to the code snippet for understanding',
       addLogsPrompt: 'Add logs to the code snippet for debugging',
     },
-    
+
     sheet: {
       description: 'Useful for working with spreadsheets',
       copyAsCsv: 'Copy as .csv',
@@ -172,7 +199,8 @@ export const en = {
       formatData: 'Format and clean data',
       analyzeData: 'Analyze and visualize data',
       formatPrompt: 'Could you help format and clean the data?',
-      analyzePrompt: 'Could you analyze and visualize the data by creating a new Python code artifact?',
+      analyzePrompt:
+        'Could you analyze and visualize the data by creating a new Python code artifact?',
       actions: {
         undo: 'Undo change',
         redo: 'Redo change',
@@ -183,7 +211,7 @@ export const en = {
         analyze: 'Analyze and visualize data',
       },
     },
-    
+
     image: {
       description: 'Useful for image generation',
       actions: {
@@ -209,4 +237,62 @@ export const en = {
     failedUpload: 'Failed to upload file, please try again!',
     errorUploading: 'Error uploading file!',
   },
-}; 
+  settings: {
+    title: 'Settings',
+    description: 'Manage your account settings and preferences.',
+    sections: {
+      profile: {
+        title: 'Profile',
+        description: 'Manage your profile information',
+        subtitle: 'This is how others will see you on the site.',
+      },
+      general: {
+        title: 'General',
+        description: 'General application settings',
+        subtitle: 'General application settings and preferences.',
+      },
+      security: {
+        title: 'Security',
+        description: 'Security and privacy settings',
+        subtitle: 'Manage your security and privacy settings.',
+      },
+    },
+    profile: {
+      didInformation: {
+        title: 'DID Information',
+        description: 'Your decentralized identifier and authentication status',
+        did: 'DID',
+        notSet: 'Not set',
+        authenticated: 'Authenticated',
+        notAuthenticated: 'Not authenticated',
+      },
+      photo: {
+        title: 'Profile Photo',
+        description: 'This will be displayed on your profile.',
+        changePhoto: 'Change Photo',
+        remove: 'Remove',
+        fileTypes: 'JPG, PNG or GIF. Max size 5MB.',
+      },
+      displayName: {
+        title: 'Display Name',
+        description: 'This is your public display name.',
+        name: 'Name',
+        placeholder: 'Enter your name',
+        save: 'Save',
+      },
+    },
+    comingSoon: {
+      title: 'Coming Soon',
+      general: {
+        description: 'General settings will be available in a future update.',
+        details:
+          'Language preferences, theme settings, and other general options will be added here.',
+      },
+      security: {
+        description: 'Security settings will be available in a future update.',
+        details:
+          'Two-factor authentication, privacy controls, and other security options will be added here.',
+      },
+    },
+  },
+};

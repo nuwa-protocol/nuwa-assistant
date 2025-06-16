@@ -11,10 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import {
-  MoreHorizontalIcon,
-  TrashIcon,
-} from './icons';
+import { MoreHorizontalIcon, TrashIcon } from './icons';
 import { memo, useState } from 'react';
 import { useLocale } from '@/locales/use-locale';
 import { useFloatingSidebar } from './floating-sidebar';
@@ -43,7 +40,7 @@ const PureChatItem = ({
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive}>
-        <button onClick={handleChatSelect}>
+        <button type="button" onClick={handleChatSelect}>
           <span>{chat.title}</span>
         </button>
       </SidebarMenuButton>

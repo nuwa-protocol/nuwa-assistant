@@ -11,10 +11,10 @@ function PureChatHeader({
 }: {
   isReadonly: boolean;
 }) {
-  const sidebarMode = useSettingsStore(state => state.sidebarMode)
+  const sidebarMode = useSettingsStore((state) => state.sidebarMode);
   return (
     <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
-      {sidebarMode === 'floating' ? <Logo /> : null}
+      <Logo />
       <div className="flex-1" />
       <div className="flex items-center">
         <AssistantNav />
