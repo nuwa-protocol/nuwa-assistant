@@ -13,13 +13,14 @@ import { generateUUID, cn } from '@/lib/utils';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { useLocale } from '@/locales/use-locale';
 import { SidebarButton } from './ui/sidebar-button';
-import { Puzzle, Search, Settings, Folder } from 'lucide-react';
-import { SearchModal } from './search-model';
+import { Search, Settings, Folder, Package } from 'lucide-react';
+import { SearchModal } from './search-modal';
 import { SidebarToggle } from './sidebar-toggle';
 import { useSettingsStore } from '@/lib/stores/settings-store';
 import { useFloatingSidebar } from '@/components/floating-sidebar';
 import { Logo } from './logo';
 import { useRouter } from 'next/navigation';
+import { SettingsModal } from '@/components/settings-modal';
 
 export function AppSidebar() {
   const router = useRouter();
@@ -83,7 +84,7 @@ export function AppSidebar() {
                 />
               </SearchModal>
               <SidebarButton
-                icon={Puzzle}
+                icon={Package}
                 text={t('nav.sidebar.capStore')}
                 onClick={() => {}}
                 variant="secondary"
@@ -101,14 +102,13 @@ export function AppSidebar() {
           <SidebarHistory />
         </SidebarContent>
         <SidebarFooter>
-          <SidebarButton
-            icon={Settings}
-            text={t('nav.sidebar.settings')}
-            onClick={() => {
-              router.push('/settings');
-            }}
-            variant="secondary"
-          />
+          <SettingsModal>
+            <SidebarButton
+              icon={Settings}
+              text={t('nav.sidebar.settings')}
+              variant="secondary"
+            />
+          </SettingsModal>
         </SidebarFooter>
       </Sidebar>
     </>

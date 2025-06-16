@@ -1,22 +1,23 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Camera, SettingsIcon, User } from 'lucide-react';
+import { Camera, Shield, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import * as Dialog from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useSettingsStore } from '@/lib/stores/settings-store';
 import { useDIDStore } from '@/lib/stores/did-store';
 import { useLocale } from '@/locales/use-locale';
-import { SettingSidebar } from './setting-sidebar';
 import { SettingSection } from './setting-section';
 import { CopyIcon } from './icons';
 import { useCopyToClipboard } from 'usehooks-ts';
 import { toast } from '@/components/toast';
 import type { SettingCardProps } from './setting-card';
+import { SettingsNav } from './settings-nav';
 
 // Define the type for settingsSections
 interface SettingsSection {
@@ -27,7 +28,7 @@ interface SettingsSection {
   cardItems: SettingCardProps[];
 }
 
-export function Settings() {
+export function SettingsModal({ children }: { children: React.ReactNode }) {
   const { t } = useLocale();
   const [activeSectionIndex, setActiveSectionIndex] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -189,9 +190,9 @@ export function Settings() {
       description: t('settings.sections.profile.subtitle'),
       cardItems: [
         {
-          title: t('settings.profile.didInformation.title'),
-          description: t('settings.profile.didInformation.description'),
-          content: didInformationContent(),
+          title: t('settings.profile.displayName.title'),
+          description: t('settings.profile.displayName.description'),
+          content: displayNameContent(),
         },
         {
           title: t('settings.profile.photo.title'),
@@ -199,15 +200,15 @@ export function Settings() {
           content: photoContent(),
         },
         {
-          title: t('settings.profile.displayName.title'),
-          description: t('settings.profile.displayName.description'),
-          content: displayNameContent(),
+          title: t('settings.profile.didInformation.title'),
+          description: t('settings.profile.didInformation.description'),
+          content: didInformationContent(),
         },
       ],
     },
     {
       id: 'security',
-      icon: SettingsIcon,
+      icon: Shield,
       name: t('settings.sections.security.title'),
       description: t('settings.sections.security.subtitle'),
       cardItems: [
@@ -220,36 +221,38 @@ export function Settings() {
     },
   ];
 
+  const activeSection = settingsSections[activeSectionIndex];
+
   return (
-    <div className="flex min-h-screen bg-background">
-      <SettingSidebar
-        title={t('settings.title')}
-        description={t('settings.description')}
-        items={settingsSections.map((section) => ({
-          id: section.id,
-          icon: section.icon,
-          name: section.name,
-        }))}
-        activeSectionIndex={activeSectionIndex}
-        onSectionChange={(sectionId) => setActiveSectionIndex(sectionId)}
-      />
-      <div className="flex-1">
-        <div className="max-w-4xl mx-auto p-8">
-          {(() => {
-            const section = settingsSections.find(
-              (s) => s.id === settingsSections[activeSectionIndex].id,
-            );
-            return section ? (
-              <SettingSection
-                key={section.id}
-                title={section.name}
-                description={section.description}
-                settingCards={section.cardItems}
-              />
-            ) : null;
-          })()}
+    <Dialog.Dialog>
+      <Dialog.DialogTrigger asChild>{children}</Dialog.DialogTrigger>
+      <Dialog.DialogContent
+        className="fixed left-1/2 top-1/2 z-50 grid -translate-x-1/2 -translate-y-1/2 gap-0 border bg-background p-0 shadow-lg sm:rounded-lg overflow-hidden"
+        style={{
+          width: '80vw',
+          maxWidth: 800,
+          height: '80vh',
+          maxHeight: 700,
+        }}
+        aria-describedby={undefined}
+      >
+        <Dialog.DialogTitle className="sr-only">Settings</Dialog.DialogTitle>
+        <div className="w-full h-full overflow-auto hide-scrollbar">
+          <div className="mx-auto w-full px-16 py-8">
+            <SettingsNav
+              settingsSections={settingsSections}
+              setActiveSectionIndex={setActiveSectionIndex}
+              activeSectionIndex={activeSectionIndex}
+            />
+            <SettingSection
+              key={activeSection.id}
+              title={activeSection.name}
+              description={activeSection.description}
+              settingCards={activeSection.cardItems}
+            />
+          </div>
         </div>
-      </div>
-    </div>
+      </Dialog.DialogContent>
+    </Dialog.Dialog>
   );
 }

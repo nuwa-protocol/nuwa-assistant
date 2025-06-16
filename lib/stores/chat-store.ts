@@ -49,7 +49,11 @@ interface ChatStoreState {
 
   // session management
   getSession: (id: string) => ChatSession | null;
-  updateSession: (id: string, updates: Partial<Omit<ChatSession, 'id'>>) => void;
+  getCurrentSession: () => ChatSession | null;
+  updateSession: (
+    id: string,
+    updates: Partial<Omit<ChatSession, 'id'>>,
+  ) => void;
   deleteSession: (id: string) => void;
   setCurrentSessionId: (id: string | null) => void;
 
@@ -119,7 +123,15 @@ export const useChatStore = create<ChatStoreState>()(
         return sessions[id] || null;
       },
 
-      updateSession: (id: string, updates: Partial<Omit<ChatSession, 'id'>>) => {
+      getCurrentSession: () => {
+        const { sessions, currentSessionId } = get();
+        return currentSessionId ? sessions[currentSessionId] || null : null;
+      },
+
+      updateSession: (
+        id: string,
+        updates: Partial<Omit<ChatSession, 'id'>>,
+      ) => {
         set((state) => {
           const session = state.sessions[id];
           if (!session) return state;
@@ -185,11 +197,13 @@ export const useChatStore = create<ChatStoreState>()(
             console.log('create new session');
           }
 
-          
-
           // check if there are new messages to add
-          const currentMessageIds = new Set(session.messages.map(msg => msg.id));
-          const hasNewMessages = messages.some(msg => !currentMessageIds.has(msg.id));
+          const currentMessageIds = new Set(
+            session.messages.map((msg) => msg.id),
+          );
+          const hasNewMessages = messages.some(
+            (msg) => !currentMessageIds.has(msg.id),
+          );
 
           // only update when there are new messages
           if (hasNewMessages || isNewSession) {
@@ -343,14 +357,16 @@ export const useChatStore = create<ChatStoreState>()(
         if (!session || session.messages.length === 0) return;
 
         // find the first user message
-        const firstUserMessage = session.messages.find((msg) => msg.role === 'user');
+        const firstUserMessage = session.messages.find(
+          (msg) => msg.role === 'user',
+        );
         if (!firstUserMessage) return;
 
         try {
           const title = await generateTitleFromUserMessage({
             message: firstUserMessage,
           });
-          
+
           // directly update session title
           get().updateSession(sessionId, { title });
         } catch (error) {

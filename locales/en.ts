@@ -10,6 +10,7 @@ export const en = {
   nav: {
     sidebar: {
       new: 'New Chat',
+      chat: 'Chat',
       settings: 'Settings',
       search: 'Search',
       capStore: 'Cap Store',

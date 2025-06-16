@@ -3,7 +3,6 @@
 import type { Attachment, UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useEffect, useState } from 'react';
-import { ChatHeader } from '@/components/chat-header';
 import { generateUUID } from '@/lib/utils';
 import { ArtifactViewer } from './artifact-viewer';
 import { MultimodalInput } from './multimodal-input';
@@ -15,6 +14,7 @@ import { ErrorHandlers } from '@/lib/error-handler';
 import { createClientAIFetch } from '@/lib/ai/client-fetch';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { useWindowSize } from 'usehooks-ts';
+import Header from './layout-header';
 
 export function Chat({
   id,
@@ -122,8 +122,7 @@ export function Chat({
             : 'flex flex-col w-full h-dvh bg-background'
         }
       >
-        <ChatHeader isReadonly={isReadonly} />
-
+        <Header />
         <Messages
           chatId={id}
           status={status}

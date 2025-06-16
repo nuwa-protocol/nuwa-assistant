@@ -15,9 +15,7 @@ export default function Layout({
         src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"
         strategy="beforeInteractive"
       />
-      <FloatingSidebarLayout>
-        {children}
-      </FloatingSidebarLayout>
+      <FloatingSidebarLayout>{children}</FloatingSidebarLayout>
     </>
   );
 }
