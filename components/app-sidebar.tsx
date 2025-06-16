@@ -33,6 +33,7 @@ export function AppSidebar() {
   const handleNewChat = () => {
     setOpenMobile(false);
     setCurrentSessionId(generateUUID());
+    router.push('/chat');
   };
 
   const sidebarVariant = sidebarMode === 'floating' ? 'floating' : 'sidebar';

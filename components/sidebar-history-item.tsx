@@ -15,6 +15,7 @@ import { MoreHorizontalIcon, TrashIcon } from './icons';
 import { memo, useState } from 'react';
 import { useLocale } from '@/locales/use-locale';
 import { useFloatingSidebar } from './floating-sidebar';
+import { useRouter } from 'next/navigation';
 
 const PureChatItem = ({
   chat,
@@ -27,6 +28,7 @@ const PureChatItem = ({
   onDelete: (chatId: string) => void;
   setOpenMobile: (open: boolean) => void;
 }) => {
+  const router = useRouter();
   const { setCurrentSessionId } = useChatStore();
   const { t } = useLocale();
   const floatingContext = useFloatingSidebar();
@@ -35,6 +37,7 @@ const PureChatItem = ({
   const handleChatSelect = () => {
     setCurrentSessionId(chat.id);
     setOpenMobile(false);
+    router.push('/chat');
   };
 
   return (

@@ -265,6 +265,8 @@ export const en = {
         notSet: 'Not set',
         authenticated: 'Authenticated',
         notAuthenticated: 'Not authenticated',
+        copy: 'Copy',
+        copied: 'DID copied to clipboard!',
       },
       photo: {
         title: 'Profile Photo',

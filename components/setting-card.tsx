@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-interface SettingCardProps {
+export interface SettingCardProps {
   title: string;
   description: string;
   content: React.ReactNode;

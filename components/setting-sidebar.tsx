@@ -11,15 +11,15 @@ interface SettingSidebarProps {
   title: string;
   description: string;
   items: SettingSidebarItem[];
-  activeSection: string;
-  onSectionChange: (sectionId: string) => void;
+  activeSectionIndex: number;
+  onSectionChange: (sectionId: number) => void;
 }
 
 export function SettingSidebar({
   title,
   description,
   items,
-  activeSection,
+  activeSectionIndex,
   onSectionChange,
 }: SettingSidebarProps) {
   return (
@@ -30,14 +30,14 @@ export function SettingSidebar({
       </div>
 
       <nav className="space-y-1 p-4">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <button
             key={item.id}
             type="button"
-            onClick={() => onSectionChange(item.id)}
+            onClick={() => onSectionChange(index)}
             className={cn(
               'w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors',
-              activeSection === item.id
+              activeSectionIndex === index
                 ? 'bg-primary text-primary-foreground'
                 : 'hover:bg-muted',
             )}
