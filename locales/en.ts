@@ -36,6 +36,43 @@ export const en = {
       dark: 'Dark',
     },
   },
+  capStore: {
+    title: 'Cap Store',
+    description: 'Discover and install capabilities to enhance your experience',
+    searchPlaceholder: 'Search caps...',
+    tabs: {
+      all: 'All Caps',
+      development: 'Development',
+      design: 'Design',
+      analytics: 'Analytics',
+      productivity: 'Productivity',
+      security: 'Security',
+    },
+    status: {
+      loading: 'Loading caps...',
+      fetching: 'Fetching the latest capabilities from the store.',
+      error: 'Error loading caps',
+      errorDesc: 'Failed to fetch caps. Please try again.',
+      tryAgain: 'Try Again',
+      noCaps: 'No caps found',
+      noCapsDesc: {
+        search:
+          'Try adjusting your search terms or browse different categories.',
+        category: 'No caps available in this category yet.',
+      },
+    },
+    card: {
+      update: 'Update Available',
+      disabled: 'Disabled',
+      installed: 'Installed',
+      install: 'Install',
+      by: 'by {{author}}',
+      version: 'v{{version}}',
+      downloads: 'downloads',
+      rating: 'rating',
+      installDate: 'Installed on {{date}}',
+    },
+  },
   chatHistory: {
     noChats: 'No chats',
     startConversation: 'Conversations you have will appear here',

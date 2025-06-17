@@ -21,6 +21,7 @@ import { useFloatingSidebar } from '@/components/floating-sidebar';
 import { Logo } from './logo';
 import { useRouter } from 'next/navigation';
 import { SettingsModal } from '@/components/settings-modal';
+import { CapStoreModal } from '@/components/cap-store-modal';
 
 export function AppSidebar() {
   const router = useRouter();
@@ -83,12 +84,13 @@ export function AppSidebar() {
                   variant="secondary"
                 />
               </SearchModal>
-              <SidebarButton
-                icon={Package}
-                text={t('nav.sidebar.capStore')}
-                onClick={() => {}}
-                variant="secondary"
-              />
+              <CapStoreModal>
+                <SidebarButton
+                  icon={Package}
+                  text={t('nav.sidebar.capStore')}
+                  variant="secondary"
+                />
+              </CapStoreModal>
               <SidebarButton
                 icon={Folder}
                 text={t('nav.sidebar.artifact')}
