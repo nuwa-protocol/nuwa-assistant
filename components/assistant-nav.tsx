@@ -23,17 +23,18 @@ import {
 import { useSettingsStore } from '@/lib/stores/settings-store';
 import type { Locale } from '@/locales';
 import { useState } from 'react';
+import { resetAllStores } from '@/lib/stores/storage-utils';
 
 export function AssistantNav() {
   const router = useRouter();
   const { setTheme, theme } = useTheme();
-  const { did, logout } = useDIDStore();
+  const { did } = useDIDStore();
   const { t } = useLocale();
   const { settings, setSetting } = useSettingsStore();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleLogout = () => {
-    logout();
+    resetAllStores();
     router.push('/login');
   };
 

@@ -7,13 +7,7 @@ import { useDocumentStore } from './document-store';
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
 
-/**
- * clear all client storage data, including:
- * - LocalStorage
- * - IndexedDB
- * - SessionStorage
- * - Zustand Stores
- */
+// clear all client storage data, including:
 export async function clearAllStorage() {
   if (!isBrowser) {
     return;
@@ -25,10 +19,10 @@ export async function clearAllStorage() {
   useSettingsStore.persist.clearStorage();
   useFileStore.persist.clearStorage();
   useDocumentStore.persist.clearStorage();
-  
+
   // clear localStorage
   localStorage.clear();
-  
+
   // clear IndexedDB
   const databases = await window.indexedDB.databases();
   for (const { name } of databases) {
@@ -36,7 +30,24 @@ export async function clearAllStorage() {
       window.indexedDB.deleteDatabase(name);
     }
   }
-  
+
   // clear sessionStorage
   sessionStorage.clear();
-} 
+}
+
+// reset all stores for logging out
+export const resetAllStores = () => {
+  useChatStore.setState(useChatStore.getInitialState());
+  useSettingsStore.setState(useSettingsStore.getInitialState());
+  useFileStore.setState(useFileStore.getInitialState());
+  useDocumentStore.setState(useDocumentStore.getInitialState());
+  useDIDStore.getState().logout();
+};
+
+export const initalizeAllStores = () => {
+  useChatStore.persist.rehydrate();
+  useSettingsStore.persist.rehydrate();
+  useFileStore.persist.rehydrate();
+  useDocumentStore.persist.rehydrate();
+  useDIDStore.persist.rehydrate();
+};

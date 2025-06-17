@@ -1,13 +1,19 @@
+// chat-store.ts
+// Store for managing chat sessions and message history with IndexedDB persistence
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Message } from 'ai';
 import { generateTitleFromUserMessage } from '@/lib/utils';
 // eslint-disable-next-line import/no-named-as-default
 import Dexie, { type Table } from 'dexie';
+import { useDIDStore } from './did-store';
+
+// ================= Interfaces ================= //
 
 // client chat interface
 export interface ChatSession {
   id: string;
+  did: string;
   title: string;
   createdAt: number;
   updatedAt: number;
@@ -17,11 +23,13 @@ export interface ChatSession {
 // stream ID management interface
 export interface StreamRecord {
   id: string;
+  did: string;
   chatId: string;
   createdAt: number;
 }
 
-// Dexie database definition
+// ================= Database Definition ================= //
+
 class ChatDatabase extends Dexie {
   chats!: Table<ChatSession>;
   streams!: Table<StreamRecord>;
@@ -34,8 +42,8 @@ class ChatDatabase extends Dexie {
     }
     super('ChatDatabase');
     this.version(1).stores({
-      chats: 'id, createdAt, updatedAt',
-      streams: 'id, chatId, createdAt',
+      chats: 'id, did, createdAt, updatedAt',
+      streams: 'id, did, chatId, createdAt',
     });
   }
 }
@@ -81,14 +89,19 @@ interface ChatStoreState {
   saveToDB: () => Promise<void>;
 }
 
-// custom storage adapter
+// ================= Environment & Storage ================= //
+
 const isBrowser = typeof window !== 'undefined';
 
 const persistStorage = {
   getItem: async (name: string): Promise<string | null> => {
     if (!isBrowser) return null;
     try {
-      return localStorage.getItem(name);
+      const currentDID = useDIDStore.getState().did;
+      const actualKey = currentDID
+        ? `chat-storage-${currentDID}`
+        : 'chat-storage';
+      return localStorage.getItem(actualKey);
     } catch (error) {
       console.error('Error reading from localStorage:', error);
       return null;
@@ -97,7 +110,11 @@ const persistStorage = {
   setItem: async (name: string, value: string): Promise<void> => {
     if (!isBrowser) return;
     try {
-      localStorage.setItem(name, value);
+      const currentDID = useDIDStore.getState().did;
+      const actualKey = currentDID
+        ? `chat-storage-${currentDID}`
+        : 'chat-storage';
+      localStorage.setItem(actualKey, value);
     } catch (error) {
       console.error('Error writing to localStorage:', error);
     }
@@ -105,12 +122,18 @@ const persistStorage = {
   removeItem: async (name: string): Promise<void> => {
     if (!isBrowser) return;
     try {
-      localStorage.removeItem(name);
+      const currentDID = useDIDStore.getState().did;
+      const actualKey = currentDID
+        ? `chat-storage-${currentDID}`
+        : 'chat-storage';
+      localStorage.removeItem(actualKey);
     } catch (error) {
       console.error('Error removing from localStorage:', error);
     }
   },
 };
+
+// ================= Store Factory ================= //
 
 export const useChatStore = create<ChatStoreState>()(
   persist(
@@ -166,8 +189,17 @@ export const useChatStore = create<ChatStoreState>()(
         // async delete related data
         const deleteFromDB = async () => {
           try {
-            await chatDB.chats.delete(id);
-            await chatDB.streams.where('chatId').equals(id).delete();
+            const currentDID = useDIDStore.getState().did;
+            if (!currentDID) return;
+
+            await chatDB.chats
+              .where(['did', 'id'])
+              .equals([currentDID, id])
+              .delete();
+            await chatDB.streams
+              .where(['did', 'chatId'])
+              .equals([currentDID, id])
+              .delete();
           } catch (error) {
             console.error('Failed to delete from DB:', error);
           }
@@ -187,8 +219,10 @@ export const useChatStore = create<ChatStoreState>()(
           // if session not found, create new session
           if (!session) {
             isNewSession = true;
+            const currentDID = useDIDStore.getState().did || '';
             session = {
               id: sessionId,
+              did: currentDID,
               title: 'New Chat',
               createdAt: Date.now(),
               updatedAt: Date.now(),
@@ -324,8 +358,10 @@ export const useChatStore = create<ChatStoreState>()(
 
       createStreamId: async (streamId: string, chatId: string) => {
         try {
+          const currentDID = useDIDStore.getState().did || '';
           await chatDB.streams.add({
             id: streamId,
+            did: currentDID,
             chatId,
             createdAt: Date.now(),
           });
@@ -337,15 +373,18 @@ export const useChatStore = create<ChatStoreState>()(
 
       getStreamIdsByChatId: async (chatId: string) => {
         try {
+          const currentDID = useDIDStore.getState().did;
+          if (!currentDID) return [];
+
           const streams = await chatDB.streams
-            .where('chatId')
-            .equals(chatId)
+            .where(['did', 'chatId'])
+            .equals([currentDID, chatId])
             .toArray();
           // sort by creation time
           const sortedStreams = streams.sort(
             (a, b) => a.createdAt - b.createdAt,
           );
-          return sortedStreams.map((stream: StreamRecord) => stream.id);
+          return sortedStreams.map((stream) => stream.id);
         } catch (error) {
           console.error('Failed to get stream IDs:', error);
           return [];
@@ -396,13 +435,19 @@ export const useChatStore = create<ChatStoreState>()(
         if (typeof window === 'undefined') return;
 
         try {
+          const currentDID = useDIDStore.getState().did;
+          if (!currentDID) return;
+
           const chats = await chatDB.chats
-            .orderBy('updatedAt')
-            .reverse()
+            .where('did')
+            .equals(currentDID)
             .toArray();
+
+          // Sort by updatedAt in descending order
+          const sortedChats = chats.sort((a, b) => b.updatedAt - a.updatedAt);
           const sessionsMap: Record<string, ChatSession> = {};
 
-          chats.forEach((chat) => {
+          sortedChats.forEach((chat) => {
             sessionsMap[chat.id] = chat;
           });
 
@@ -429,7 +474,7 @@ export const useChatStore = create<ChatStoreState>()(
       },
     }),
     {
-      name: 'chat-sessions-storage',
+      name: `chat-storage-${useDIDStore.getState().did}`,
       storage: createJSONStorage(() => persistStorage),
       partialize: (state) => ({
         sessions: state.sessions,

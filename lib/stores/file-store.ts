@@ -1,86 +1,109 @@
+// file-store.ts
+// Client-side file storage system using IndexedDB for file data and local storage for metadata
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { generateUUID } from '@/lib/utils';
 // eslint-disable-next-line import/no-named-as-default
 import Dexie, { type Table } from 'dexie';
+import { useDIDStore } from './did-store';
 
-/**
- * 客户端文件存储系统
- * 使用 IndexedDB 存储文件数据，支持图片预览和文件管理
- */
+// ================= Constants & Types ================= //
 
-// 支持的文件类型
+// Supported file types
 export const SUPPORTED_FILE_TYPES = {
   IMAGE: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   DOCUMENT: ['application/pdf', 'text/plain', 'application/msword'],
-  ALL: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'text/plain']
+  ALL: [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'application/pdf',
+    'text/plain',
+  ],
 } as const;
 
-// 最大文件大小 (10MB)
+// Maximum file size (10MB)
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-// 文件元数据接口
+// ================= Interfaces ================= //
+
+// File metadata interface
 export interface StoredFile {
   id: string;
+  did: string;
   name: string;
   type: string;
   size: number;
   uploadedAt: number;
 }
 
-// 文件数据接口（包含实际的 Blob 数据）
+// File data interface (including actual Blob data)
 export interface FileData {
   id: string;
   blob: Blob;
 }
 
-// Dexie 数据库定义
-class FileDatabase extends Dexie {
-  fileData!: Table<FileData>;
-
-  constructor() {
-    super('FileDatabase');
-    this.version(1).stores({
-      fileData: 'id'
-    });
-  }
-}
-
-const fileDB = new FileDatabase();
-
-// 文件验证结果接口
+// File validation result interface
 interface ValidationResult {
   valid: boolean;
   error?: string;
 }
 
-// 文件存储状态接口
+// File store state interface
 interface FileStoreState {
   files: Record<string, StoredFile>;
 
-  // 文件验证
+  // File validation
   validateFile: (file: File) => ValidationResult;
 
-  // 文件管理
+  // File management
   uploadFile: (file: File) => Promise<StoredFile>;
   getFile: (id: string) => StoredFile | null;
   getFileBlob: (id: string) => Promise<Blob | null>;
   getFileURL: (id: string) => Promise<string | null>;
   deleteFile: (id: string) => Promise<void>;
 
-  // 文件查询
+  // File queries
   getAllFiles: () => StoredFile[];
   getFilesByType: (type: string) => StoredFile[];
   getTotalSize: () => number;
 
-  // 清理操作
+  // Cleanup operations
   clearAllFiles: () => Promise<void>;
+
+  // Data persistence
+  loadFromDB: () => Promise<void>;
+  saveToDB: () => Promise<void>;
 }
 
+// ================= Database Definition ================= //
+
+class FileDatabase extends Dexie {
+  fileData!: Table<FileData>;
+  files!: Table<StoredFile>;
+
+  constructor() {
+    if (typeof window === 'undefined') {
+      // return a dummy Dexie instance on server side
+      super('dummy');
+      return;
+    }
+    super('FileDatabase');
+    this.version(1).stores({
+      fileData: 'id',
+      files: 'id, did, uploadedAt',
+    });
+  }
+}
+
+const fileDB = new FileDatabase();
+
+// ================= Environment & Storage ================= //
 
 const isBrowser = typeof window !== 'undefined';
 
-// 自定义存储适配器（仅用于元数据）
+// Custom storage adapter (for metadata only)
 const persistStorage = {
   getItem: (name: string): string | null => {
     if (!isBrowser) return null;
@@ -109,32 +132,36 @@ const persistStorage = {
   },
 };
 
-// 创建文件存储
+// ================= Store Definition ================= //
+
 export const useFileStore = create<FileStoreState>()(
   persist(
     (set, get) => ({
+      // Store state
       files: {},
 
+      // File validation
       validateFile: (file: File): ValidationResult => {
-        // 检查文件大小
+        // Check file size
         if (file.size > MAX_FILE_SIZE) {
           return {
             valid: false,
-            error: `File size should be less than ${MAX_FILE_SIZE / 1024 / 1024}MB`
+            error: `File size should be less than ${MAX_FILE_SIZE / 1024 / 1024}MB`,
           };
         }
 
-        // 检查文件类型
+        // Check file type
         if (!SUPPORTED_FILE_TYPES.ALL.includes(file.type as any)) {
           return {
             valid: false,
-            error: `File type ${file.type} is not supported`
+            error: `File type ${file.type} is not supported`,
           };
         }
 
         return { valid: true };
       },
 
+      // File upload and management
       uploadFile: async (file: File): Promise<StoredFile> => {
         const validation = get().validateFile(file);
         if (!validation.valid) {
@@ -142,8 +169,10 @@ export const useFileStore = create<FileStoreState>()(
         }
 
         const id = generateUUID();
+        const currentDID = useDIDStore.getState().did || '';
         const storedFile: StoredFile = {
           id,
+          did: currentDID,
           name: file.name,
           type: file.type,
           size: file.size,
@@ -151,13 +180,13 @@ export const useFileStore = create<FileStoreState>()(
         };
 
         try {
-          // 保存文件数据到 IndexedDB
+          // Save file data to IndexedDB
           await fileDB.fileData.add({
             id,
-            blob: file
+            blob: file,
           });
 
-          // 保存元数据到状态
+          // Save metadata to state
           set((state) => ({
             files: {
               ...state.files,
@@ -172,6 +201,7 @@ export const useFileStore = create<FileStoreState>()(
         }
       },
 
+      // File retrieval methods
       getFile: (id: string): StoredFile | null => {
         const { files } = get();
         return files[id] || null;
@@ -200,12 +230,14 @@ export const useFileStore = create<FileStoreState>()(
         }
       },
 
+      // File deletion
       deleteFile: async (id: string): Promise<void> => {
         try {
-          // 删除 IndexedDB 中的文件数据
+          // Delete file data from IndexedDB
           await fileDB.fileData.delete(id);
+          await fileDB.files.delete(id);
 
-          // 删除状态中的元数据
+          // Delete metadata from state
           set((state) => {
             const { [id]: deleted, ...restFiles } = state.files;
             return { files: restFiles };
@@ -216,6 +248,7 @@ export const useFileStore = create<FileStoreState>()(
         }
       },
 
+      // File listing and filtering
       getAllFiles: (): StoredFile[] => {
         const { files } = get();
         return Object.values(files).sort((a, b) => b.uploadedAt - a.uploadedAt);
@@ -228,11 +261,16 @@ export const useFileStore = create<FileStoreState>()(
           .sort((a, b) => b.uploadedAt - a.uploadedAt);
       },
 
+      // File queries
       getTotalSize: (): number => {
         const { files } = get();
-        return Object.values(files).reduce((total, file) => total + file.size, 0);
+        return Object.values(files).reduce(
+          (total, file) => total + file.size,
+          0,
+        );
       },
 
+      // Cleanup operations
       clearAllFiles: async (): Promise<void> => {
         try {
           await fileDB.fileData.clear();
@@ -242,25 +280,73 @@ export const useFileStore = create<FileStoreState>()(
           throw new Error('Failed to clear files');
         }
       },
+
+      // Data persistence
+      loadFromDB: async () => {
+        if (typeof window === 'undefined') return;
+
+        try {
+          const currentDID = useDIDStore.getState().did;
+          if (!currentDID) return;
+
+          const files = await fileDB.files
+            .where('did')
+            .equals(currentDID)
+            .toArray();
+
+          const filesMap: Record<string, StoredFile> = {};
+          files.forEach((file) => {
+            filesMap[file.id] = file;
+          });
+
+          set((state) => ({
+            files: { ...state.files, ...filesMap },
+          }));
+        } catch (error) {
+          console.error('Failed to load from DB:', error);
+        }
+      },
+
+      saveToDB: async () => {
+        if (typeof window === 'undefined') return;
+
+        try {
+          const { files } = get();
+          const filesToSave = Object.values(files);
+
+          // Use bulkPut to efficiently update data
+          await fileDB.files.bulkPut(filesToSave);
+        } catch (error) {
+          console.error('Failed to save to DB:', error);
+        }
+      },
     }),
     {
-      name: 'file-metadata-storage',
+      name: `file-storage-${useDIDStore.getState().did}`,
       storage: createJSONStorage(() => persistStorage),
       partialize: (state) => ({
         files: state.files,
       }),
-    }
-  )
+      onRehydrateStorage: () => (state) => {
+        // Load data from IndexedDB after component mount
+        if (state) {
+          state.loadFromDB();
+        }
+      },
+    },
+  ),
 );
+
+// ================= Utility Functions ================= //
 
 // 工具函数：格式化文件大小
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
 
@@ -275,4 +361,4 @@ export function getFileIcon(file: StoredFile): string {
   if (file.type === 'application/pdf') return '📄';
   if (file.type.startsWith('text/')) return '��';
   return '📎';
-} 
+}

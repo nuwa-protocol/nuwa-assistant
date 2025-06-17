@@ -7,6 +7,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
 import { toast } from './toast';
+import { initalizeAllStores } from '@/lib/stores/storage-utils';
 
 export function DIDLoginForm() {
   const [inputDid, setInputDid] = useState('');
@@ -16,7 +17,7 @@ export function DIDLoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!inputDid.trim()) {
       toast({
         type: 'error',
@@ -37,6 +38,7 @@ export function DIDLoginForm() {
 
     try {
       setDid(inputDid);
+      initalizeAllStores();
       toast({
         type: 'success',
         description: 'Successfully signed in!',
@@ -45,7 +47,8 @@ export function DIDLoginForm() {
     } catch (error) {
       toast({
         type: 'error',
-        description: error instanceof Error ? error.message : 'Authentication failed',
+        description:
+          error instanceof Error ? error.message : 'Authentication failed',
       });
     } finally {
       setIsLoading(false);
@@ -72,7 +75,7 @@ export function DIDLoginForm() {
           autoFocus
           value={inputDid}
           onChange={(e) => setInputDid(e.target.value)}
-          pattern="^did:nuwa:[a-zA-Z0-9_-]+$"
+          pattern="^did:.+$"
           title="DID must be in format: did:nuwa:username"
         />
       </div>
@@ -86,4 +89,4 @@ export function DIDLoginForm() {
       </p>
     </form>
   );
-} 
+}

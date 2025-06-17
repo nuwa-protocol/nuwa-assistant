@@ -1,5 +1,10 @@
+// cap-store.ts
+// Store for managing capability (Cap) installations and their states
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { useDIDStore } from './did-store';
+
+// ================= Interfaces ================= //
 
 // Installed Cap interface (minimal data for locally installed caps)
 export interface InstalledCap {
@@ -42,6 +47,8 @@ interface CapStoreState {
   getInstalledCapsByInstallDate: () => InstalledCap[];
 }
 
+// ================= Environment & Storage ================= //
+
 const isBrowser = typeof window !== 'undefined';
 
 // Custom storage adapter with error handling
@@ -73,11 +80,15 @@ const persistStorage = {
   },
 };
 
+// ================= Store Definition ================= //
+
 export const useCapStore = create<CapStoreState>()(
   persist(
     (set, get) => ({
+      // Store state
       installedCaps: {},
 
+      // Cap retrieval methods
       getInstalledCap: (id: string) => {
         const { installedCaps } = get();
         return installedCaps[id] || null;
@@ -103,6 +114,7 @@ export const useCapStore = create<CapStoreState>()(
           .sort((a, b) => b.installDate - a.installDate);
       },
 
+      // Installation management
       installCap: (cap: Omit<InstalledCap, 'installDate' | 'isEnabled'>) => {
         const { installedCaps } = get();
 
@@ -140,6 +152,7 @@ export const useCapStore = create<CapStoreState>()(
         return id in installedCaps;
       },
 
+      // Cap state management
       enableCap: (id: string) => {
         const { installedCaps } = get();
         const cap = installedCaps[id];
@@ -174,6 +187,7 @@ export const useCapStore = create<CapStoreState>()(
         return cap?.isEnabled ?? false;
       },
 
+      // Settings management
       updateCapSettings: (id: string, settings: Record<string, any>) => {
         const { installedCaps } = get();
         const cap = installedCaps[id];
@@ -191,6 +205,7 @@ export const useCapStore = create<CapStoreState>()(
         }));
       },
 
+      // Data management
       updateInstalledCap: (id: string, updates: Partial<InstalledCap>) => {
         const { installedCaps } = get();
         const cap = installedCaps[id];
@@ -211,6 +226,7 @@ export const useCapStore = create<CapStoreState>()(
         });
       },
 
+      // Utility methods
       getInstalledCapCount: () => {
         const { installedCaps } = get();
         return Object.keys(installedCaps).length;
@@ -224,7 +240,7 @@ export const useCapStore = create<CapStoreState>()(
       },
     }),
     {
-      name: 'installed-caps-storage',
+      name: `cap-storage-${useDIDStore.getState().did}`,
       storage: createJSONStorage(() => persistStorage),
       partialize: (state) => ({
         installedCaps: state.installedCaps,

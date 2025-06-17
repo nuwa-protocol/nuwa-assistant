@@ -1,23 +1,30 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { generateUUID } from "@/lib/utils";
+// document-store.ts
+// Store for managing documents, suggestions, and artifacts with IndexedDB persistence
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { generateUUID } from '@/lib/utils';
 // eslint-disable-next-line import/no-named-as-default
 import Dexie, { type Table } from 'dexie';
-import { useCallback } from "react";
+import { useCallback } from 'react';
+import { useDIDStore } from './did-store';
 
-// document interface
+// ================= Interfaces ================= //
+
+// Document interface
 export interface ClientDocument {
   id: string;
+  did: string;
   title: string;
   content: string | null;
-  kind: "text" | "code" | "image" | "sheet";
+  kind: 'text' | 'code' | 'image' | 'sheet';
   createdAt: number;
   updatedAt: number;
 }
 
-// suggestion interface
+// Suggestion interface
 export interface ClientSuggestion {
   id: string;
+  did: string;
   documentId: string;
   originalText: string;
   suggestedText: string;
@@ -26,14 +33,13 @@ export interface ClientSuggestion {
   createdAt: number;
 }
 
-
-// artifact interface (merged from use-artifact.ts)
+// Artifact interface (merged from use-artifact.ts)
 export interface UIArtifact {
   documentId: string;
   content: string;
-  kind: "text" | "code" | "image" | "sheet";
+  kind: 'text' | 'code' | 'image' | 'sheet';
   title: string;
-  status: "streaming" | "idle" | "loading" | "error" | "success";
+  status: 'streaming' | 'idle' | 'loading' | 'error' | 'success';
   isVisible: boolean;
   boundingBox: {
     top: number;
@@ -43,13 +49,15 @@ export interface UIArtifact {
   };
 }
 
-// initial artifact data
+// ================= Constants ================= //
+
+// Initial artifact data
 export const initialArtifactData: UIArtifact = {
-  documentId: "init",
-  content: "",
-  kind: "text",
-  title: "",
-  status: "idle",
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  status: 'idle',
   isVisible: false,
   boundingBox: {
     top: 0,
@@ -59,97 +67,103 @@ export const initialArtifactData: UIArtifact = {
   },
 };
 
-// Dexie database definition
+// ================= Database Definition ================= //
+
 class DocumentDatabase extends Dexie {
   documents!: Table<ClientDocument>;
   suggestions!: Table<ClientSuggestion>;
 
   constructor() {
-    if (typeof window === "undefined") {
+    if (typeof window === 'undefined') {
       // return a dummy Dexie instance on the server side
-      super("dummy");
+      super('dummy');
       return;
     }
-    super("DocumentDatabase");
+    super('DocumentDatabase');
     this.version(1).stores({
-      documents: "id, createdAt, updatedAt, kind",
-      suggestions: "id, documentId, createdAt, isResolved",
+      documents: 'id, did, createdAt, updatedAt, kind',
+      suggestions: 'id, did, documentId, createdAt, isResolved',
     });
   }
 }
 
 const documentDB = new DocumentDatabase();
 
-// document store state interface
+// ================= Store State Interface ================= //
+
 interface DocumentStoreState {
   documents: Record<string, ClientDocument>;
   suggestions: Record<string, ClientSuggestion>;
-  
-  // artifact state (merged from use-artifact.ts)
+
+  // Artifact state (merged from use-artifact.ts)
   currentArtifact: UIArtifact;
   artifactMetadata: Record<string, any>;
 
-  // document management
-  createDocument: (title: string, kind: ClientDocument["kind"]) => string;
+  // Document management
+  createDocument: (title: string, kind: ClientDocument['kind']) => string;
   createDocumentWithId: (
     id: string,
     title: string,
-    kind: ClientDocument["kind"],
-    content?: string
+    kind: ClientDocument['kind'],
+    content?: string,
   ) => void;
   getDocument: (id: string) => ClientDocument | null;
   updateDocument: (
     id: string,
-    updates: Partial<Omit<ClientDocument, "id" | "createdAt">>
+    updates: Partial<Omit<ClientDocument, 'id' | 'createdAt'>>,
   ) => void;
   deleteDocument: (id: string) => void;
   setDocumentContent: (id: string, content: string) => void;
 
-  // suggestion management
+  // Suggestion management
   createSuggestion: (
     documentId: string,
     originalText: string,
     suggestedText: string,
-    description?: string
+    description?: string,
   ) => string;
   getSuggestionsByDocument: (documentId: string) => ClientSuggestion[];
   updateSuggestion: (
     id: string,
-    updates: Partial<Omit<ClientSuggestion, "id" | "createdAt">>
+    updates: Partial<Omit<ClientSuggestion, 'id' | 'createdAt'>>,
   ) => void;
   resolveSuggestion: (id: string) => void;
   deleteSuggestion: (id: string) => void;
 
-  // artifact management (merged from use-artifact.ts)
-  setArtifact: (updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)) => void;
+  // Artifact management (merged from use-artifact.ts)
+  setArtifact: (
+    updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
+  ) => void;
   updateArtifact: (updates: Partial<UIArtifact>) => void;
   setArtifactMetadata: (documentId: string, metadata: any) => void;
   getArtifactMetadata: (documentId: string) => any;
   resetArtifact: () => void;
-  
-  // artifact selectors
+
+  // Artifact selectors
   selectArtifact: <T>(selector: (artifact: UIArtifact) => T) => T;
 
-  // utility methods
+  // Utility methods
   getSortedDocuments: () => ClientDocument[];
   clearAllDocuments: () => void;
   clearAllSuggestions: () => void;
 
-  // data persistence
+  // Data persistence
   loadFromDB: () => Promise<void>;
   saveToDB: () => Promise<void>;
 }
 
-const isBrowser = typeof window !== "undefined";
+// ================= Environment & Storage ================= //
 
-// custom storage adapter
+const isBrowser = typeof window !== 'undefined';
+
+// Custom storage adapter
 const persistStorage = {
   getItem: async (name: string): Promise<string | null> => {
     if (!isBrowser) return null;
     try {
       return localStorage.getItem(name);
     } catch (error) {
-      console.error("Error reading from localStorage:", error);
+      console.error('Error reading from localStorage:', error);
       return null;
     }
   },
@@ -158,7 +172,7 @@ const persistStorage = {
     try {
       localStorage.setItem(name, value);
     } catch (error) {
-      console.error("Error writing to localStorage:", error);
+      console.error('Error writing to localStorage:', error);
     }
   },
   removeItem: async (name: string): Promise<void> => {
@@ -166,25 +180,31 @@ const persistStorage = {
     try {
       localStorage.removeItem(name);
     } catch (error) {
-      console.error("Error removing from localStorage:", error);
+      console.error('Error removing from localStorage:', error);
     }
   },
 };
 
+// ================= Store Definition ================= //
+
 export const useDocumentStore = create<DocumentStoreState>()(
   persist(
     (set, get) => ({
+      // Store state
       documents: {},
       suggestions: {},
       currentArtifact: initialArtifactData,
       artifactMetadata: {},
 
-      createDocument: (title: string, kind: ClientDocument["kind"]) => {
+      // Document creation and management
+      createDocument: (title: string, kind: ClientDocument['kind']) => {
         const id = generateUUID();
         const now = Date.now();
+        const currentDID = useDIDStore.getState().did || '';
 
         const newDocument: ClientDocument = {
           id,
+          did: currentDID,
           title,
           content: null,
           kind,
@@ -207,13 +227,15 @@ export const useDocumentStore = create<DocumentStoreState>()(
       createDocumentWithId: (
         id: string,
         title: string,
-        kind: ClientDocument["kind"],
-        content?: string
+        kind: ClientDocument['kind'],
+        content?: string,
       ) => {
         const now = Date.now();
+        const currentDID = useDIDStore.getState().did || '';
 
         const newDocument: ClientDocument = {
           id,
+          did: currentDID,
           title,
           content: content || null,
           kind,
@@ -239,7 +261,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
 
       updateDocument: (
         id: string,
-        updates: Partial<Omit<ClientDocument, "id" | "createdAt">>
+        updates: Partial<Omit<ClientDocument, 'id' | 'createdAt'>>,
       ) => {
         set((state) => {
           const document = state.documents[id];
@@ -269,8 +291,8 @@ export const useDocumentStore = create<DocumentStoreState>()(
           // delete related suggestions
           const filteredSuggestions = Object.fromEntries(
             Object.entries(state.suggestions).filter(
-              ([_, suggestion]) => suggestion.documentId !== id
-            )
+              ([_, suggestion]) => suggestion.documentId !== id,
+            ),
           );
 
           return {
@@ -284,11 +306,11 @@ export const useDocumentStore = create<DocumentStoreState>()(
           try {
             await documentDB.documents.delete(id);
             await documentDB.suggestions
-              .where("documentId")
+              .where('documentId')
               .equals(id)
               .delete();
           } catch (error) {
-            console.error("Failed to delete from DB:", error);
+            console.error('Failed to delete from DB:', error);
           }
         };
         deleteFromDB();
@@ -302,12 +324,14 @@ export const useDocumentStore = create<DocumentStoreState>()(
         documentId: string,
         originalText: string,
         suggestedText: string,
-        description?: string
+        description?: string,
       ) => {
         const id = generateUUID();
+        const currentDID = useDIDStore.getState().did || '';
 
         const newSuggestion: ClientSuggestion = {
           id,
+          did: currentDID,
           documentId,
           originalText,
           suggestedText,
@@ -328,7 +352,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
           try {
             await documentDB.suggestions.add(newSuggestion);
           } catch (error) {
-            console.error("Failed to save suggestion to DB:", error);
+            console.error('Failed to save suggestion to DB:', error);
           }
         };
         saveSuggestionToDB();
@@ -345,7 +369,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
 
       updateSuggestion: (
         id: string,
-        updates: Partial<Omit<ClientSuggestion, "id" | "createdAt">>
+        updates: Partial<Omit<ClientSuggestion, 'id' | 'createdAt'>>,
       ) => {
         set((state) => {
           const suggestion = state.suggestions[id];
@@ -373,7 +397,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
               await documentDB.suggestions.put(suggestion);
             }
           } catch (error) {
-            console.error("Failed to save suggestion to DB:", error);
+            console.error('Failed to save suggestion to DB:', error);
           }
         };
         saveSuggestionToDB();
@@ -396,19 +420,22 @@ export const useDocumentStore = create<DocumentStoreState>()(
           try {
             await documentDB.suggestions.delete(id);
           } catch (error) {
-            console.error("Failed to delete suggestion from DB:", error);
+            console.error('Failed to delete suggestion from DB:', error);
           }
         };
         deleteFromDB();
       },
 
-      // artifact management methods (merged from use-artifact.ts)
-      setArtifact: (updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)) => {
+      // Artifact management methods (merged from use-artifact.ts)
+      setArtifact: (
+        updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
+      ) => {
         set((state) => {
-          const newArtifact = typeof updaterFn === "function" 
-            ? updaterFn(state.currentArtifact)
-            : updaterFn;
-          
+          const newArtifact =
+            typeof updaterFn === 'function'
+              ? updaterFn(state.currentArtifact)
+              : updaterFn;
+
           return {
             currentArtifact: newArtifact,
           };
@@ -452,7 +479,7 @@ export const useDocumentStore = create<DocumentStoreState>()(
       getSortedDocuments: () => {
         const { documents } = get();
         return Object.values(documents).sort(
-          (a, b) => b.updatedAt - a.updatedAt
+          (a, b) => b.updatedAt - a.updatedAt,
         );
       },
 
@@ -464,9 +491,12 @@ export const useDocumentStore = create<DocumentStoreState>()(
         // clear IndexedDB
         const clearDB = async () => {
           try {
-            await documentDB.documents.clear();
+            const currentDID = useDIDStore.getState().did;
+            if (!currentDID) return;
+
+            await documentDB.documents.where('did').equals(currentDID).delete();
           } catch (error) {
-            console.error("Failed to clear documents from DB:", error);
+            console.error('Failed to clear documents from DB:', error);
           }
         };
         clearDB();
@@ -480,21 +510,30 @@ export const useDocumentStore = create<DocumentStoreState>()(
         // clear IndexedDB
         const clearDB = async () => {
           try {
-            await documentDB.suggestions.clear();
+            const currentDID = useDIDStore.getState().did;
+            if (!currentDID) return;
+
+            await documentDB.suggestions
+              .where('did')
+              .equals(currentDID)
+              .delete();
           } catch (error) {
-            console.error("Failed to clear suggestions from DB:", error);
+            console.error('Failed to clear suggestions from DB:', error);
           }
         };
         clearDB();
       },
 
       loadFromDB: async () => {
-        if (typeof window === "undefined") return;
+        if (typeof window === 'undefined') return;
 
         try {
+          const currentDID = useDIDStore.getState().did;
+          if (!currentDID) return;
+
           const [documents, suggestions] = await Promise.all([
-            documentDB.documents.toArray(),
-            documentDB.suggestions.toArray(),
+            documentDB.documents.where('did').equals(currentDID).toArray(),
+            documentDB.suggestions.where('did').equals(currentDID).toArray(),
           ]);
 
           const documentsMap: Record<string, ClientDocument> = {};
@@ -513,12 +552,12 @@ export const useDocumentStore = create<DocumentStoreState>()(
             suggestions: { ...state.suggestions, ...suggestionsMap },
           }));
         } catch (error) {
-          console.error("Failed to load from DB:", error);
+          console.error('Failed to load from DB:', error);
         }
       },
 
       saveToDB: async () => {
-        if (typeof window === "undefined") return;
+        if (typeof window === 'undefined') return;
 
         try {
           const { documents, suggestions } = get();
@@ -530,12 +569,12 @@ export const useDocumentStore = create<DocumentStoreState>()(
             documentDB.suggestions.bulkPut(suggestionsToSave),
           ]);
         } catch (error) {
-          console.error("Failed to save to DB:", error);
+          console.error('Failed to save to DB:', error);
         }
       },
     }),
     {
-      name: "document-storage",
+      name: `document-storage-${useDIDStore.getState().did}`,
       storage: createJSONStorage(() => persistStorage),
       partialize: (state) => ({
         documents: state.documents,
@@ -549,29 +588,34 @@ export const useDocumentStore = create<DocumentStoreState>()(
           state.loadFromDB();
         }
       },
-    }
-  )
+    },
+  ),
 );
 
-// global update function for external tools (backward compatibility)
+// ================= Exported Utilities ================= //
+
 export const updateGlobalArtifact = (
-  updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)
+  updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
 ) => {
   useDocumentStore.getState().setArtifact(updaterFn);
 };
 
-// convenience hooks for artifact management
+// ================= React Hooks ================= //
+
 export const useArtifact = () => {
   const store = useDocumentStore();
   const documentId = store.currentArtifact.documentId;
-  
+
   // Use useCallback to stabilize the setMetadata function
   // The function should always use the current documentId from the store
   const setMetadata = useCallback((metadata: any) => {
-    const currentDocumentId = useDocumentStore.getState().currentArtifact.documentId;
-    useDocumentStore.getState().setArtifactMetadata(currentDocumentId, metadata);
+    const currentDocumentId =
+      useDocumentStore.getState().currentArtifact.documentId;
+    useDocumentStore
+      .getState()
+      .setArtifactMetadata(currentDocumentId, metadata);
   }, []);
-  
+
   return {
     artifact: store.currentArtifact,
     setArtifact: store.setArtifact,
@@ -582,6 +626,8 @@ export const useArtifact = () => {
   };
 };
 
-export const useArtifactSelector = <T>(selector: (artifact: UIArtifact) => T): T => {
+export const useArtifactSelector = <T>(
+  selector: (artifact: UIArtifact) => T,
+): T => {
   return useDocumentStore((state) => selector(state.currentArtifact));
 };

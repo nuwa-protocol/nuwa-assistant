@@ -1,6 +1,11 @@
+// settings-store.ts
+// Store for managing user settings and UI preferences
 import type { Locale } from '@/locales';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { useDIDStore } from './did-store';
+
+// ================= Interfaces ================= //
 
 // user settings interface
 interface UserSettings {
@@ -28,6 +33,8 @@ interface SettingsState {
   // reset settings
   resetSettings: () => void;
 }
+
+// ================= Environment & Storage ================= //
 
 const isBrowser = typeof window !== 'undefined';
 
@@ -59,9 +66,12 @@ const persistStorage = {
   },
 };
 
+// ================= Store Definition ================= //
+
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
+      // User settings
       settings: {
         language: 'en',
         name: '',
@@ -75,12 +85,16 @@ export const useSettingsStore = create<SettingsState>()(
             [key]: value,
           },
         })),
+
+      // Sidebar state
       sidebarCollapsed: false,
       setSidebarCollapsed: (collapsed: boolean) =>
         set({ sidebarCollapsed: collapsed }),
       sidebarMode: 'pinned',
       setSidebarMode: (mode: 'pinned' | 'floating') =>
         set({ sidebarMode: mode }),
+
+      // Reset functionality
       resetSettings: () => {
         set({
           settings: {
@@ -94,7 +108,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
     }),
     {
-      name: 'user-settings-storage',
+      name: `settings-storage-${useDIDStore.getState().did}`,
       storage: createJSONStorage(() => persistStorage),
       partialize: (state) => ({
         settings: state.settings,
