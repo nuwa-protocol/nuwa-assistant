@@ -298,15 +298,10 @@ export const en = {
         description: 'Manage your profile information',
         subtitle: 'This is how others will see you on the site.',
       },
-      general: {
-        title: 'General',
-        description: 'General application settings',
-        subtitle: 'General application settings and preferences.',
-      },
-      security: {
-        title: 'Security',
-        description: 'Security and privacy settings',
-        subtitle: 'Manage your security and privacy settings.',
+      placeholders: {
+        title: 'Placeholders',
+        description: 'Placeholder for general settings.',
+        subtitle: 'This is a placeholder for debugging the settings UI.',
       },
       system: {
         title: 'System',
@@ -338,19 +333,6 @@ export const en = {
         name: 'Name',
         placeholder: 'Enter your name',
         save: 'Save',
-      },
-    },
-    comingSoon: {
-      title: 'Coming Soon',
-      general: {
-        description: 'General settings will be available in a future update.',
-        details:
-          'Language preferences, theme settings, and other general options will be added here.',
-      },
-      security: {
-        description: 'Security settings will be available in a future update.',
-        details:
-          'Two-factor authentication, privacy controls, and other security options will be added here.',
       },
     },
     system: {

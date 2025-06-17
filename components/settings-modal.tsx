@@ -1,27 +1,16 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Camera, Monitor, Shield, User, AlertTriangle } from 'lucide-react';
+import { Monitor, PlayCircle, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import * as Dialog from '@/components/ui/dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSettingsStore } from '@/lib/stores/settings-store';
 import { useDIDStore } from '@/lib/stores/did-store';
 import { useLocale } from '@/locales/use-locale';
 import { SettingSection } from './setting-section';
-import { CopyIcon } from './icons';
-import { useCopyToClipboard } from 'usehooks-ts';
 import { toast } from '@/components/toast';
 import type { SettingCardProps } from './setting-card';
 import { SettingsNav } from './settings-nav';
-import Image from 'next/image';
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from '@/components/ui/tooltip';
 import { clearAllStorage } from '@/lib/stores/storage-utils';
 
 // Define the type for settingsSections
@@ -48,15 +37,18 @@ export function SettingsModal({
   const { t } = useLocale();
   const [activeSectionIndex, setActiveSectionIndex] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
   const { settings, setSetting } = useSettingsStore();
   const { did } = useDIDStore();
   const [tempName, setTempName] = useState(settings.name);
 
-  const [_, copyToClipboard] = useCopyToClipboard();
+  // Handlers for cards
+  const handleDisplayNameChange = (value: string) => setTempName(value);
+  const handleDisplayNameSave = () => setSetting('name', tempName);
 
+  // Avatar/photo logic
+  const handleAvatarButtonClick = () => fileInputRef.current?.click();
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -70,7 +62,6 @@ export function SettingsModal({
       reader.readAsDataURL(file);
     }
   };
-
   const handleRemoveAvatar = () => {
     setSetting('avatar', null);
     if (fileInputRef.current) {
@@ -78,218 +69,28 @@ export function SettingsModal({
     }
   };
 
-  const didInformationContent = () => {
-    return (
-      <div>
-        {did && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span
-                className="cursor-pointer select-none flex items-center"
-                role="button"
-                onClick={async () => {
-                  await copyToClipboard(did);
-                  toast({
-                    type: 'success',
-                    description: t('settings.profile.didInformation.copied'),
-                  });
-                }}
-              >
-                <CopyIcon size={14} />
-                <span className="ml-1 font-mono text-sm">{did}</span>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              {t('settings.profile.didInformation.copy') || 'Click to copy'}
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-    );
+  // Clear all storage logic
+  const handleClearStorage = async () => {
+    setIsClearing(true);
+    try {
+      await clearAllStorage();
+      toast({
+        type: 'success',
+        description: t('settings.system.clearAllStorage.success'),
+      });
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to clear storage:', error);
+      toast({
+        type: 'error',
+        description: t('settings.system.clearAllStorage.error'),
+      });
+    } finally {
+      setIsClearing(false);
+    }
   };
 
-  const photoContent = () => {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-20 w-20">
-            {settings.avatar ? (
-              <AvatarImage src={settings.avatar} alt="Profile" />
-            ) : (
-              <AvatarFallback asChild>
-                <Image
-                  src={`https://avatar.vercel.sh/${did}`}
-                  alt="Avatar"
-                  width={80}
-                  height={80}
-                />
-              </AvatarFallback>
-            )}
-          </Avatar>
-          <div className="space-y-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              className="hidden"
-            />
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                {t('settings.profile.photo.changePhoto')}
-              </Button>
-              {settings.avatar && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRemoveAvatar}
-                >
-                  {t('settings.profile.photo.remove')}
-                </Button>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {t('settings.profile.photo.fileTypes')}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const displayNameContent = () => {
-    return (
-      <div className="space-y-4">
-        <div className="flex gap-2">
-          <Input
-            id="name"
-            value={tempName}
-            onChange={(e) => setTempName(e.target.value)}
-            placeholder={t('settings.profile.displayName.placeholder')}
-            className="max-w-md"
-          />
-          <Button
-            onClick={() => setSetting('name', tempName)}
-            disabled={tempName === settings.name}
-            size="sm"
-          >
-            {t('settings.profile.displayName.save')}
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
-  const comingSoonContent = () => {
-    return (
-      <p className="text-sm text-muted-foreground">
-        {t('settings.comingSoon.details')}
-      </p>
-    );
-  };
-
-  const clearAllStorageContent = () => {
-    const handleClearStorage = async () => {
-      setIsClearing(true);
-      try {
-        await clearAllStorage();
-        toast({
-          type: 'success',
-          description: t('settings.system.clearAllStorage.success'),
-        });
-        setShowClearConfirmation(false);
-        // Reload the page to reflect the cleared state
-        window.location.reload();
-      } catch (error) {
-        console.error('Failed to clear storage:', error);
-        toast({
-          type: 'error',
-          description: t('settings.system.clearAllStorage.error'),
-        });
-      } finally {
-        setIsClearing(false);
-      }
-    };
-
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
-          <AlertTriangle className="h-4 w-4" />
-          <span className="text-sm font-medium">
-            {t('settings.system.clearAllStorage.warning')}
-          </span>
-        </div>
-
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => setShowClearConfirmation(true)}
-          disabled={isClearing}
-        >
-          {t('settings.system.clearAllStorage.button')}
-        </Button>
-
-        <Dialog.Dialog
-          open={showClearConfirmation}
-          onOpenChange={setShowClearConfirmation}
-        >
-          <Dialog.DialogContent className="sm:max-w-md">
-            <Dialog.DialogTitle>
-              {t('settings.system.clearAllStorage.confirmTitle')}
-            </Dialog.DialogTitle>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    {t('settings.system.clearAllStorage.confirmDescription')}
-                  </p>
-                  <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-                    <li>
-                      {t('settings.system.clearAllStorage.dataTypes.chats')}
-                    </li>
-                    <li>
-                      {t('settings.system.clearAllStorage.dataTypes.settings')}
-                    </li>
-                    <li>
-                      {t('settings.system.clearAllStorage.dataTypes.files')}
-                    </li>
-                    <li>
-                      {t('settings.system.clearAllStorage.dataTypes.documents')}
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowClearConfirmation(false)}
-                  disabled={isClearing}
-                >
-                  {t('settings.system.clearAllStorage.cancel')}
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleClearStorage}
-                  disabled={isClearing}
-                >
-                  {isClearing
-                    ? t('settings.system.clearAllStorage.clearing')
-                    : t('settings.system.clearAllStorage.confirmButton')}
-                </Button>
-              </div>
-            </div>
-          </Dialog.DialogContent>
-        </Dialog.Dialog>
-      </div>
-    );
-  };
-
+  // Settings sections using SettingCard variants
   const settingsSections: SettingsSection[] = [
     {
       id: 'profile',
@@ -298,35 +99,41 @@ export function SettingsModal({
       description: t('settings.sections.profile.subtitle'),
       cardItems: [
         {
+          variant: 'single-input',
           title: t('settings.profile.displayName.title'),
           description: t('settings.profile.displayName.description'),
-          content: displayNameContent(),
+          value: tempName,
+          onChange: handleDisplayNameChange,
+          placeholder: t('settings.profile.displayName.placeholder'),
+          buttonLabel: t('settings.profile.displayName.save'),
+          onButtonClick: handleDisplayNameSave,
+          disabled: tempName === settings.name && settings.name !== '',
         },
         {
+          variant: 'avatar',
           title: t('settings.profile.photo.title'),
           description: t('settings.profile.photo.description'),
-          content: photoContent(),
+          avatarUrl: settings.avatar,
+          onAvatarChange: handleAvatarChange,
+          onRemoveAvatar: handleRemoveAvatar,
+          onUploadClick: handleAvatarButtonClick,
+          uploadLabel: t('settings.profile.photo.changePhoto'),
+          removeLabel: t('settings.profile.photo.remove'),
+          fileInputRef: fileInputRef,
+          fileTypesHint: t('settings.profile.photo.fileTypes'),
+          fallbackUrl: did ? `https://avatar.vercel.sh/${did}` : undefined,
         },
         {
+          variant: 'info',
           title: t('settings.profile.didInformation.title'),
           description: t('settings.profile.didInformation.description'),
-          content: didInformationContent(),
+          info: did || '',
+          copyLabel: t('settings.profile.didInformation.copy'),
+          copiedLabel: t('settings.profile.didInformation.copied'),
         },
       ],
     },
-    {
-      id: 'security',
-      icon: Shield,
-      name: t('settings.sections.security.title'),
-      description: t('settings.sections.security.subtitle'),
-      cardItems: [
-        {
-          title: t('settings.comingSoon.title'),
-          description: t('settings.comingSoon.security.description'),
-          content: comingSoonContent(),
-        },
-      ],
-    },
+
     {
       id: 'system',
       icon: Monitor,
@@ -334,9 +141,93 @@ export function SettingsModal({
       description: t('settings.sections.system.subtitle'),
       cardItems: [
         {
+          variant: 'danger-action',
           title: t('settings.system.clearAllStorage.title'),
           description: t('settings.system.clearAllStorage.description'),
-          content: clearAllStorageContent(),
+          buttonLabel: t('settings.system.clearAllStorage.button'),
+          onClick: handleClearStorage,
+          disabled: isClearing,
+          confirmationTitle: t('settings.system.clearAllStorage.confirmTitle'),
+          confirmationDescription: t(
+            'settings.system.clearAllStorage.confirmDescription',
+          ),
+          confirmationButtonLabel: t(
+            'settings.system.clearAllStorage.confirmButton',
+          ),
+          cancelButtonLabel: t('settings.system.clearAllStorage.cancel'),
+        },
+      ],
+    },
+    {
+      id: 'placeholders',
+      icon: PlayCircle,
+      name: t('settings.sections.placeholders.title'),
+      description: t('settings.sections.placeholders.subtitle'),
+      cardItems: [
+        {
+          variant: 'single-input',
+          title: 'Single Input',
+          description: 'A single input with a save button.',
+          value: 'Mock value',
+          onChange: () => {},
+          placeholder: 'Enter something...',
+          buttonLabel: 'Save',
+          onButtonClick: () => {},
+          disabled: false,
+        },
+        {
+          variant: 'single-select',
+          title: 'Single Select',
+          description: 'A single select dropdown.',
+          value: 'option1',
+          onChange: () => {},
+          options: [
+            { label: 'Option 1', value: 'option1' },
+            { label: 'Option 2', value: 'option2' },
+          ],
+          disabled: false,
+        },
+        {
+          variant: 'switch',
+          title: 'Switch',
+          description: 'A switch toggle.',
+          checked: true,
+          onChange: () => {},
+          disabled: false,
+        },
+        {
+          variant: 'info',
+          title: 'Info',
+          description: 'An info card with copy.',
+          info: 'Mock info to copy',
+          copyLabel: 'Click to copy',
+          copiedLabel: 'Copied!',
+        },
+        {
+          variant: 'danger-action',
+          title: 'Danger Action',
+          description: 'A dangerous action with confirmation.',
+          buttonLabel: 'Delete',
+          onClick: () => {},
+          disabled: false,
+          confirmationTitle: 'Are you sure?',
+          confirmationDescription: 'This cannot be undone.',
+          confirmationButtonLabel: 'Delete',
+          cancelButtonLabel: 'Cancel',
+        },
+        {
+          variant: 'avatar',
+          title: 'Avatar',
+          description: 'Upload or remove your avatar.',
+          avatarUrl: null,
+          onAvatarChange: () => {},
+          onRemoveAvatar: () => {},
+          onUploadClick: () => {},
+          uploadLabel: 'Upload',
+          removeLabel: 'Remove',
+          fileInputRef: { current: null },
+          fileTypesHint: 'PNG, JPG, GIF',
+          fallbackUrl: 'https://avatar.vercel.sh/mock',
         },
       ],
     },

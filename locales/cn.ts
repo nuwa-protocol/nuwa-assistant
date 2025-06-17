@@ -282,15 +282,10 @@ export const cn: typeof en = {
         description: '管理您的个人资料信息',
         subtitle: '这是其他人在网站上看到您的方式。',
       },
-      general: {
-        title: '通用',
-        description: '通用应用程序设置',
-        subtitle: '通用应用程序设置和偏好。',
-      },
-      security: {
-        title: '安全',
-        description: '安全和隐私设置',
-        subtitle: '管理您的安全和隐私设置。',
+      placeholders: {
+        title: '占位符',
+        description: '占位符用于调试设置 UI。',
+        subtitle: '这是占位符用于调试设置 UI。',
       },
       system: {
         title: '系统',
@@ -322,17 +317,6 @@ export const cn: typeof en = {
         name: '姓名',
         placeholder: '输入您的姓名',
         save: '保存',
-      },
-    },
-    comingSoon: {
-      title: '即将推出',
-      general: {
-        description: '通用设置将在未来的更新中提供。',
-        details: '语言偏好、主题设置和其他通用选项将在这里添加。',
-      },
-      security: {
-        description: '安全设置将在未来的更新中提供。',
-        details: '双因素认证、隐私控制和其他安全选项将在这里添加。',
       },
     },
     system: {
