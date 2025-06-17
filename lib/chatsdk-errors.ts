@@ -77,9 +77,9 @@ export class ChatSDKError extends Error {
 }
 
 export function getMessageByErrorCode(errorCode: ErrorCode): string {
-  const currentLanguage = useSettingsStore.getState().language;
+  const currentLanguage = useSettingsStore.getState().settings.language;
   const { t } = getLocaleText(currentLanguage as any);
-  
+
   if (errorCode.includes('database')) {
     return t('errors.database');
   }
