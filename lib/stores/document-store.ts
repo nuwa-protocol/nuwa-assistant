@@ -13,7 +13,7 @@ import { useDIDStore } from './did-store';
 // Document interface
 export interface ClientDocument {
   id: string;
-  did: string;
+  did?: string;
   title: string;
   content: string | null;
   kind: 'text' | 'code' | 'image' | 'sheet';
@@ -24,7 +24,7 @@ export interface ClientDocument {
 // Suggestion interface
 export interface ClientSuggestion {
   id: string;
-  did: string;
+  did?: string;
   documentId: string;
   originalText: string;
   suggestedText: string;

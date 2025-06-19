@@ -2,10 +2,11 @@ import { memo } from 'react';
 import { CrossIcon } from './icons';
 import { Button } from './ui/button';
 import { initialArtifactData, useArtifact } from '@/lib/stores/document-store';
+import { useRouter } from 'next/navigation';
 
 function PureArtifactCloseButton() {
   const { setArtifact } = useArtifact();
-
+  const router = useRouter();
   return (
     <Button
       data-testid="artifact-close-button"
@@ -20,6 +21,7 @@ function PureArtifactCloseButton() {
               }
             : { ...initialArtifactData, status: 'idle' },
         );
+        router.push('/chat');
       }}
     >
       <CrossIcon size={18} />

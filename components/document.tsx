@@ -5,17 +5,22 @@ import { FileIcon, LoaderIcon, MessageIcon, PencilEditIcon } from './icons';
 import { toast } from 'sonner';
 import { useArtifact } from '@/lib/stores/document-store';
 import { useLocale } from '@/locales/use-locale';
+import { useRouter } from 'next/navigation';
 
 const getActionText = (
   type: 'create' | 'update' | 'request-suggestions',
   tense: 'present' | 'past',
-  t: (key: string) => string
+  t: (key: string) => string,
 ) => {
   switch (type) {
     case 'create':
-      return tense === 'present' ? t('documentTool.creating') : t('documentTool.created');
+      return tense === 'present'
+        ? t('documentTool.creating')
+        : t('documentTool.created');
     case 'update':
-      return tense === 'present' ? t('documentTool.updating') : t('documentTool.updated');
+      return tense === 'present'
+        ? t('documentTool.updating')
+        : t('documentTool.updated');
     case 'request-suggestions':
       return tense === 'present'
         ? t('documentTool.addingSuggestions')
@@ -38,6 +43,7 @@ function PureDocumentToolResult({
 }: DocumentToolResultProps) {
   const { setArtifact } = useArtifact();
   const { t } = useLocale();
+  const router = useRouter();
 
   return (
     <button
@@ -45,9 +51,7 @@ function PureDocumentToolResult({
       className="bg-background cursor-pointer border py-2 px-3 rounded-xl w-fit flex flex-row gap-3 items-start"
       onClick={(event) => {
         if (isReadonly) {
-          toast.error(
-            t('documentTool.viewingNotSupported')
-          );
+          toast.error(t('documentTool.viewingNotSupported'));
           return;
         }
 
@@ -69,6 +73,7 @@ function PureDocumentToolResult({
           status: 'idle',
           boundingBox,
         });
+        router.push(`/artifact`);
       }}
     >
       <div className="text-muted-foreground mt-1">
@@ -102,6 +107,7 @@ function PureDocumentToolCall({
 }: DocumentToolCallProps) {
   const { setArtifact } = useArtifact();
   const { t } = useLocale();
+  const router = useRouter();
 
   return (
     <button
@@ -109,9 +115,7 @@ function PureDocumentToolCall({
       className="cursor pointer w-fit border py-2 px-3 rounded-xl flex flex-row items-start justify-between gap-3"
       onClick={(event) => {
         if (isReadonly) {
-          toast.error(
-            t('documentTool.viewingNotSupported')
-          );
+          toast.error(t('documentTool.viewingNotSupported'));
           return;
         }
 
@@ -129,6 +133,7 @@ function PureDocumentToolCall({
           isVisible: true,
           boundingBox,
         }));
+        router.push(`/artifact`);
       }}
     >
       <div className="flex flex-row gap-3 items-start">
