@@ -224,7 +224,6 @@ export const useChatStore = create<ChatStoreState>()(
               updatedAt: Date.now(),
               messages: [],
             };
-            console.log('create new session');
           }
 
           // check if there are new messages to add
