@@ -1,10 +1,13 @@
-import { tool } from "ai";
-import { z } from "zod";
-import { useDocumentStore, updateGlobalArtifact } from "@/lib/stores/document-store";
-import { updateTextContent } from "@/artifacts/text";
-import { updateCodeContent } from "@/artifacts/code";
-import { updateSheetContent } from "@/artifacts/sheet";
-import { updateImageContent } from "@/artifacts/image";
+import { tool } from 'ai';
+import { z } from 'zod';
+import {
+  useDocumentStore,
+  updateGlobalArtifact,
+} from '@/lib/stores/document-store';
+import { updateTextContent } from '@/artifacts/text';
+import { updateCodeContent } from '@/artifacts/code';
+import { updateSheetContent } from '@/artifacts/sheet';
+import { updateImageContent } from '@/artifacts/image';
 
 // update function mapping
 const updaters = {
@@ -16,12 +19,12 @@ const updaters = {
 
 export const updateDocument = () =>
   tool({
-    description: "Update a document with the given description using AI.",
+    description: 'Update a document with the given description using AI.',
     parameters: z.object({
-      id: z.string().describe("The ID of the document to update"),
+      id: z.string().describe('The ID of the document to update'),
       description: z
         .string()
-        .describe("The description of changes that need to be made"),
+        .describe('The description of changes that need to be made'),
     }),
     execute: async ({ id, description }) => {
       try {
@@ -31,7 +34,7 @@ export const updateDocument = () =>
 
         if (!document) {
           return {
-            error: "Document not found",
+            error: 'Document not found',
           };
         }
 
@@ -41,9 +44,8 @@ export const updateDocument = () =>
           documentId: id,
           title: document.title,
           kind: document.kind,
-          content: document.content || "",
-          status: "streaming",
-          isVisible: true,
+          content: document.content || '',
+          status: 'streaming',
         }));
 
         // get the corresponding updater
@@ -52,46 +54,46 @@ export const updateDocument = () =>
           throw new Error(`No updater found for kind: ${document.kind}`);
         }
 
-        let updatedContent = "";
+        let updatedContent = '';
 
         // call the AI update function, update artifact content in real time
-        if (document.kind === "text") {
+        if (document.kind === 'text') {
           updatedContent = await (updater as typeof updateTextContent)(
-            document.content || "",
+            document.content || '',
             description,
             (delta) => {
               updateGlobalArtifact((artifact) => ({
                 ...artifact,
                 content: artifact.content + delta,
-                status: "streaming",
+                status: 'streaming',
               }));
-            }
+            },
           );
-        } else if (document.kind === "code") {
+        } else if (document.kind === 'code') {
           updatedContent = await (updater as typeof updateCodeContent)(
-            document.content || "",
+            document.content || '',
             description,
             (delta) => {
               updateGlobalArtifact((artifact) => ({
                 ...artifact,
                 content: delta,
-                status: "streaming",
+                status: 'streaming',
               }));
-            }
+            },
           );
-        } else if (document.kind === "sheet") {
+        } else if (document.kind === 'sheet') {
           updatedContent = await (updater as typeof updateSheetContent)(
-            document.content || "",
+            document.content || '',
             description,
             (delta) => {
               updateGlobalArtifact((artifact) => ({
                 ...artifact,
                 content: delta,
-                status: "streaming",
+                status: 'streaming',
               }));
-            }
+            },
           );
-        } else if (document.kind === "image") {
+        } else if (document.kind === 'image') {
           // image update does not need current content
           updatedContent = await (updater as typeof updateImageContent)(
             description,
@@ -99,9 +101,9 @@ export const updateDocument = () =>
               updateGlobalArtifact((artifact) => ({
                 ...artifact,
                 content: imageBase64,
-                status: "streaming",
+                status: 'streaming',
               }));
-            }
+            },
           );
         }
 
@@ -111,7 +113,7 @@ export const updateDocument = () =>
         updateGlobalArtifact((artifact) => ({
           ...artifact,
           content: updatedContent,
-          status: "idle",
+          status: 'idle',
         }));
 
         return {
@@ -122,10 +124,10 @@ export const updateDocument = () =>
           message: `The ${document.kind} document "${document.title}" has been updated successfully.`,
         };
       } catch (error) {
-        console.error("Failed to update document:", error);
+        console.error('Failed to update document:', error);
         updateGlobalArtifact((artifact) => ({
           ...artifact,
-          status: "idle",
+          status: 'idle',
         }));
         throw error;
       }

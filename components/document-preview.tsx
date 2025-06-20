@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  memo,
-  type MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-} from 'react';
+import { memo, useCallback, useMemo, useRef } from 'react';
 import type { ArtifactKind } from '@/artifacts';
 import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from './icons';
 import { cn } from '@/lib/utils';
@@ -57,23 +50,7 @@ export function DocumentPreview({
   const previewDocument = useMemo(() => documents?.[0], [documents]);
   const hitboxRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const boundingBox = hitboxRef.current?.getBoundingClientRect();
-
-    if (artifact.documentId && boundingBox) {
-      setArtifact((artifact) => ({
-        ...artifact,
-        boundingBox: {
-          left: boundingBox.x,
-          top: boundingBox.y,
-          width: boundingBox.width,
-          height: boundingBox.height,
-        },
-      }));
-    }
-  }, [artifact.documentId, setArtifact]);
-
-  if (artifact.isVisible) {
+  if (artifact.documentId !== 'init') {
     if (result) {
       return (
         <DocumentToolResult
@@ -173,31 +150,19 @@ const PureHitboxLayer = ({
   chatId: string;
 }) => {
   const router = useRouter();
-  const handleClick = useCallback(
-    (event: MouseEvent<HTMLElement>) => {
-      const boundingBox = event.currentTarget.getBoundingClientRect();
-
-      setArtifact((artifact) =>
-        artifact.status === 'streaming'
-          ? { ...artifact, isVisible: true }
-          : {
-              ...artifact,
-              title: result.title,
-              documentId: result.id,
-              kind: result.kind,
-              isVisible: true,
-              boundingBox: {
-                left: boundingBox.x,
-                top: boundingBox.y,
-                width: boundingBox.width,
-                height: boundingBox.height,
-              },
-            },
-      );
-      router.push(`/artifact?cid=${chatId}`);
-    },
-    [setArtifact, result],
-  );
+  const handleClick = useCallback(() => {
+    setArtifact((artifact) =>
+      artifact.status === 'streaming'
+        ? { ...artifact }
+        : {
+            ...artifact,
+            title: result.title,
+            documentId: result.id,
+            kind: result.kind,
+          },
+    );
+    router.push(`/artifact?cid=${chatId}`);
+  }, [setArtifact, result]);
 
   return (
     <div

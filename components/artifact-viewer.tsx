@@ -176,10 +176,6 @@ export function ArtifactViewer({
     }
   }, [artifact.documentId, artifactDefinition, setMetadata]);
 
-  if (!artifact.isVisible) {
-    return null;
-  }
-
   return (
     <div
       data-testid="artifact-viewer"

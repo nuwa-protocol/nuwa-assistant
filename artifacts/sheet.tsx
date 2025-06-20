@@ -77,16 +77,6 @@ export const sheetArtifact = new Artifact<'sheet', Metadata>({
   kind: 'sheet',
   description: t('artifact.sheet.description'),
   initialize: async () => {},
-  onStreamPart: ({ setCurrentArtifact, streamPart }) => {
-    if (streamPart.type === 'sheet-delta') {
-      setCurrentArtifact((draftArtifact) => ({
-        ...draftArtifact,
-        content: streamPart.content as string,
-        isVisible: true,
-        status: 'streaming',
-      }));
-    }
-  },
   content: (props) => {
     return (
       <SpreadsheetEditor

@@ -44,16 +44,6 @@ async function updateImageContent(
 export const imageArtifact = new Artifact({
   kind: 'image',
   description: t('artifact.image.description'),
-  onStreamPart: ({ streamPart, setCurrentArtifact }) => {
-    if (streamPart.type === 'image-delta') {
-      setCurrentArtifact((draftArtifact) => ({
-        ...draftArtifact,
-        content: streamPart.content as string,
-        isVisible: true,
-        status: 'streaming',
-      }));
-    }
-  },
   content: ImageEditor,
   actions: [
     {

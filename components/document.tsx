@@ -57,23 +57,12 @@ function PureDocumentToolResult({
           return;
         }
 
-        const rect = event.currentTarget.getBoundingClientRect();
-
-        const boundingBox = {
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
-        };
-
         setArtifact({
           documentId: result.id,
           kind: result.kind,
           content: '',
           title: result.title,
-          isVisible: true,
           status: 'idle',
-          boundingBox,
         });
         router.push(`/artifact?cid=${chatId}`);
       }}
@@ -123,20 +112,6 @@ function PureDocumentToolCall({
           return;
         }
 
-        const rect = event.currentTarget.getBoundingClientRect();
-
-        const boundingBox = {
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
-        };
-
-        setArtifact((currentArtifact) => ({
-          ...currentArtifact,
-          isVisible: true,
-          boundingBox,
-        }));
         router.push(`/artifact?cid=${chatId}`);
       }}
     >

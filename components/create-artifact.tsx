@@ -1,18 +1,18 @@
-import type { ClientSuggestion, UIArtifact } from '@/lib/stores/document-store';
+import type { ClientSuggestion } from '@/lib/stores/document-store';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ComponentType, Dispatch, ReactNode, SetStateAction } from 'react';
 
 export type DataStreamDelta = {
   type:
-    | "text-delta"
-    | "code-delta"
-    | "sheet-delta"
-    | "image-delta"
-    | "title"
-    | "id"
-    | "clear"
-    | "finish"
-    | "kind";
+    | 'text-delta'
+    | 'code-delta'
+    | 'sheet-delta'
+    | 'image-delta'
+    | 'title'
+    | 'id'
+    | 'clear'
+    | 'finish'
+    | 'kind';
   content: string | ClientSuggestion;
 };
 
@@ -72,11 +72,6 @@ type ArtifactConfig<T extends string, M = any> = {
   actions: Array<ArtifactAction<M>>;
   toolbar: ArtifactToolbarItem[];
   initialize?: (parameters: InitializeParameters<M>) => void;
-  onStreamPart: (args: {
-    setMetadata: Dispatch<SetStateAction<M>>;
-    setArtifact: Dispatch<SetStateAction<UIArtifact>>;
-    streamPart: DataStreamDelta;
-  }) => void;
 };
 
 export class Artifact<T extends string, M = any> {
@@ -86,11 +81,6 @@ export class Artifact<T extends string, M = any> {
   readonly actions: Array<ArtifactAction<M>>;
   readonly toolbar: ArtifactToolbarItem[];
   readonly initialize?: (parameters: InitializeParameters) => void;
-  readonly onStreamPart: (args: {
-    setMetadata: Dispatch<SetStateAction<M>>;
-    setArtifact: Dispatch<SetStateAction<UIArtifact>>;
-    streamPart: DataStreamDelta;
-  }) => void;
 
   constructor(config: ArtifactConfig<T, M>) {
     this.kind = config.kind;
@@ -99,6 +89,5 @@ export class Artifact<T extends string, M = any> {
     this.actions = config.actions || [];
     this.toolbar = config.toolbar || [];
     this.initialize = config.initialize || (async () => ({}));
-    this.onStreamPart = config.onStreamPart;
   }
 }

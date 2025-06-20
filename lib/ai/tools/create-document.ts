@@ -1,13 +1,16 @@
-import { generateUUID } from "@/lib/utils";
-import { tool } from "ai";
-import { z } from "zod";
-import { useDocumentStore, updateGlobalArtifact } from "@/lib/stores/document-store";
-import { generateTextContent } from "@/artifacts/text";
-import { generateCodeContent } from "@/artifacts/code";
-import { generateSheetContent } from "@/artifacts/sheet";
-import { generateImageContent } from "@/artifacts/image";
+import { generateUUID } from '@/lib/utils';
+import { tool } from 'ai';
+import { z } from 'zod';
+import {
+  useDocumentStore,
+  updateGlobalArtifact,
+} from '@/lib/stores/document-store';
+import { generateTextContent } from '@/artifacts/text';
+import { generateCodeContent } from '@/artifacts/code';
+import { generateSheetContent } from '@/artifacts/sheet';
+import { generateImageContent } from '@/artifacts/image';
 
-const artifactKinds = ["text", "code", "image", "sheet"] as const;
+const artifactKinds = ['text', 'code', 'image', 'sheet'] as const;
 
 // generate function mapping
 const generators = {
@@ -20,7 +23,7 @@ const generators = {
 export const createDocument = () =>
   tool({
     description:
-      "Create a document for a writing or content creation activities. This will generate content using AI and save it locally.",
+      'Create a document for a writing or content creation activities. This will generate content using AI and save it locally.',
     parameters: z.object({
       title: z.string(),
       kind: z.enum(artifactKinds),
@@ -40,9 +43,8 @@ export const createDocument = () =>
           documentId: id,
           title,
           kind,
-          content: "",
-          status: "streaming",
-          isVisible: true,
+          content: '',
+          status: 'streaming',
         }));
 
         // get the corresponding generator
@@ -51,52 +53,52 @@ export const createDocument = () =>
           throw new Error(`No generator found for kind: ${kind}`);
         }
 
-        let finalContent = "";
+        let finalContent = '';
 
         // call the AI generate function, update artifact content in real time
-        if (kind === "text") {
+        if (kind === 'text') {
           finalContent = await (generator as typeof generateTextContent)(
             title,
             (delta) => {
               updateGlobalArtifact((artifact) => ({
                 ...artifact,
                 content: artifact.content + delta,
-                status: "streaming",
+                status: 'streaming',
               }));
-            }
+            },
           );
-        } else if (kind === "code") {
+        } else if (kind === 'code') {
           finalContent = await (generator as typeof generateCodeContent)(
             title,
             (delta) => {
               updateGlobalArtifact((artifact) => ({
                 ...artifact,
                 content: delta,
-                status: "streaming",
+                status: 'streaming',
               }));
-            }
+            },
           );
-        } else if (kind === "sheet") {
+        } else if (kind === 'sheet') {
           finalContent = await (generator as typeof generateSheetContent)(
             title,
             (delta) => {
               updateGlobalArtifact((artifact) => ({
                 ...artifact,
                 content: delta,
-                status: "streaming",
+                status: 'streaming',
               }));
-            }
+            },
           );
-        } else if (kind === "image") {
+        } else if (kind === 'image') {
           finalContent = await (generator as typeof generateImageContent)(
             title,
             (imageBase64) => {
               updateGlobalArtifact((artifact) => ({
                 ...artifact,
                 content: imageBase64,
-                status: "streaming",
+                status: 'streaming',
               }));
-            }
+            },
           );
         }
 
@@ -106,7 +108,7 @@ export const createDocument = () =>
         updateGlobalArtifact((artifact) => ({
           ...artifact,
           content: finalContent,
-          status: "idle",
+          status: 'idle',
         }));
 
         return {
@@ -117,12 +119,12 @@ export const createDocument = () =>
           message: `A ${kind} document "${title}" has been created and saved locally.`,
         };
       } catch (error) {
-        console.error("Failed to create document:", error);
+        console.error('Failed to create document:', error);
         // delete failed document and reset artifact state
         useDocumentStore.getState().deleteDocument(id);
         updateGlobalArtifact((artifact) => ({
           ...artifact,
-          status: "idle",
+          status: 'idle',
         }));
         throw error;
       }

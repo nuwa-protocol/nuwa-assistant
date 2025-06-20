@@ -40,13 +40,6 @@ export interface UIArtifact {
   kind: 'text' | 'code' | 'image' | 'sheet';
   title: string;
   status: 'streaming' | 'idle' | 'loading' | 'error' | 'success';
-  isVisible: boolean;
-  boundingBox: {
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-  };
 }
 
 // ================= Constants ================= //
@@ -58,13 +51,6 @@ export const initialArtifactData: UIArtifact = {
   kind: 'text',
   title: '',
   status: 'idle',
-  isVisible: false,
-  boundingBox: {
-    top: 0,
-    left: 0,
-    width: 0,
-    height: 0,
-  },
 };
 
 // ================= Database Definition ================= //

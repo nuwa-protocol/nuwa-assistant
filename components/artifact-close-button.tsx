@@ -18,7 +18,6 @@ function PureArtifactCloseButton({ chatId }: { chatId: string }) {
           currentArtifact.status === 'streaming'
             ? {
                 ...currentArtifact,
-                isVisible: false,
               }
             : { ...initialArtifactData, status: 'idle' },
         );

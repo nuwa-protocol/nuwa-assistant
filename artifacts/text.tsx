@@ -92,23 +92,6 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
     const suggestions = getSuggestionsByDocument(documentId);
     setMetadata({ suggestions });
   },
-  onStreamPart: ({ streamPart, setMetadata, setCurrentArtifact }) => {
-    if (streamPart.type === 'text-delta') {
-      setCurrentArtifact((draftArtifact) => {
-        return {
-          ...draftArtifact,
-          content: draftArtifact.content + (streamPart.content as string),
-          isVisible:
-            draftArtifact.status === 'streaming' &&
-            draftArtifact.content.length > 400 &&
-            draftArtifact.content.length < 450
-              ? true
-              : draftArtifact.isVisible,
-          status: 'streaming',
-        };
-      });
-    }
-  },
   content: (props) => {
     const {
       mode,

@@ -65,7 +65,9 @@ export function Artifact({
   });
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
+  const isArtifact = useArtifactSelector(
+    (state) => state.documentId !== 'init',
+  );
 
   const { width: windowWidth } = useWindowSize();
   const chatSidebarWidth = 400;
@@ -73,7 +75,7 @@ export function Artifact({
     ? windowWidth - chatSidebarWidth
     : `calc(100dvw - ${chatSidebarWidth}px)`;
 
-  if (!isArtifactVisible) {
+  if (!isArtifact) {
     return (
       <div className="flex h-full w-full justify-center items-center">
         Todo: this is the all artifact page
