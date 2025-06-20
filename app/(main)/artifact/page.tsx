@@ -33,7 +33,7 @@ export default function Page() {
 
   return (
     <Artifact
-      id={chatSession.id}
+      chatId={chatSession.id}
       initialMessages={chatSession.messages.map(convertToUIMessage)}
       isReadonly={false}
     />

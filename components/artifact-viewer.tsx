@@ -1,28 +1,29 @@
-import { formatDistance } from "date-fns";
+import { formatDistance } from 'date-fns';
+import { useCallback, useEffect, useState } from 'react';
+import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
 import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
-import { useDebounceCallback, useWindowSize } from "usehooks-ts";
-import { useDocumentStore, type ClientDocument } from "@/lib/stores/document-store";
-import { Toolbar } from "./toolbar";
-import { VersionFooter } from "./version-footer";
-import { ArtifactActions } from "./artifact-actions";
-import { ArtifactCloseButton } from "./artifact-close-button";
-import { useArtifact } from "@/lib/stores/document-store";
-import { artifactDefinitions } from "@/artifacts";
-import type { UseChatHelpers } from "@ai-sdk/react";
+  useDocumentStore,
+  type ClientDocument,
+} from '@/lib/stores/document-store';
+import { Toolbar } from './toolbar';
+import { VersionFooter } from './version-footer';
+import { ArtifactActions } from './artifact-actions';
+import { ArtifactCloseButton } from './artifact-close-button';
+import { useArtifact } from '@/lib/stores/document-store';
+import { artifactDefinitions } from '@/artifacts';
+import type { UseChatHelpers } from '@ai-sdk/react';
 
 interface ArtifactViewerProps {
-  status: UseChatHelpers["status"];
-  stop: UseChatHelpers["stop"];
-  setMessages: UseChatHelpers["setMessages"];
-  append: UseChatHelpers["append"];
+  chatId: string;
+  status: UseChatHelpers['status'];
+  stop: UseChatHelpers['stop'];
+  setMessages: UseChatHelpers['setMessages'];
+  append: UseChatHelpers['append'];
   width?: number;
 }
 
 export function ArtifactViewer({
+  chatId,
   status,
   stop,
   setMessages,
@@ -30,17 +31,15 @@ export function ArtifactViewer({
   width,
 }: ArtifactViewerProps) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
-  const {
-    getDocument,
-    updateDocument: updateDocumentInStore,
-  } = useDocumentStore();
+  const { getDocument, updateDocument: updateDocumentInStore } =
+    useDocumentStore();
 
   // Use document store instead of SWR
   const [documents, setDocuments] = useState<Array<ClientDocument>>([]);
   const [isDocumentsFetching, setIsDocumentsFetching] = useState(false);
 
   useEffect(() => {
-    if (artifact.documentId !== "init" && artifact.status !== "streaming") {
+    if (artifact.documentId !== 'init' && artifact.status !== 'streaming') {
       const document = getDocument(artifact.documentId);
       if (document) {
         setDocuments([document]);
@@ -48,7 +47,7 @@ export function ArtifactViewer({
     }
   }, [artifact.documentId, artifact.status, getDocument]);
 
-  const [mode, setMode] = useState<"edit" | "diff">("edit");
+  const [mode, setMode] = useState<'edit' | 'diff'>('edit');
   const [document, setDocument] = useState<ClientDocument | null>(null);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
 
@@ -61,7 +60,7 @@ export function ArtifactViewer({
         setCurrentVersionIndex(documents.length - 1);
         setArtifact((currentArtifact) => ({
           ...currentArtifact,
-          content: mostRecentDocument.content ?? "",
+          content: mostRecentDocument.content ?? '',
         }));
       }
     }
@@ -91,12 +90,12 @@ export function ArtifactViewer({
         setDocuments([newDocument]);
       }
     },
-    [artifact, document, updateDocumentInStore]
+    [artifact, document, updateDocumentInStore],
   );
 
   const debouncedHandleContentChange = useDebounceCallback(
     handleContentChange,
-    2000
+    2000,
   );
 
   const saveContent = useCallback(
@@ -111,32 +110,32 @@ export function ArtifactViewer({
         }
       }
     },
-    [document, debouncedHandleContentChange, handleContentChange]
+    [document, debouncedHandleContentChange, handleContentChange],
   );
 
   function getDocumentContentById(index: number) {
-    if (!documents) return "";
-    if (!documents[index]) return "";
-    return documents[index].content ?? "";
+    if (!documents) return '';
+    if (!documents[index]) return '';
+    return documents[index].content ?? '';
   }
 
-  const handleVersionChange = (type: "next" | "prev" | "toggle" | "latest") => {
+  const handleVersionChange = (type: 'next' | 'prev' | 'toggle' | 'latest') => {
     if (!documents) return;
 
-    if (type === "latest") {
+    if (type === 'latest') {
       setCurrentVersionIndex(documents.length - 1);
-      setMode("edit");
+      setMode('edit');
     }
 
-    if (type === "toggle") {
-      setMode((mode) => (mode === "edit" ? "diff" : "edit"));
+    if (type === 'toggle') {
+      setMode((mode) => (mode === 'edit' ? 'diff' : 'edit'));
     }
 
-    if (type === "prev") {
+    if (type === 'prev') {
       if (currentVersionIndex > 0) {
         setCurrentVersionIndex((index) => index - 1);
       }
-    } else if (type === "next") {
+    } else if (type === 'next') {
       if (currentVersionIndex < documents.length - 1) {
         setCurrentVersionIndex((index) => index + 1);
       }
@@ -159,15 +158,15 @@ export function ArtifactViewer({
   const { height: windowHeight } = useWindowSize();
 
   const artifactDefinition = artifactDefinitions.find(
-    (definition) => definition.kind === artifact.kind
+    (definition) => definition.kind === artifact.kind,
   );
 
   if (!artifactDefinition) {
-    throw new Error("Artifact definition not found!");
+    throw new Error('Artifact definition not found!');
   }
 
   useEffect(() => {
-    if (artifact.documentId !== "init") {
+    if (artifact.documentId !== 'init') {
       if (artifactDefinition.initialize) {
         artifactDefinition.initialize({
           documentId: artifact.documentId,
@@ -189,7 +188,7 @@ export function ArtifactViewer({
     >
       <div className="p-2 flex flex-row justify-between items-start">
         <div className="flex flex-row gap-4 items-start">
-          <ArtifactCloseButton />
+          <ArtifactCloseButton chatId={chatId} />
 
           <div className="flex flex-col">
             <div className="font-medium">{artifact.title}</div>
@@ -205,7 +204,7 @@ export function ArtifactViewer({
                   new Date(),
                   {
                     addSuffix: true,
-                  }
+                  },
                 )}`}
               </div>
             ) : (
@@ -234,7 +233,7 @@ export function ArtifactViewer({
               : getDocumentContentById(currentVersionIndex)
           }
           mode={mode}
-          status={artifact.status === "streaming" ? "streaming" : "idle"}
+          status={artifact.status === 'streaming' ? 'streaming' : 'idle'}
           currentVersionIndex={currentVersionIndex}
           suggestions={[]}
           onSaveContent={saveContent}
@@ -268,4 +267,4 @@ export function ArtifactViewer({
       )}
     </div>
   );
-} 
+}

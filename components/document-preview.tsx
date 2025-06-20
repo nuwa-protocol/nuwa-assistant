@@ -27,12 +27,14 @@ import { ImageEditor } from './image-editor';
 import { useRouter } from 'next/navigation';
 
 interface DocumentPreviewProps {
+  chatId: string;
   isReadonly: boolean;
   result?: any;
   args?: any;
 }
 
 export function DocumentPreview({
+  chatId,
   isReadonly,
   result,
   args,
@@ -75,6 +77,7 @@ export function DocumentPreview({
     if (result) {
       return (
         <DocumentToolResult
+          chatId={chatId}
           type="create"
           result={{ id: result.id, title: result.title, kind: result.kind }}
           isReadonly={isReadonly}
@@ -85,6 +88,7 @@ export function DocumentPreview({
     if (args) {
       return (
         <DocumentToolCall
+          chatId={chatId}
           type="create"
           args={{ title: args.title }}
           isReadonly={isReadonly}
@@ -118,6 +122,7 @@ export function DocumentPreview({
         hitboxRef={hitboxRef}
         result={result}
         setArtifact={setArtifact}
+        chatId={chatId}
       />
       <DocumentHeader
         title={document.title}
@@ -158,12 +163,14 @@ const PureHitboxLayer = ({
   hitboxRef,
   result,
   setArtifact,
+  chatId,
 }: {
   hitboxRef: React.RefObject<HTMLDivElement>;
   result: any;
   setArtifact: (
     updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
   ) => void;
+  chatId: string;
 }) => {
   const router = useRouter();
   const handleClick = useCallback(
@@ -187,7 +194,7 @@ const PureHitboxLayer = ({
               },
             },
       );
-      router.push(`/artifact`);
+      router.push(`/artifact?cid=${chatId}`);
     },
     [setArtifact, result],
   );

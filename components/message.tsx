@@ -168,15 +168,21 @@ const PurePreviewMessage = ({
                       {toolName === 'getWeather' ? (
                         <Weather />
                       ) : toolName === 'createDocument' ? (
-                        <DocumentPreview isReadonly={isReadonly} args={args} />
+                        <DocumentPreview
+                          chatId={chatId}
+                          isReadonly={isReadonly}
+                          args={args}
+                        />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolCall
+                          chatId={chatId}
                           type="update"
                           args={args}
                           isReadonly={isReadonly}
                         />
                       ) : toolName === 'requestSuggestions' ? (
                         <DocumentToolCall
+                          chatId={chatId}
                           type="request-suggestions"
                           args={args}
                           isReadonly={isReadonly}
@@ -195,17 +201,20 @@ const PurePreviewMessage = ({
                         <Weather weatherAtLocation={result} />
                       ) : toolName === 'createDocument' ? (
                         <DocumentPreview
+                          chatId={chatId}
                           isReadonly={isReadonly}
                           result={result}
                         />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolResult
+                          chatId={chatId}
                           type="update"
                           result={result}
                           isReadonly={isReadonly}
                         />
                       ) : toolName === 'requestSuggestions' ? (
                         <DocumentToolResult
+                          chatId={chatId}
                           type="request-suggestions"
                           result={result}
                           isReadonly={isReadonly}

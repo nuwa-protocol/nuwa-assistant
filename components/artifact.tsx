@@ -14,11 +14,11 @@ import { createClientAIFetch } from '@/lib/ai/client-fetch';
 import { useWindowSize } from 'usehooks-ts';
 
 export function Artifact({
-  id,
+  chatId,
   initialMessages,
   isReadonly,
 }: {
-  id: string;
+  chatId: string;
   initialMessages: Array<UIMessage>;
   isReadonly: boolean;
 }) {
@@ -50,14 +50,14 @@ export function Artifact({
     stop,
     reload,
   } = useChat({
-    id,
+    id: chatId,
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,
     generateId: generateUUID,
     fetch: createClientAIFetch(),
     experimental_prepareRequestBody: (body) => ({
-      id,
+      id: chatId,
       messages: body.messages,
       lastMessage: body.messages.at(-1),
     }),
@@ -86,6 +86,7 @@ export function Artifact({
       {/* Artifact viewer */}
 
       <ArtifactViewer
+        chatId={chatId}
         status={status}
         stop={stop}
         setMessages={setChatMessages}
@@ -96,7 +97,7 @@ export function Artifact({
       {/* Chat */}
       <div className="fixed bg-muted dark:bg-background h-dvh shrink-0 flex flex-col max-w-[400px] right-0 top-0 left-auto">
         <Messages
-          chatId={id}
+          chatId={chatId}
           status={status}
           messages={messages}
           setMessages={setChatMessages}
@@ -109,7 +110,7 @@ export function Artifact({
         >
           {!isReadonly && (
             <MultimodalInput
-              chatId={id}
+              chatId={chatId}
               input={input}
               setInput={setInput}
               handleSubmit={handleSubmit}

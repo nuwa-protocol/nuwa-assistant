@@ -31,12 +31,14 @@ const getActionText = (
 };
 
 interface DocumentToolResultProps {
+  chatId: string;
   type: 'create' | 'update' | 'request-suggestions';
   result: { id: string; title: string; kind: ArtifactKind };
   isReadonly: boolean;
 }
 
 function PureDocumentToolResult({
+  chatId,
   type,
   result,
   isReadonly,
@@ -73,7 +75,7 @@ function PureDocumentToolResult({
           status: 'idle',
           boundingBox,
         });
-        router.push(`/artifact`);
+        router.push(`/artifact?cid=${chatId}`);
       }}
     >
       <div className="text-muted-foreground mt-1">
@@ -95,12 +97,14 @@ function PureDocumentToolResult({
 export const DocumentToolResult = memo(PureDocumentToolResult, () => true);
 
 interface DocumentToolCallProps {
+  chatId: string;
   type: 'create' | 'update' | 'request-suggestions';
   args: { title: string };
   isReadonly: boolean;
 }
 
 function PureDocumentToolCall({
+  chatId,
   type,
   args,
   isReadonly,
@@ -133,7 +137,7 @@ function PureDocumentToolCall({
           isVisible: true,
           boundingBox,
         }));
-        router.push(`/artifact`);
+        router.push(`/artifact?cid=${chatId}`);
       }}
     >
       <div className="flex flex-row gap-3 items-start">

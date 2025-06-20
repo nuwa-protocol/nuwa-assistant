@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { initialArtifactData, useArtifact } from '@/lib/stores/document-store';
 import { useRouter } from 'next/navigation';
 
-function PureArtifactCloseButton() {
+function PureArtifactCloseButton({ chatId }: { chatId: string }) {
   const { setArtifact } = useArtifact();
   const router = useRouter();
   return (
@@ -13,6 +13,7 @@ function PureArtifactCloseButton() {
       variant="outline"
       className="h-fit p-2 dark:hover:bg-zinc-700"
       onClick={() => {
+        router.push(`/chat?cid=${chatId}`);
         setArtifact((currentArtifact) =>
           currentArtifact.status === 'streaming'
             ? {
@@ -21,7 +22,6 @@ function PureArtifactCloseButton() {
               }
             : { ...initialArtifactData, status: 'idle' },
         );
-        router.push('/chat');
       }}
     >
       <CrossIcon size={18} />
