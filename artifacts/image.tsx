@@ -7,7 +7,7 @@ import { experimental_generateImage } from "ai";
 import { getLocaleText } from '@/locales/use-locale';
 import { useSettingsStore } from '@/lib/stores/settings-store';
 
-const language = useSettingsStore.getState().language;
+const language = useSettingsStore.getState().settings.language || "en";
 const { t } = getLocaleText(language);
 
 // 客户端AI生成函数

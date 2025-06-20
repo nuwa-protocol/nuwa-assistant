@@ -20,6 +20,7 @@ import { useArtifact } from "@/lib/stores/document-store";
 import equal from "fast-deep-equal";
 import { SpreadsheetEditor } from "./sheet-editor";
 import { ImageEditor } from "./image-editor";
+import { useDIDStore } from "@/lib/stores/did-store";
 
 interface DocumentPreviewProps {
   isReadonly: boolean;
@@ -101,6 +102,7 @@ export function DocumentPreview({
         id: artifact.documentId,
         createdAt: Date.now(),
         updatedAt: Date.now(),
+        did: useDIDStore.getState().did ?? "did:nuwa:unknown",
       }
     : null;
 

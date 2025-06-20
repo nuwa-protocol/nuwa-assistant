@@ -72,7 +72,7 @@ interface Metadata {
   outputs: Array<ConsoleOutput>;
 }
 
-const language = useSettingsStore.getState().language;
+const language = useSettingsStore.getState().settings.language || "en";
 const { t } = getLocaleText(language);
 
 export const codeArtifact = new Artifact<"code", Metadata>({
