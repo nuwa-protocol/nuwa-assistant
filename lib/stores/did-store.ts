@@ -24,7 +24,7 @@ export const useDIDStore = create<DIDState>()(
 
       // DID validation
       validateDidFormat: (did: string): boolean => {
-        const didRegex = /^did:nuwa:[a-zA-Z0-9_-]+$/;
+        const didRegex = /^did:[a-z0-9]+:[a-zA-Z0-9_.:-]+$/i;
         return didRegex.test(did);
       },
 

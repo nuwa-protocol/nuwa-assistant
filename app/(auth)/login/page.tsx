@@ -2,13 +2,14 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDIDStore } from '@/lib/stores/did-store';
-import { DIDLoginForm } from '@/components/did-login-form';
+import { useIdentityKit } from '@/lib/identity-kit/provider';
+import { ConnectButton } from '@/components/connect-button';
 import { useLocale } from '@/locales/use-locale';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isAuthenticated } = useDIDStore();
+  const { state } = useIdentityKit();
+  const isAuthenticated = state.isConnected;
   const { t } = useLocale();
 
   // if already logged in, redirect to home
@@ -32,7 +33,7 @@ export default function LoginPage() {
             {t('login.description')}
           </p>
         </div>
-        <DIDLoginForm />
+        <ConnectButton />
       </div>
     </div>
   );

@@ -2,11 +2,12 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDIDStore } from '@/lib/stores/did-store';
+import { useIdentityKit } from '@/lib/identity-kit/provider';
 
 export function useAuthGuard() {
   const router = useRouter();
-  const { isAuthenticated } = useDIDStore();
+  const { state } = useIdentityKit();
+  const isAuthenticated = state.isConnected;
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -19,7 +20,8 @@ export function useAuthGuard() {
 
 export function useRedirectIfAuthenticated() {
   const router = useRouter();
-  const { isAuthenticated } = useDIDStore();
+  const { state } = useIdentityKit();
+  const isAuthenticated = state.isConnected;
 
   useEffect(() => {
     if (isAuthenticated) {
