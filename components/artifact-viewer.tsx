@@ -9,7 +9,7 @@ import { Toolbar } from './toolbar';
 import { VersionFooter } from './version-footer';
 import { ArtifactActions } from './artifact-actions';
 import { ArtifactCloseButton } from './artifact-close-button';
-import { useArtifact } from '@/lib/stores/document-store';
+import { useCurrentArtifact } from '@/lib/stores/document-store';
 import { artifactDefinitions } from '@/artifacts';
 import type { UseChatHelpers } from '@ai-sdk/react';
 
@@ -30,7 +30,7 @@ export function ArtifactViewer({
   append,
   width,
 }: ArtifactViewerProps) {
-  const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
+  const { artifact, setArtifact, metadata, setMetadata } = useCurrentArtifact();
   const { getDocument, updateDocument: updateDocumentInStore } =
     useDocumentStore();
 

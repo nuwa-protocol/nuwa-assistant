@@ -121,8 +121,8 @@ interface DocumentStoreState {
     updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
   ) => void;
   updateArtifact: (updates: Partial<UIArtifact>) => void;
-  setArtifactMetadata: (documentId: string, metadata: any) => void;
-  getArtifactMetadata: (documentId: string) => any;
+  setArtifactMetadata: (metadata: any) => void;
+  getArtifactMetadata: () => any;
   resetArtifact: () => void;
 
   // Artifact selectors
@@ -437,18 +437,18 @@ export const useDocumentStore = create<DocumentStoreState>()(
         }));
       },
 
-      setArtifactMetadata: (documentId: string, metadata: any) => {
+      setArtifactMetadata: (metadata: any) => {
         set((state) => ({
           artifactMetadata: {
             ...state.artifactMetadata,
-            [documentId]: metadata,
+            [state.currentArtifact.documentId]: metadata,
           },
         }));
       },
 
-      getArtifactMetadata: (documentId: string) => {
-        const { artifactMetadata } = get();
-        return artifactMetadata[documentId] || null;
+      getArtifactMetadata: () => {
+        const { artifactMetadata, currentArtifact } = get();
+        return artifactMetadata[currentArtifact.documentId] || null;
       },
 
       resetArtifact: () => {
@@ -578,17 +578,9 @@ export const useDocumentStore = create<DocumentStoreState>()(
   ),
 );
 
-// ================= Exported Utilities ================= //
-
-export const updateGlobalArtifact = (
-  updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
-) => {
-  useDocumentStore.getState().setArtifact(updaterFn);
-};
-
 // ================= React Hooks ================= //
 
-export const useArtifact = () => {
+export const useCurrentArtifact = () => {
   const store = useDocumentStore();
   const documentId = store.currentArtifact.documentId;
 
@@ -597,23 +589,15 @@ export const useArtifact = () => {
   const setMetadata = useCallback((metadata: any) => {
     const currentDocumentId =
       useDocumentStore.getState().currentArtifact.documentId;
-    useDocumentStore
-      .getState()
-      .setArtifactMetadata(currentDocumentId, metadata);
+    useDocumentStore.getState().setArtifactMetadata(metadata);
   }, []);
 
   return {
     artifact: store.currentArtifact,
     setArtifact: store.setArtifact,
     updateArtifact: store.updateArtifact,
-    metadata: store.getArtifactMetadata(documentId),
+    metadata: store.getArtifactMetadata(),
     setMetadata,
     resetArtifact: store.resetArtifact,
   };
-};
-
-export const useArtifactSelector = <T>(
-  selector: (artifact: UIArtifact) => T,
-): T => {
-  return useDocumentStore((state) => selector(state.currentArtifact));
 };

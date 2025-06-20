@@ -1,11 +1,14 @@
 import { memo } from 'react';
 import { CrossIcon } from './icons';
 import { Button } from './ui/button';
-import { initialArtifactData, useArtifact } from '@/lib/stores/document-store';
+import {
+  initialArtifactData,
+  useDocumentStore,
+} from '@/lib/stores/document-store';
 import { useRouter } from 'next/navigation';
 
 function PureArtifactCloseButton({ chatId }: { chatId: string }) {
-  const { setArtifact } = useArtifact();
+  const { setArtifact } = useDocumentStore();
   const router = useRouter();
   return (
     <Button

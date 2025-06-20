@@ -13,7 +13,7 @@ import { InlineDocumentSkeleton } from './document-skeleton';
 import { Editor } from './text-editor';
 import { DocumentToolCall, DocumentToolResult } from './document';
 import { CodeEditor } from './code-editor';
-import { useArtifact } from '@/lib/stores/document-store';
+import { useCurrentArtifact } from '@/lib/stores/document-store';
 import equal from 'fast-deep-equal';
 import { SpreadsheetEditor } from './sheet-editor';
 import { ImageEditor } from './image-editor';
@@ -32,7 +32,7 @@ export function DocumentPreview({
   result,
   args,
 }: DocumentPreviewProps) {
-  const { artifact, setArtifact } = useArtifact();
+  const { artifact, setArtifact } = useCurrentArtifact();
   const { getDocument } = useDocumentStore();
   const router = useRouter();
 
@@ -222,7 +222,7 @@ const DocumentHeader = memo(PureDocumentHeader, (prevProps, nextProps) => {
 });
 
 const DocumentContent = ({ document }: { document: ClientDocument }) => {
-  const { artifact } = useArtifact();
+  const { artifact } = useCurrentArtifact();
 
   const containerClassName = cn(
     'h-[257px] overflow-y-scroll border rounded-b-2xl dark:bg-muted border-t-0 dark:border-zinc-700',

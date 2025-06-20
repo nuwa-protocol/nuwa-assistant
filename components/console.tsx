@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import { cn } from '@/lib/utils';
-import { useArtifactSelector } from '@/lib/stores/document-store';
+import { useDocumentStore } from '@/lib/stores/document-store';
 
 export interface ConsoleOutputContent {
   type: 'text' | 'image';
@@ -32,9 +32,8 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
   const [isResizing, setIsResizing] = useState(false);
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
-  const isArtifactVisible = useArtifactSelector(
-    (state) => state.documentId !== 'init',
-  );
+  const { currentArtifact } = useDocumentStore();
+  const isArtifactVisible = currentArtifact.documentId !== 'init';
 
   const minHeight = 100;
   const maxHeight = 800;

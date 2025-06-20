@@ -7,7 +7,7 @@ import { generateUUID } from '@/lib/utils';
 import { ArtifactViewer } from './artifact-viewer';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
-import { useArtifactSelector } from '@/lib/stores/document-store';
+import { useDocumentStore } from '@/lib/stores/document-store';
 import { ChatSDKError } from '@/lib/chatsdk-errors';
 import { ErrorHandlers } from '@/lib/error-handler';
 import { createClientAIFetch } from '@/lib/ai/client-fetch';
@@ -65,9 +65,8 @@ export function Artifact({
   });
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const isArtifact = useArtifactSelector(
-    (state) => state.documentId !== 'init',
-  );
+  const { currentArtifact } = useDocumentStore();
+  const isArtifact = currentArtifact.documentId !== 'init';
 
   const { width: windowWidth } = useWindowSize();
   const chatSidebarWidth = 400;

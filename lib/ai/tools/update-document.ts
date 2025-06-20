@@ -1,9 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import {
-  useDocumentStore,
-  updateGlobalArtifact,
-} from '@/lib/stores/document-store';
+import { useDocumentStore } from '@/lib/stores/document-store';
 import { updateTextContent } from '@/artifacts/text';
 import { updateCodeContent } from '@/artifacts/code';
 import { updateSheetContent } from '@/artifacts/sheet';
@@ -27,10 +24,11 @@ export const updateDocument = () =>
         .describe('The description of changes that need to be made'),
     }),
     execute: async ({ id, description }) => {
+      const { setArtifact, getDocument, setDocumentContent } =
+        useDocumentStore.getState();
       try {
         // Get document from client store
-        const documentStore = useDocumentStore.getState();
-        const document = documentStore.getDocument(id);
+        const document = getDocument(id);
 
         if (!document) {
           return {
@@ -39,7 +37,7 @@ export const updateDocument = () =>
         }
 
         // set artifact to streaming state
-        updateGlobalArtifact((artifact) => ({
+        setArtifact((artifact) => ({
           ...artifact,
           documentId: id,
           title: document.title,
@@ -62,7 +60,7 @@ export const updateDocument = () =>
             document.content || '',
             description,
             (delta) => {
-              updateGlobalArtifact((artifact) => ({
+              setArtifact((artifact) => ({
                 ...artifact,
                 content: artifact.content + delta,
                 status: 'streaming',
@@ -74,7 +72,7 @@ export const updateDocument = () =>
             document.content || '',
             description,
             (delta) => {
-              updateGlobalArtifact((artifact) => ({
+              setArtifact((artifact) => ({
                 ...artifact,
                 content: delta,
                 status: 'streaming',
@@ -86,7 +84,7 @@ export const updateDocument = () =>
             document.content || '',
             description,
             (delta) => {
-              updateGlobalArtifact((artifact) => ({
+              setArtifact((artifact) => ({
                 ...artifact,
                 content: delta,
                 status: 'streaming',
@@ -98,7 +96,7 @@ export const updateDocument = () =>
           updatedContent = await (updater as typeof updateImageContent)(
             description,
             (imageBase64) => {
-              updateGlobalArtifact((artifact) => ({
+              setArtifact((artifact) => ({
                 ...artifact,
                 content: imageBase64,
                 status: 'streaming',
@@ -108,9 +106,9 @@ export const updateDocument = () =>
         }
 
         // update document content and set artifact to idle state
-        documentStore.setDocumentContent(id, updatedContent);
+        setDocumentContent(id, updatedContent);
 
-        updateGlobalArtifact((artifact) => ({
+        setArtifact((artifact) => ({
           ...artifact,
           content: updatedContent,
           status: 'idle',
@@ -125,7 +123,7 @@ export const updateDocument = () =>
         };
       } catch (error) {
         console.error('Failed to update document:', error);
-        updateGlobalArtifact((artifact) => ({
+        setArtifact((artifact) => ({
           ...artifact,
           status: 'idle',
         }));

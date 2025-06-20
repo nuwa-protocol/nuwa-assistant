@@ -1,18 +1,21 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { useWindowSize } from "usehooks-ts";
+import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { useWindowSize } from 'usehooks-ts';
 import { useLocale } from '@/locales/use-locale';
 
-import { useDocumentStore, type ClientDocument } from "@/lib/stores/document-store";
+import {
+  useDocumentStore,
+  type ClientDocument,
+} from '@/lib/stores/document-store';
 
-import { LoaderIcon } from "./icons";
-import { Button } from "./ui/button";
-import { useArtifact } from "@/lib/stores/document-store";
+import { LoaderIcon } from './icons';
+import { Button } from './ui/button';
+import { useCurrentArtifact } from '@/lib/stores/document-store';
 
 interface VersionFooterProps {
-  handleVersionChange: (type: "next" | "prev" | "toggle" | "latest") => void;
+  handleVersionChange: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
   documents: Array<ClientDocument> | undefined;
   currentVersionIndex: number;
 }
@@ -22,7 +25,7 @@ export const VersionFooter = ({
   documents,
   currentVersionIndex,
 }: VersionFooterProps) => {
-  const { artifact } = useArtifact();
+  const { artifact } = useCurrentArtifact();
   const { deleteDocument, updateDocument } = useDocumentStore();
   const { width } = useWindowSize();
   const isMobile = width < 768;
@@ -37,7 +40,7 @@ export const VersionFooter = ({
       initial={{ y: isMobile ? 200 : 77 }}
       animate={{ y: 0 }}
       exit={{ y: isMobile ? 200 : 77 }}
-      transition={{ type: "spring", stiffness: 140, damping: 20 }}
+      transition={{ type: 'spring', stiffness: 140, damping: 20 }}
     >
       <div>
         <div>{t('version.viewingPrevious')}</div>
@@ -63,7 +66,7 @@ export const VersionFooter = ({
                 });
 
                 // Go back to latest version
-                handleVersionChange("latest");
+                handleVersionChange('latest');
               }
             } catch (error) {
               console.error(t('version.failedRestore'), error);
@@ -82,7 +85,7 @@ export const VersionFooter = ({
         <Button
           variant="outline"
           onClick={() => {
-            handleVersionChange("latest");
+            handleVersionChange('latest');
           }}
         >
           {t('version.backToLatest')}

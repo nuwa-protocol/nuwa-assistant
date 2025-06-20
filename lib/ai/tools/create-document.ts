@@ -1,10 +1,7 @@
 import { generateUUID } from '@/lib/utils';
 import { tool } from 'ai';
 import { z } from 'zod';
-import {
-  useDocumentStore,
-  updateGlobalArtifact,
-} from '@/lib/stores/document-store';
+import { useDocumentStore } from '@/lib/stores/document-store';
 import { generateTextContent } from '@/artifacts/text';
 import { generateCodeContent } from '@/artifacts/code';
 import { generateSheetContent } from '@/artifacts/sheet';
@@ -30,6 +27,7 @@ export const createDocument = () =>
     }),
     execute: async ({ title, kind }) => {
       const id = generateUUID();
+      const { setArtifact } = useDocumentStore.getState();
 
       try {
         // create initial document
@@ -38,7 +36,7 @@ export const createDocument = () =>
         createDocumentWithId(id, title, kind);
 
         // set artifact to streaming state
-        updateGlobalArtifact((artifact) => ({
+        setArtifact((artifact) => ({
           ...artifact,
           documentId: id,
           title,
@@ -60,7 +58,7 @@ export const createDocument = () =>
           finalContent = await (generator as typeof generateTextContent)(
             title,
             (delta) => {
-              updateGlobalArtifact((artifact) => ({
+              setArtifact((artifact) => ({
                 ...artifact,
                 content: artifact.content + delta,
                 status: 'streaming',
@@ -71,7 +69,7 @@ export const createDocument = () =>
           finalContent = await (generator as typeof generateCodeContent)(
             title,
             (delta) => {
-              updateGlobalArtifact((artifact) => ({
+              setArtifact((artifact) => ({
                 ...artifact,
                 content: delta,
                 status: 'streaming',
@@ -82,7 +80,7 @@ export const createDocument = () =>
           finalContent = await (generator as typeof generateSheetContent)(
             title,
             (delta) => {
-              updateGlobalArtifact((artifact) => ({
+              setArtifact((artifact) => ({
                 ...artifact,
                 content: delta,
                 status: 'streaming',
@@ -93,7 +91,7 @@ export const createDocument = () =>
           finalContent = await (generator as typeof generateImageContent)(
             title,
             (imageBase64) => {
-              updateGlobalArtifact((artifact) => ({
+              setArtifact((artifact) => ({
                 ...artifact,
                 content: imageBase64,
                 status: 'streaming',
@@ -105,7 +103,7 @@ export const createDocument = () =>
         // update document content and set artifact to idle state
         setDocumentContent(id, finalContent);
 
-        updateGlobalArtifact((artifact) => ({
+        setArtifact((artifact) => ({
           ...artifact,
           content: finalContent,
           status: 'idle',
@@ -122,7 +120,7 @@ export const createDocument = () =>
         console.error('Failed to create document:', error);
         // delete failed document and reset artifact state
         useDocumentStore.getState().deleteDocument(id);
-        updateGlobalArtifact((artifact) => ({
+        setArtifact((artifact) => ({
           ...artifact,
           status: 'idle',
         }));

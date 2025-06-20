@@ -3,7 +3,7 @@ import { memo } from 'react';
 import type { ArtifactKind } from '@/artifacts';
 import { FileIcon, LoaderIcon, MessageIcon, PencilEditIcon } from './icons';
 import { toast } from 'sonner';
-import { useArtifact } from '@/lib/stores/document-store';
+import { useCurrentArtifact } from '@/lib/stores/document-store';
 import { useLocale } from '@/locales/use-locale';
 import { useRouter } from 'next/navigation';
 
@@ -43,7 +43,7 @@ function PureDocumentToolResult({
   result,
   isReadonly,
 }: DocumentToolResultProps) {
-  const { setArtifact } = useArtifact();
+  const { setArtifact } = useCurrentArtifact();
   const { t } = useLocale();
   const router = useRouter();
 
@@ -98,7 +98,7 @@ function PureDocumentToolCall({
   args,
   isReadonly,
 }: DocumentToolCallProps) {
-  const { setArtifact } = useArtifact();
+  const { setArtifact } = useCurrentArtifact();
   const { t } = useLocale();
   const router = useRouter();
 
