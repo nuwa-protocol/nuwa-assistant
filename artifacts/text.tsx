@@ -1,7 +1,7 @@
-import { Artifact } from "@/components/create-artifact";
-import { DiffView } from "@/components/diffview";
-import { DocumentSkeleton } from "@/components/document-skeleton";
-import { Editor } from "@/components/text-editor";
+import { Artifact } from '@/components/create-artifact';
+import { DiffView } from '@/components/diffview';
+import { DocumentSkeleton } from '@/components/document-skeleton';
+import { Editor } from '@/components/text-editor';
 import {
   ClockRewind,
   CopyIcon,
@@ -9,13 +9,13 @@ import {
   PenIcon,
   RedoIcon,
   UndoIcon,
-} from "@/components/icons";
-import type { ClientSuggestion } from "@/lib/stores/document-store";
-import { smoothStream, streamText } from "ai";
-import { myProvider } from "@/lib/ai/providers";
-import { updateDocumentPrompt } from "@/lib/ai/prompts";
-import { toast } from "sonner";
-import { useDocumentStore } from "@/lib/stores/document-store";
+} from '@/components/icons';
+import type { ClientSuggestion } from '@/lib/stores/document-store';
+import { smoothStream, streamText } from 'ai';
+import { myProvider } from '@/lib/ai/providers';
+import { updateDocumentPrompt } from '@/lib/ai/prompts';
+import { toast } from 'sonner';
+import { useDocumentStore } from '@/lib/stores/document-store';
 import { getLocaleText } from '@/locales/use-locale';
 import { useSettingsStore } from '@/lib/stores/settings-store';
 
@@ -25,20 +25,20 @@ interface TextArtifactMetadata {
 
 async function generateTextContent(
   title: string,
-  onDelta: (delta: string) => void
+  onDelta: (delta: string) => void,
 ): Promise<string> {
-  let draftContent = "";
+  let draftContent = '';
 
   const { fullStream } = streamText({
-    model: myProvider.languageModel("artifact-model"),
+    model: myProvider.languageModel('artifact-model'),
     system:
-      "Write about the given topic. Markdown is supported. Use headings wherever appropriate.",
-    experimental_transform: smoothStream({ chunking: "word" }),
+      'Write about the given topic. Markdown is supported. Use headings wherever appropriate.',
+    experimental_transform: smoothStream({ chunking: 'word' }),
     prompt: title,
   });
 
   for await (const delta of fullStream) {
-    if (delta.type === "text-delta") {
+    if (delta.type === 'text-delta') {
       const { textDelta } = delta;
       draftContent += textDelta;
       onDelta(textDelta);
@@ -51,19 +51,19 @@ async function generateTextContent(
 async function updateTextContent(
   currentContent: string,
   description: string,
-  onDelta: (delta: string) => void
+  onDelta: (delta: string) => void,
 ): Promise<string> {
-  let draftContent = "";
+  let draftContent = '';
 
   const { fullStream } = streamText({
-    model: myProvider.languageModel("artifact-model"),
-    system: updateDocumentPrompt(currentContent, "text"),
-    experimental_transform: smoothStream({ chunking: "word" }),
+    model: myProvider.languageModel('artifact-model'),
+    system: updateDocumentPrompt(currentContent, 'text'),
+    experimental_transform: smoothStream({ chunking: 'word' }),
     prompt: description,
     experimental_providerMetadata: {
       openai: {
         prediction: {
-          type: "content",
+          type: 'content',
           content: currentContent,
         },
       },
@@ -71,7 +71,7 @@ async function updateTextContent(
   });
 
   for await (const delta of fullStream) {
-    if (delta.type === "text-delta") {
+    if (delta.type === 'text-delta') {
       const { textDelta } = delta;
       draftContent += textDelta;
       onDelta(textDelta);
@@ -81,40 +81,50 @@ async function updateTextContent(
   return draftContent;
 }
 
-const language = useSettingsStore.getState().language;
+const language = useSettingsStore.getState().settings.language;
 const { t } = getLocaleText(language);
 
-export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
-  kind: "text",
+export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
+  kind: 'text',
   description: t('artifact.text.description'),
   initialize: async ({ documentId, setMetadata }) => {
     const { getSuggestionsByDocument } = useDocumentStore.getState();
     const suggestions = getSuggestionsByDocument(documentId);
     setMetadata({ suggestions });
   },
-  onStreamPart: ({ streamPart, setMetadata, setArtifact }) => {
-    if (streamPart.type === "text-delta") {
-      setArtifact((draftArtifact) => {
+  onStreamPart: ({ streamPart, setMetadata, setCurrentArtifact }) => {
+    if (streamPart.type === 'text-delta') {
+      setCurrentArtifact((draftArtifact) => {
         return {
           ...draftArtifact,
           content: draftArtifact.content + (streamPart.content as string),
           isVisible:
-            draftArtifact.status === "streaming" &&
+            draftArtifact.status === 'streaming' &&
             draftArtifact.content.length > 400 &&
             draftArtifact.content.length < 450
               ? true
               : draftArtifact.isVisible,
-          status: "streaming",
+          status: 'streaming',
         };
       });
     }
   },
   content: (props) => {
-    const { mode, status, content, isCurrentVersion, currentVersionIndex, onSaveContent, getDocumentContentById, isLoading, metadata } = props;
+    const {
+      mode,
+      status,
+      content,
+      isCurrentVersion,
+      currentVersionIndex,
+      onSaveContent,
+      getDocumentContentById,
+      isLoading,
+      metadata,
+    } = props;
     if (isLoading) {
       return <DocumentSkeleton artifactKind="text" />;
     }
-    if (mode === "diff") {
+    if (mode === 'diff') {
       const oldContent = getDocumentContentById(currentVersionIndex - 1);
       const newContent = getDocumentContentById(currentVersionIndex);
       return <DiffView oldContent={oldContent} newContent={newContent} />;
@@ -142,7 +152,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
       icon: <ClockRewind size={18} />,
       description: t('artifact.text.actions.versionChange'),
       onClick: ({ handleVersionChange }) => {
-        handleVersionChange("toggle");
+        handleVersionChange('toggle');
       },
       isDisabled: ({ currentVersionIndex, setMetadata }) => {
         if (currentVersionIndex === 0) {
@@ -155,7 +165,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
       icon: <UndoIcon size={18} />,
       description: t('artifact.text.actions.undo'),
       onClick: ({ handleVersionChange }) => {
-        handleVersionChange("prev");
+        handleVersionChange('prev');
       },
       isDisabled: ({ currentVersionIndex }) => {
         if (currentVersionIndex === 0) {
@@ -168,7 +178,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
       icon: <RedoIcon size={18} />,
       description: t('artifact.text.actions.redo'),
       onClick: ({ handleVersionChange }) => {
-        handleVersionChange("next");
+        handleVersionChange('next');
       },
       isDisabled: ({ isCurrentVersion }) => {
         if (isCurrentVersion) {
@@ -192,7 +202,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
       description: t('artifact.text.toolbar.polish'),
       onClick: ({ appendMessage }) => {
         appendMessage({
-          role: "user",
+          role: 'user',
           content: t('artifact.text.polishPrompt'),
         });
       },
@@ -202,7 +212,7 @@ export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
       description: t('artifact.text.toolbar.suggestions'),
       onClick: ({ appendMessage }) => {
         appendMessage({
-          role: "user",
+          role: 'user',
           content: t('artifact.text.suggestionsPrompt'),
         });
       },

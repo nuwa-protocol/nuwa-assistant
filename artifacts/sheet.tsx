@@ -1,42 +1,42 @@
-import { Artifact } from "@/components/create-artifact";
+import { Artifact } from '@/components/create-artifact';
 import {
   CopyIcon,
   LineChartIcon,
   RedoIcon,
   SparklesIcon,
   UndoIcon,
-} from "@/components/icons";
-import { SpreadsheetEditor } from "@/components/sheet-editor";
-import { parse, unparse } from "papaparse";
-import { toast } from "sonner";
-import { z } from "zod";
-import { streamObject } from "ai";
-import { myProvider } from "@/lib/ai/providers";
-import { sheetPrompt, updateDocumentPrompt } from "@/lib/ai/prompts";
+} from '@/components/icons';
+import { SpreadsheetEditor } from '@/components/sheet-editor';
+import { parse, unparse } from 'papaparse';
+import { toast } from 'sonner';
+import { z } from 'zod';
+import { streamObject } from 'ai';
+import { myProvider } from '@/lib/ai/providers';
+import { sheetPrompt, updateDocumentPrompt } from '@/lib/ai/prompts';
 import { getLocaleText } from '@/locales/use-locale';
 import { useSettingsStore } from '@/lib/stores/settings-store';
 
-const language = useSettingsStore.getState().language;
+const language = useSettingsStore.getState().settings.language;
 const { t } = getLocaleText(language);
 
 // 客户端AI生成函数
 async function generateSheetContent(
   title: string,
-  onDelta: (delta: string) => void
+  onDelta: (delta: string) => void,
 ): Promise<string> {
-  let draftContent = "";
+  let draftContent = '';
 
   const { fullStream } = streamObject({
-    model: myProvider.languageModel("artifact-model"),
+    model: myProvider.languageModel('artifact-model'),
     system: sheetPrompt,
     prompt: title,
     schema: z.object({
-      csv: z.string().describe("CSV data"),
+      csv: z.string().describe('CSV data'),
     }),
   });
 
   for await (const delta of fullStream) {
-    if (delta.type === "object" && delta.object.csv) {
+    if (delta.type === 'object' && delta.object.csv) {
       draftContent = delta.object.csv;
       onDelta(delta.object.csv);
     }
@@ -48,13 +48,13 @@ async function generateSheetContent(
 async function updateSheetContent(
   currentContent: string,
   description: string,
-  onDelta: (delta: string) => void
+  onDelta: (delta: string) => void,
 ): Promise<string> {
-  let draftContent = "";
+  let draftContent = '';
 
   const { fullStream } = streamObject({
-    model: myProvider.languageModel("artifact-model"),
-    system: updateDocumentPrompt(currentContent, "sheet"),
+    model: myProvider.languageModel('artifact-model'),
+    system: updateDocumentPrompt(currentContent, 'sheet'),
     prompt: description,
     schema: z.object({
       csv: z.string(),
@@ -62,7 +62,7 @@ async function updateSheetContent(
   });
 
   for await (const delta of fullStream) {
-    if (delta.type === "object" && delta.object.csv) {
+    if (delta.type === 'object' && delta.object.csv) {
       draftContent = delta.object.csv;
       onDelta(delta.object.csv);
     }
@@ -73,17 +73,17 @@ async function updateSheetContent(
 
 type Metadata = any;
 
-export const sheetArtifact = new Artifact<"sheet", Metadata>({
-  kind: "sheet",
+export const sheetArtifact = new Artifact<'sheet', Metadata>({
+  kind: 'sheet',
   description: t('artifact.sheet.description'),
   initialize: async () => {},
-  onStreamPart: ({ setArtifact, streamPart }) => {
-    if (streamPart.type === "sheet-delta") {
-      setArtifact((draftArtifact) => ({
+  onStreamPart: ({ setCurrentArtifact, streamPart }) => {
+    if (streamPart.type === 'sheet-delta') {
+      setCurrentArtifact((draftArtifact) => ({
         ...draftArtifact,
         content: streamPart.content as string,
         isVisible: true,
-        status: "streaming",
+        status: 'streaming',
       }));
     }
   },
@@ -103,7 +103,7 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
       icon: <UndoIcon size={18} />,
       description: t('artifact.sheet.actions.undo'),
       onClick: ({ handleVersionChange }) => {
-        handleVersionChange("prev");
+        handleVersionChange('prev');
       },
       isDisabled: ({ currentVersionIndex }) => {
         if (currentVersionIndex === 0) {
@@ -116,7 +116,7 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
       icon: <RedoIcon size={18} />,
       description: t('artifact.sheet.actions.redo'),
       onClick: ({ handleVersionChange }) => {
-        handleVersionChange("next");
+        handleVersionChange('next');
       },
       isDisabled: ({ isCurrentVersion }) => {
         if (isCurrentVersion) {
@@ -131,7 +131,7 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
       onClick: ({ content }) => {
         const parsed = parse<string[]>(content, { skipEmptyLines: true });
         const nonEmptyRows = parsed.data.filter((row) =>
-          row.some((cell) => cell.trim() !== "")
+          row.some((cell) => cell.trim() !== ''),
         );
         const cleanedCsv = unparse(nonEmptyRows);
         navigator.clipboard.writeText(cleanedCsv);
@@ -145,7 +145,7 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
       icon: <SparklesIcon />,
       onClick: ({ appendMessage }) => {
         appendMessage({
-          role: "user",
+          role: 'user',
           content: t('artifact.sheet.formatPrompt'),
         });
       },
@@ -155,7 +155,7 @@ export const sheetArtifact = new Artifact<"sheet", Metadata>({
       icon: <LineChartIcon />,
       onClick: ({ appendMessage }) => {
         appendMessage({
-          role: "user",
+          role: 'user',
           content: t('artifact.sheet.analyzePrompt'),
         });
       },
