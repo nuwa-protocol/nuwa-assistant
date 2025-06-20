@@ -93,12 +93,18 @@ interface DocumentStoreState {
     kind: ClientDocument['kind'],
     content?: string,
   ) => void;
+  addNewVersionDocument: (id: string, content: string) => void;
   getDocument: (id: string) => ClientDocument | null;
+  getDocuments: (id: string) => ClientDocument[];
   updateDocument: (
     id: string,
     updates: Partial<Omit<ClientDocument, 'id' | 'createdAt'>>,
   ) => void;
   deleteDocument: (id: string) => void;
+  deleteDocumentAfter: (
+    id: string,
+    updates: { content: string; createdAt: number },
+  ) => void;
   setDocumentContent: (id: string, content: string) => void;
 
   // Suggestion management
@@ -240,9 +246,34 @@ export const useDocumentStore = create<DocumentStoreState>()(
         get().saveToDB();
       },
 
+      addNewVersionDocument: (id: string, content: string) => {
+        const document = get().getDocument(id);
+        if (!document) return;
+        const tableId = generateUUID();
+
+        set((state) => ({
+          documents: {
+            ...state.documents,
+            [tableId]: {
+              ...document,
+              content,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            },
+          },
+        }));
+      },
+
       getDocument: (id: string) => {
         const { documents } = get();
         return documents[id] || null;
+      },
+
+      getDocuments: (id: string) => {
+        const { documents } = get();
+        return Object.values(documents).filter(
+          (document) => document.id === id,
+        );
       },
 
       updateDocument: (
@@ -264,6 +295,33 @@ export const useDocumentStore = create<DocumentStoreState>()(
               ...state.documents,
               [id]: updatedDocument,
             },
+          };
+        });
+
+        get().saveToDB();
+      },
+
+      deleteDocumentAfter: async (
+        id: string,
+        updates: { content: string; createdAt: number },
+      ) => {
+        set((state) => {
+          const documents = state.documents;
+          const newDocuments = Object.fromEntries(
+            Object.entries(documents).filter(
+              ([_, document]) =>
+                document.id !== id || document.createdAt <= updates.createdAt,
+            ),
+          );
+          newDocuments[id] = {
+            ...state.documents[id],
+            content: updates.content,
+            updatedAt: Date.now(),
+          };
+
+          return {
+            ...state,
+            documents: newDocuments,
           };
         });
 

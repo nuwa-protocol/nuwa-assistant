@@ -89,9 +89,6 @@ export function Artifact({
       <ArtifactViewer
         chatId={chatId}
         status={status}
-        stop={stop}
-        setMessages={setChatMessages}
-        append={append}
         width={typeof artifactWidth === 'string' ? undefined : artifactWidth}
       />
 

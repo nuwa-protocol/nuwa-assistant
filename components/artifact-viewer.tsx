@@ -5,7 +5,6 @@ import {
   useDocumentStore,
   type ClientDocument,
 } from '@/lib/stores/document-store';
-import { Toolbar } from './toolbar';
 import { VersionFooter } from './version-footer';
 import { ArtifactActions } from './artifact-actions';
 import { ArtifactCloseButton } from './artifact-close-button';
@@ -16,55 +15,50 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 interface ArtifactViewerProps {
   chatId: string;
   status: UseChatHelpers['status'];
-  stop: UseChatHelpers['stop'];
-  setMessages: UseChatHelpers['setMessages'];
-  append: UseChatHelpers['append'];
   width?: number;
 }
 
-export function ArtifactViewer({
-  chatId,
-  status,
-  stop,
-  setMessages,
-  append,
-  width,
-}: ArtifactViewerProps) {
+export function ArtifactViewer({ chatId, status, width }: ArtifactViewerProps) {
   const { artifact, setArtifact, metadata, setMetadata } = useCurrentArtifact();
-  const { getDocument, updateDocument: updateDocumentInStore } =
-    useDocumentStore();
+  const {
+    documents,
+    getDocuments,
+    updateDocument: updateDocumentInStore,
+  } = useDocumentStore();
 
   // Use document store instead of SWR
-  const [documents, setDocuments] = useState<Array<ClientDocument>>([]);
+  const [versionedDocuments, setVersionedDocuments] = useState<
+    Array<ClientDocument>
+  >([]);
   const [isDocumentsFetching, setIsDocumentsFetching] = useState(false);
 
   useEffect(() => {
     if (artifact.documentId !== 'init' && artifact.status !== 'streaming') {
-      const document = getDocument(artifact.documentId);
-      if (document) {
-        setDocuments([document]);
+      const currentDocuments = getDocuments(artifact.documentId);
+      if (currentDocuments) {
+        setVersionedDocuments(currentDocuments);
       }
     }
-  }, [artifact.documentId, artifact.status, getDocument]);
+  }, [documents, artifact.documentId, artifact.status, getDocuments]);
 
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');
   const [document, setDocument] = useState<ClientDocument | null>(null);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
 
   useEffect(() => {
-    if (documents && documents.length > 0) {
-      const mostRecentDocument = documents.at(-1);
+    if (versionedDocuments && versionedDocuments.length > 0) {
+      const mostRecentDocument = versionedDocuments.at(-1);
 
       if (mostRecentDocument) {
         setDocument(mostRecentDocument);
-        setCurrentVersionIndex(documents.length - 1);
+        setCurrentVersionIndex(versionedDocuments.length - 1);
         setArtifact((currentArtifact) => ({
           ...currentArtifact,
           content: mostRecentDocument.content ?? '',
         }));
       }
     }
-  }, [documents, setArtifact]);
+  }, [versionedDocuments, setArtifact]);
 
   const [isContentDirty, setIsContentDirty] = useState(false);
 
@@ -87,7 +81,7 @@ export function ArtifactViewer({
           content: updatedContent,
           updatedAt: Date.now(),
         };
-        setDocuments([newDocument]);
+        setVersionedDocuments([newDocument]);
       }
     },
     [artifact, document, updateDocumentInStore],
@@ -114,16 +108,16 @@ export function ArtifactViewer({
   );
 
   function getDocumentContentById(index: number) {
-    if (!documents) return '';
-    if (!documents[index]) return '';
-    return documents[index].content ?? '';
+    if (!versionedDocuments) return '';
+    if (!versionedDocuments[index]) return '';
+    return versionedDocuments[index].content ?? '';
   }
 
   const handleVersionChange = (type: 'next' | 'prev' | 'toggle' | 'latest') => {
-    if (!documents) return;
+    if (!versionedDocuments) return;
 
     if (type === 'latest') {
-      setCurrentVersionIndex(documents.length - 1);
+      setCurrentVersionIndex(versionedDocuments.length - 1);
       setMode('edit');
     }
 
@@ -136,13 +130,11 @@ export function ArtifactViewer({
         setCurrentVersionIndex((index) => index - 1);
       }
     } else if (type === 'next') {
-      if (currentVersionIndex < documents.length - 1) {
+      if (currentVersionIndex < versionedDocuments.length - 1) {
         setCurrentVersionIndex((index) => index + 1);
       }
     }
   };
-
-  const [isToolbarVisible, setIsToolbarVisible] = useState(false);
 
   /*
    * NOTE: if there are no documents, or if
@@ -151,8 +143,8 @@ export function ArtifactViewer({
    */
 
   const isCurrentVersion =
-    documents && documents.length > 0
-      ? currentVersionIndex === documents.length - 1
+    versionedDocuments && versionedDocuments.length > 0
+      ? currentVersionIndex === versionedDocuments.length - 1
       : true;
 
   const { height: windowHeight } = useWindowSize();
@@ -240,24 +232,12 @@ export function ArtifactViewer({
           metadata={metadata}
           setMetadata={setMetadata}
         />
-
-        {isCurrentVersion && (
-          <Toolbar
-            isToolbarVisible={isToolbarVisible}
-            setIsToolbarVisible={setIsToolbarVisible}
-            append={append}
-            status={status}
-            stop={stop}
-            setMessages={setMessages}
-            artifactKind={artifact.kind}
-          />
-        )}
       </div>
 
       {!isCurrentVersion && (
         <VersionFooter
           currentVersionIndex={currentVersionIndex}
-          documents={documents}
+          documents={versionedDocuments}
           handleVersionChange={handleVersionChange}
         />
       )}

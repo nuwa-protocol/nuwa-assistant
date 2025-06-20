@@ -24,7 +24,7 @@ export const updateDocument = () =>
         .describe('The description of changes that need to be made'),
     }),
     execute: async ({ id, description }) => {
-      const { setArtifact, getDocument, setDocumentContent } =
+      const { setArtifact, getDocument, addNewVersionDocument } =
         useDocumentStore.getState();
       try {
         // Get document from client store
@@ -106,7 +106,8 @@ export const updateDocument = () =>
         }
 
         // update document content and set artifact to idle state
-        setDocumentContent(id, updatedContent);
+        // setDocumentContent(id, updatedContent);
+        addNewVersionDocument(id, updatedContent);
 
         setArtifact((artifact) => ({
           ...artifact,

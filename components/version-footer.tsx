@@ -26,7 +26,7 @@ export const VersionFooter = ({
   currentVersionIndex,
 }: VersionFooterProps) => {
   const { artifact } = useCurrentArtifact();
-  const { deleteDocument, updateDocument } = useDocumentStore();
+  const { deleteDocument, deleteDocumentAfter } = useDocumentStore();
   const { width } = useWindowSize();
   const isMobile = width < 768;
   const [isMutating, setIsMutating] = useState(false);
@@ -60,9 +60,9 @@ export const VersionFooter = ({
               const currentDocument = documents[currentVersionIndex];
               if (currentDocument) {
                 // Update document to the selected version's content
-                updateDocument(artifact.documentId, {
-                  content: currentDocument.content,
-                  updatedAt: Date.now(),
+                await deleteDocumentAfter(artifact.documentId, {
+                  content: currentDocument.content ?? '',
+                  createdAt: currentDocument.createdAt,
                 });
 
                 // Go back to latest version
