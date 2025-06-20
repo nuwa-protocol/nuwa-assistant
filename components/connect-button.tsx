@@ -14,5 +14,3 @@ export function ConnectButton() {
     </Button>
   );
 }
-
-export default '' 
