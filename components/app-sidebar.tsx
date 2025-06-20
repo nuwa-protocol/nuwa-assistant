@@ -9,8 +9,7 @@ import {
   SidebarMenu,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { generateUUID, cn } from '@/lib/utils';
-import { useChatStore } from '@/lib/stores/chat-store';
+import { cn } from '@/lib/utils';
 import { useLocale } from '@/locales/use-locale';
 import { SidebarButton } from './ui/sidebar-button';
 import { Search, Settings, Folder, Package } from 'lucide-react';
@@ -26,7 +25,6 @@ import { CapStoreModal } from '@/components/cap-store-modal';
 export function AppSidebar() {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
-  const { setCurrentSessionId } = useChatStore();
   const { t } = useLocale();
   const sidebarMode = useSettingsStore((state) => state.sidebarMode);
 
@@ -34,7 +32,6 @@ export function AppSidebar() {
 
   const handleNewChat = () => {
     setOpenMobile(false);
-    setCurrentSessionId(generateUUID());
     router.push('/chat');
   };
 

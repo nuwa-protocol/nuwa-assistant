@@ -9,15 +9,18 @@ import {
 import { useDIDStore } from '@/lib/stores/did-store';
 import { useChatStore } from '@/lib/stores/chat-store';
 import { ChatItem } from './sidebar-history-item';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from '@/locales/use-locale';
 
 export function SidebarHistory() {
   const { setOpenMobile } = useSidebar();
   const { isAuthenticated } = useDIDStore();
-  const { sessions, deleteSession, currentSessionId } = useChatStore();
+  const { sessions, deleteSession } = useChatStore();
   const router = useRouter();
   const { t } = useLocale();
+
+  const searchParams = useSearchParams();
+  const chatSessionId = searchParams.get('cid');
 
   if (!isAuthenticated) {
     return (
@@ -92,8 +95,8 @@ export function SidebarHistory() {
 
   const handleDelete = (id: string) => {
     deleteSession(id);
-    if (id === currentSessionId) {
-      router.push('/');
+    if (id === chatSessionId) {
+      router.push('/chat');
     }
   };
 
@@ -112,7 +115,7 @@ export function SidebarHistory() {
           <ChatItem
             key={session.id}
             chat={session}
-            isActive={session.id === currentSessionId}
+            isActive={session.id === chatSessionId}
             onDelete={handleDelete}
             setOpenMobile={setOpenMobile}
           />

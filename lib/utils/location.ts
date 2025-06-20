@@ -1,4 +1,4 @@
-import { RequestHints } from '../ai/prompts';
+import type { RequestHints } from '../ai/prompts';
 
 // Client version of getting location information
 const getClientLocation = async (): Promise<RequestHints> => {
@@ -40,4 +40,4 @@ const getClientLocation = async (): Promise<RequestHints> => {
   };
 };
 
-export { getClientLocation }; 
+export { getClientLocation };

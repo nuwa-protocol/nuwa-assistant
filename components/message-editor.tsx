@@ -2,12 +2,19 @@
 
 import type { Message } from 'ai';
 import { Button } from './ui/button';
-import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Textarea } from './ui/textarea';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { useChatStore } from '@/lib/stores/chat-store';
 
 export type MessageEditorProps = {
+  chatId: string;
   message: Message;
   setMode: Dispatch<SetStateAction<'view' | 'edit'>>;
   setMessages: UseChatHelpers['setMessages'];
@@ -15,6 +22,7 @@ export type MessageEditorProps = {
 };
 
 export function MessageEditor({
+  chatId,
   message,
   setMode,
   setMessages,
@@ -23,8 +31,8 @@ export function MessageEditor({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [draftContent, setDraftContent] = useState<string>(message.content);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  const { currentSessionId, deleteMessagesAfterTimestamp } = useChatStore();
+
+  const { deleteMessagesAfterTimestamp } = useChatStore();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -73,9 +81,9 @@ export function MessageEditor({
             setIsSubmitting(true);
 
             // Delete trailing messages using client store
-            if (currentSessionId && message.createdAt) {
+            if (message.createdAt) {
               const messageTime = new Date(message.createdAt).getTime();
-              deleteMessagesAfterTimestamp(currentSessionId, messageTime);
+              deleteMessagesAfterTimestamp(chatId, messageTime);
             }
 
             // @ts-expect-error todo: support UIMessage in setMessages

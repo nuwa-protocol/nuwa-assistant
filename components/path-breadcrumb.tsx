@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { Logo } from './logo';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from '@/locales/use-locale';
 import Link from 'next/link';
 import { useChatStore } from '@/lib/stores/chat-store';
@@ -60,7 +60,6 @@ export function PathBreadcrumb() {
   const isChat = pathSegments[0] === 'chat';
   const isFile = pathSegments[0] === 'file';
 
-  const currentSession = useChatStore((state) => state.getCurrentSession());
   const isFloating = useSettingsStore(
     (state) => state.sidebarMode === 'floating',
   );
@@ -68,6 +67,11 @@ export function PathBreadcrumb() {
   let breadcrumbContent = null;
 
   if (isChat) {
+    const searchParams = useSearchParams();
+    const chatId = searchParams.get('cid');
+    const { getSession } = useChatStore();
+    const session = getSession(chatId || '');
+
     breadcrumbContent = (
       <>
         <BreadcrumbItem className="text-md font-medium text-foreground">
@@ -80,7 +84,7 @@ export function PathBreadcrumb() {
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          {currentSession?.title || t('nav.sidebar.new')}
+          {session?.title || t('nav.sidebar.new')}
         </BreadcrumbItem>
       </>
     );

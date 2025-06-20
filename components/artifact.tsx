@@ -2,17 +2,15 @@
 
 import type { Attachment, UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { generateUUID } from '@/lib/utils';
 import { ArtifactViewer } from './artifact-viewer';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
 import { useArtifactSelector } from '@/lib/stores/document-store';
-import { useSearchParams } from 'next/navigation';
 import { ChatSDKError } from '@/lib/chatsdk-errors';
 import { ErrorHandlers } from '@/lib/error-handler';
 import { createClientAIFetch } from '@/lib/ai/client-fetch';
-import { useChatStore } from '@/lib/stores/chat-store';
 import { useWindowSize } from 'usehooks-ts';
 
 export function Artifact({
@@ -24,11 +22,6 @@ export function Artifact({
   initialMessages: Array<UIMessage>;
   isReadonly: boolean;
 }) {
-  const { setCurrentSessionId } = useChatStore();
-  const searchParams = useSearchParams();
-  const query = searchParams.get('query');
-  const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
-
   const handleUseChatError = (error: Error) => {
     let errorMessage: UIMessage;
     if (error instanceof ChatSDKError) {
@@ -70,20 +63,6 @@ export function Artifact({
     }),
     onError: handleUseChatError,
   });
-
-  useEffect(() => {
-    if (query && !hasAppendedQuery) {
-      // make sure current session is active
-      setCurrentSessionId(id);
-
-      append({
-        role: 'user',
-        content: query,
-      });
-
-      setHasAppendedQuery(true);
-    }
-  }, [query, append, hasAppendedQuery, id, setCurrentSessionId]);
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);

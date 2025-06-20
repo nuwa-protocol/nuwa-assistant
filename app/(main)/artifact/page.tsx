@@ -1,58 +1,41 @@
 'use client';
 
 import { Artifact } from '@/components/artifact';
-import { AuthGuard } from '@/components/auth-guard';
-import { useChatStore } from '@/lib/stores/chat-store';
+import {
+  type ChatSession,
+  createInitialChatSession,
+  useChatStore,
+} from '@/lib/stores/chat-store';
+import { useSearchParams } from 'next/navigation';
+import { convertToUIMessage } from '@/lib/utils/message';
+import Loading from '../loading';
 import { useEffect, useState } from 'react';
-import { generateId } from 'ai';
-import { useLocale } from '@/locales/use-locale';
 
 export default function Page() {
-  const { currentSessionId, getSession, setCurrentSessionId } = useChatStore();
+  const searchParams = useSearchParams();
+  const chatId = searchParams.get('cid');
+  const { getSession } = useChatStore();
+  const [chatSession, setChatSession] = useState<ChatSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [session, setSession] = useState<any>(null);
-  const { t } = useLocale();
 
   useEffect(() => {
-    // render only based on currentSessionId, if not exist, create new
-    if (!currentSessionId) {
-      // no currentSessionId, create new
-      const newId = generateId();
-      setCurrentSessionId(newId);
-      setSession({ id: newId, messages: [] });
-      setIsLoading(false);
-      return;
-    }
-    // if currentSessionId exists, find session
-    const existingSession = getSession(currentSessionId);
-    if (existingSession) {
-      setSession(existingSession);
-      setIsLoading(false);
-    } else {
-      // no corresponding session, create new
-      setSession({ id: currentSessionId, messages: [] });
-      setIsLoading(false);
-    }
-  }, [currentSessionId, getSession, setCurrentSessionId]);
+    const session = chatId ? getSession(chatId) : null;
+    const newChatSession =
+      chatId && session ? session : createInitialChatSession();
+
+    setChatSession(newChatSession);
+    setIsLoading(false);
+  }, [chatId, getSession]);
+
+  if (isLoading || !chatSession) {
+    return <Loading />;
+  }
 
   return (
-    <AuthGuard>
-      {isLoading ? (
-        <div className="flex flex-col min-w-0 h-dvh bg-background">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full size-8 border-b-2 border-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">{t('chat.loadingChat')}</p>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <Artifact
-          id={session.id}
-          initialMessages={session.messages}
-          isReadonly={false}
-        />
-      )}
-    </AuthGuard>
+    <Artifact
+      id={chatSession.id}
+      initialMessages={chatSession.messages.map(convertToUIMessage)}
+      isReadonly={false}
+    />
   );
 }

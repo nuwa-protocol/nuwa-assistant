@@ -5,9 +5,11 @@ import { Input } from './ui/input';
 import { useLocale } from '@/locales/use-locale';
 import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function SearchModal({ children }: { children: React.ReactNode }) {
-  const { sessions, setCurrentSessionId } = useChatStore();
+  const { sessions } = useChatStore();
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const { t } = useLocale();
 
@@ -57,7 +59,7 @@ export function SearchModal({ children }: { children: React.ReactNode }) {
                   type="button"
                   className="w-full px-1 py-3 hover:bg-muted rounded flex items-center justify-between border-none"
                   onClick={() => {
-                    setCurrentSessionId(session.id);
+                    router.push(`/chat?cid=${session.id}`);
                   }}
                 >
                   <div className="flex items-center gap-2 min-w-0">

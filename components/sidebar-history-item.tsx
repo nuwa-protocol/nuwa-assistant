@@ -4,7 +4,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from './ui/sidebar';
-import { useChatStore } from '@/lib/stores/chat-store';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,15 +28,13 @@ const PureChatItem = ({
   setOpenMobile: (open: boolean) => void;
 }) => {
   const router = useRouter();
-  const { setCurrentSessionId } = useChatStore();
   const { t } = useLocale();
   const floatingContext = useFloatingSidebar();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleChatSelect = () => {
-    setCurrentSessionId(chat.id);
     setOpenMobile(false);
-    router.push('/chat');
+    router.push(`/chat?cid=${chat.id}`);
   };
 
   return (

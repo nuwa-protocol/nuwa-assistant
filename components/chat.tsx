@@ -2,16 +2,15 @@
 
 import type { Attachment, UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { generateUUID } from '@/lib/utils';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
-import { useSearchParams } from 'next/navigation';
 import { ChatSDKError } from '@/lib/chatsdk-errors';
 import { ErrorHandlers } from '@/lib/error-handler';
 import { createClientAIFetch } from '@/lib/ai/client-fetch';
-import { useChatStore } from '@/lib/stores/chat-store';
 import Header from './layout-header';
+import { useRouter } from 'next/navigation';
 
 export function Chat({
   id,
@@ -22,11 +21,7 @@ export function Chat({
   initialMessages: Array<UIMessage>;
   isReadonly: boolean;
 }) {
-  const { setCurrentSessionId } = useChatStore();
-  const searchParams = useSearchParams();
-  const query = searchParams.get('query');
-  const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
-
+  const router = useRouter();
   const handleUseChatError = (error: Error) => {
     let errorMessage: UIMessage;
     if (error instanceof ChatSDKError) {
@@ -67,21 +62,10 @@ export function Chat({
       lastMessage: body.messages.at(-1),
     }),
     onError: handleUseChatError,
+    onFinish: () => {
+      router.push(`/chat?cid=${id}`);
+    },
   });
-
-  useEffect(() => {
-    if (query && !hasAppendedQuery) {
-      // make sure current session is active
-      setCurrentSessionId(id);
-
-      append({
-        role: 'user',
-        content: query,
-      });
-
-      setHasAppendedQuery(true);
-    }
-  }, [query, append, hasAppendedQuery, id, setCurrentSessionId]);
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 

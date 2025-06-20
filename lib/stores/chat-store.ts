@@ -7,6 +7,7 @@ import { generateTitleFromUserMessage } from '@/lib/utils';
 // eslint-disable-next-line import/no-named-as-default
 import Dexie, { type Table } from 'dexie';
 import { useDIDStore } from './did-store';
+import { generateUUID } from '@/lib/utils';
 
 // ================= Interfaces ================= //
 
@@ -27,6 +28,16 @@ export interface StreamRecord {
   chatId: string;
   createdAt: number;
 }
+
+// ================= Constants ================= //
+export const createInitialChatSession = (): ChatSession => ({
+  id: generateUUID(),
+  did: '',
+  title: 'New Chat',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+  messages: [],
+});
 
 // ================= Database Definition ================= //
 
@@ -53,17 +64,14 @@ const chatDB = new ChatDatabase();
 // chat store state interface
 interface ChatStoreState {
   sessions: Record<string, ChatSession>;
-  currentSessionId: string | null;
 
   // session management
   getSession: (id: string) => ChatSession | null;
-  getCurrentSession: () => ChatSession | null;
   updateSession: (
     id: string,
     updates: Partial<Omit<ChatSession, 'id'>>,
   ) => void;
   deleteSession: (id: string) => void;
-  setCurrentSessionId: (id: string | null) => void;
 
   // message management
   updateMessages: (sessionId: string, messages: Message[]) => void;
@@ -139,16 +147,10 @@ export const useChatStore = create<ChatStoreState>()(
   persist(
     (set, get) => ({
       sessions: {},
-      currentSessionId: null,
 
       getSession: (id: string) => {
         const { sessions } = get();
         return sessions[id] || null;
-      },
-
-      getCurrentSession: () => {
-        const { sessions, currentSessionId } = get();
-        return currentSessionId ? sessions[currentSessionId] || null : null;
       },
 
       updateSession: (
@@ -181,8 +183,6 @@ export const useChatStore = create<ChatStoreState>()(
           const { [id]: deleted, ...restSessions } = state.sessions;
           return {
             sessions: restSessions,
-            currentSessionId:
-              state.currentSessionId === id ? null : state.currentSessionId,
           };
         });
 
@@ -205,10 +205,6 @@ export const useChatStore = create<ChatStoreState>()(
           }
         };
         deleteFromDB();
-      },
-
-      setCurrentSessionId: (id: string | null) => {
-        set({ currentSessionId: id });
       },
 
       updateMessages: (sessionId: string, messages: Message[]) => {
@@ -252,8 +248,6 @@ export const useChatStore = create<ChatStoreState>()(
                 ...state.sessions,
                 [sessionId]: updatedSession,
               },
-              // if new session, set as current session
-              currentSessionId: state.currentSessionId || sessionId,
             };
 
             // async generate title (if new session and has user message)
@@ -416,7 +410,6 @@ export const useChatStore = create<ChatStoreState>()(
       clearAllSessions: () => {
         set({
           sessions: {},
-          currentSessionId: null,
         });
 
         // clear IndexedDB
@@ -478,7 +471,6 @@ export const useChatStore = create<ChatStoreState>()(
       storage: createJSONStorage(() => persistStorage),
       partialize: (state) => ({
         sessions: state.sessions,
-        currentSessionId: state.currentSessionId,
       }),
       onRehydrateStorage: () => (state) => {
         // load data from IndexedDB after component mount

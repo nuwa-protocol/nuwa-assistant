@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { memo } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import { useChatStore } from '@/lib/stores/chat-store';
 import { useLocale } from '@/locales/use-locale';
 
 interface SuggestedActionsProps {
@@ -12,13 +11,13 @@ interface SuggestedActionsProps {
   append: UseChatHelpers['append'];
 }
 
-function PureSuggestedActions({
-  chatId,
-  append,
-}: SuggestedActionsProps) {
-  const { setCurrentSessionId } = useChatStore();
+function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
   const { t } = useLocale();
-  const suggestedActions = t('suggestedActions') as Array<{title: string; label: string; action: string}>;
+  const suggestedActions = t('suggestedActions') as Array<{
+    title: string;
+    label: string;
+    action: string;
+  }>;
 
   return (
     <div
@@ -37,9 +36,6 @@ function PureSuggestedActions({
           <Button
             variant="ghost"
             onClick={async () => {
-              // make sure current session is active
-              setCurrentSessionId(chatId);
-
               append({
                 role: 'user',
                 content: suggestedAction.action,
