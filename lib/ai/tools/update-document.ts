@@ -1,6 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import { useDocumentStore } from '@/lib/stores/document-store';
+import { useDocumentStore } from '@/stores/document-store';
 import { updateTextContent } from '@/artifacts/text';
 import { updateCodeContent } from '@/artifacts/code';
 import { updateSheetContent } from '@/artifacts/sheet';

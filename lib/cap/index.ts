@@ -17,5 +17,5 @@ export {
 } from './cap-fetch';
 
 // Export types and store from cap-store
-export type { InstalledCap } from '../stores/cap-store';
-export { useCapStore } from '../stores/cap-store';
+export type { InstalledCap } from '../../stores/cap-store';
+export { useCapStore } from '../../stores/cap-store';

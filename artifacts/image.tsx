@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { myProvider } from '@/lib/ai/providers';
 import { experimental_generateImage } from 'ai';
 import { getLocaleText } from '@/locales/use-locale';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 
 const language = useSettingsStore.getState().settings.language;
 const { t } = getLocaleText(language);

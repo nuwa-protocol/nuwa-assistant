@@ -1,4 +1,4 @@
-import type { ClientSuggestion } from '@/lib/stores/document-store';
+import type { ClientSuggestion } from '@/stores/document-store';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ComponentType, Dispatch, ReactNode, SetStateAction } from 'react';
 

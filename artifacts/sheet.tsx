@@ -14,7 +14,7 @@ import { streamObject } from 'ai';
 import { myProvider } from '@/lib/ai/providers';
 import { sheetPrompt, updateDocumentPrompt } from '@/lib/ai/prompts';
 import { getLocaleText } from '@/locales/use-locale';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 
 const language = useSettingsStore.getState().settings.language;
 const { t } = getLocaleText(language);

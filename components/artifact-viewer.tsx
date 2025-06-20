@@ -1,14 +1,11 @@
 import { formatDistance } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
-import {
-  useDocumentStore,
-  type ClientDocument,
-} from '@/lib/stores/document-store';
+import { useDocumentStore, type ClientDocument } from '@/stores/document-store';
 import { VersionFooter } from './version-footer';
 import { ArtifactActions } from './artifact-actions';
 import { ArtifactCloseButton } from './artifact-close-button';
-import { useCurrentArtifact } from '@/lib/stores/document-store';
+import { useCurrentArtifact } from '@/hooks/use-artifact';
 import { artifactDefinitions } from '@/artifacts';
 import type { UseChatHelpers } from '@ai-sdk/react';
 

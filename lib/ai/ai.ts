@@ -1,23 +1,28 @@
-import { streamText, smoothStream, appendResponseMessages, type Message } from "ai";
-import { myProvider } from "./providers";
-import { systemPrompt } from "./prompts";
-import { getWeather } from "./tools/get-weather";
-import { generateUUID, getClientLocation } from "@/lib/utils";
-import { useChatStore } from "@/lib/stores/chat-store";
-import { createDocument } from "./tools/create-document";
-import { updateDocument } from "./tools/update-document";
-import { requestSuggestions } from "./tools/request-suggestions";
+import {
+  streamText,
+  smoothStream,
+  appendResponseMessages,
+  type Message,
+} from 'ai';
+import { myProvider } from './providers';
+import { systemPrompt } from './prompts';
+import { getWeather } from './tools/get-weather';
+import { generateUUID, getClientLocation } from '@/utils';
+import { useChatStore } from '@/stores/chat-store';
+import { createDocument } from './tools/create-document';
+import { updateDocument } from './tools/update-document';
+import { requestSuggestions } from './tools/request-suggestions';
 
 // Default model to use
-const DEFAULT_CHAT_MODEL = "chat-model";
+const DEFAULT_CHAT_MODEL = 'chat-model';
 
 // Error handling function
 function errorHandler(error: unknown) {
   if (error == null) {
-    return "unknown error";
+    return 'unknown error';
   }
 
-  if (typeof error === "string") {
+  if (typeof error === 'string') {
     return error;
   }
 
@@ -59,12 +64,12 @@ const handleAIRequest = async ({
     messages,
     maxSteps: 5,
     experimental_activeTools: [
-      "getWeather",
-      "createDocument",
-      "updateDocument",
-      "requestSuggestions",
+      'getWeather',
+      'createDocument',
+      'updateDocument',
+      'requestSuggestions',
     ],
-    experimental_transform: smoothStream({ chunking: "word" }),
+    experimental_transform: smoothStream({ chunking: 'word' }),
     experimental_generateMessageId: generateUUID,
     tools: {
       getWeather,

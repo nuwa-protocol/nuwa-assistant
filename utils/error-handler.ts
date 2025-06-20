@@ -1,5 +1,5 @@
 import type { UIMessage } from 'ai';
-import { generateUUID } from '@/lib/utils';
+import { generateUUID } from '@/utils';
 import { getLocale } from '@/locales';
 
 // 错误级别

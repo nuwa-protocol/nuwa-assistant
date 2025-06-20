@@ -5,9 +5,9 @@ import {
   type ChatSession,
   createInitialChatSession,
   useChatStore,
-} from '@/lib/stores/chat-store';
+} from '@/stores/chat-store';
 import { useSearchParams } from 'next/navigation';
-import { convertToUIMessage } from '@/lib/utils/message';
+import { convertToUIMessage } from '@/utils/message';
 import Loading from '../loading';
 import { useEffect, useState } from 'react';
 

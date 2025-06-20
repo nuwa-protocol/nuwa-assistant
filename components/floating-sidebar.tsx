@@ -9,10 +9,10 @@ import {
   useMemo,
   useCallback,
 } from 'react';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 // Context for managing floating sidebar hover state
 const FloatingSidebarContext = createContext<{

@@ -2,10 +2,9 @@
 // Store for managing documents, suggestions, and artifacts with IndexedDB persistence
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { generateUUID } from '@/lib/utils';
+import { generateUUID } from '@/utils';
 // eslint-disable-next-line import/no-named-as-default
 import Dexie, { type Table } from 'dexie';
-import { useCallback } from 'react';
 import { useDIDStore } from './did-store';
 
 // ================= Interfaces ================= //
@@ -635,27 +634,3 @@ export const useDocumentStore = create<DocumentStoreState>()(
     },
   ),
 );
-
-// ================= React Hooks ================= //
-
-export const useCurrentArtifact = () => {
-  const store = useDocumentStore();
-  const documentId = store.currentArtifact.documentId;
-
-  // Use useCallback to stabilize the setMetadata function
-  // The function should always use the current documentId from the store
-  const setMetadata = useCallback((metadata: any) => {
-    const currentDocumentId =
-      useDocumentStore.getState().currentArtifact.documentId;
-    useDocumentStore.getState().setArtifactMetadata(metadata);
-  }, []);
-
-  return {
-    artifact: store.currentArtifact,
-    setArtifact: store.setArtifact,
-    updateArtifact: store.updateArtifact,
-    metadata: store.getArtifactMetadata(),
-    setMetadata,
-    resetArtifact: store.resetArtifact,
-  };
-};

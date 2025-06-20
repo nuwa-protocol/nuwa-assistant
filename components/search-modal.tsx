@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import * as Dialog from '@/components/ui/dialog';
-import { useChatStore } from '@/lib/stores/chat-store';
+import { useChatStore } from '@/stores/chat-store';
 import { Input } from './ui/input';
 import { useLocale } from '@/locales/use-locale';
 import { formatDistanceToNow } from 'date-fns';

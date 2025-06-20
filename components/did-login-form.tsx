@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDIDStore } from '@/lib/stores/did-store';
+import { useDIDStore } from '@/stores/did-store';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
 import { toast } from './toast';
-import { initalizeAllStores } from '@/lib/stores/storage-utils';
+import { initalizeAllStores } from '@/utils/storage-utils';
 
 export function DIDLoginForm() {
   const [inputDid, setInputDid] = useState('');

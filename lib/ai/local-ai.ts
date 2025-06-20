@@ -1,5 +1,5 @@
 import { generateText, type Message } from 'ai';
-import { myProvider } from '../ai/providers';
+import { myProvider } from './providers';
 
 // Generate a title from the first message a user begins a conversation with
 // TODO: currently still using the remote AI models, need to switch to local models

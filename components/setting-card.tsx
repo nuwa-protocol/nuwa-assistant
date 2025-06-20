@@ -20,7 +20,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 // Variant-specific props
 type SingleInputProps = {

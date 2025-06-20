@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDIDStore } from '@/lib/stores/did-store';
+import { useDIDStore } from '@/stores/did-store';
 
 export function useAuthGuard() {
   const router = useRouter();
@@ -28,4 +28,4 @@ export function useRedirectIfAuthenticated() {
   }, [isAuthenticated, router]);
 
   return { isAuthenticated };
-} 
+}

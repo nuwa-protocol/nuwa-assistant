@@ -1,4 +1,4 @@
-import type { ChatSession } from '@/lib/stores/chat-store';
+import type { ChatSession } from '@/stores/chat-store';
 import {
   SidebarMenuAction,
   SidebarMenuButton,

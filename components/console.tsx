@@ -8,8 +8,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import { cn } from '@/lib/utils';
-import { useDocumentStore } from '@/lib/stores/document-store';
+import { cn } from '@/utils';
+import { useDocumentStore } from '@/stores/document-store';
 
 export interface ConsoleOutputContent {
   type: 'text' | 'image';

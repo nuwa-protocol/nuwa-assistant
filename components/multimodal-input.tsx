@@ -27,7 +27,7 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
-import { useFileStore } from '@/lib/stores/file-store';
+import { useFileStore } from '@/stores/file-store';
 
 function PureMultimodalInput({
   chatId,

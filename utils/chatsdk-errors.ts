@@ -1,5 +1,5 @@
 import { getLocaleText } from '@/locales/use-locale';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 
 export type ErrorType =
   | 'bad_request'

@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { Textarea } from './ui/textarea';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import { useChatStore } from '@/lib/stores/chat-store';
+import { useChatStore } from '@/stores/chat-store';
 
 export type MessageEditorProps = {
   chatId: string;

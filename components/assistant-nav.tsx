@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { useDIDStore } from '@/lib/stores/did-store';
+import { useDIDStore } from '@/stores/did-store';
 import { useLocale } from '@/locales/use-locale';
 import {
   DropdownMenu,
@@ -20,10 +20,10 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import type { Locale } from '@/locales';
 import { useState } from 'react';
-import { resetAllStores } from '@/lib/stores/storage-utils';
+import { resetAllStores } from '@/utils/storage-utils';
 
 export function AssistantNav() {
   const router = useRouter();

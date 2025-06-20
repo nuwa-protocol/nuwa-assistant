@@ -1,4 +1,4 @@
-import type { ClientDocument } from '@/lib/stores/document-store';
+import type { ClientDocument } from '@/stores/document-store';
 
 function getDocumentTimestampByIndex(
   documents: Array<ClientDocument>,
@@ -10,4 +10,4 @@ function getDocumentTimestampByIndex(
   return new Date(documents[index].createdAt);
 }
 
-export { getDocumentTimestampByIndex }; 
+export { getDocumentTimestampByIndex };

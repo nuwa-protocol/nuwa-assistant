@@ -14,9 +14,9 @@ import { Logo } from './logo';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from '@/locales/use-locale';
 import Link from 'next/link';
-import { useChatStore } from '@/lib/stores/chat-store';
+import { useChatStore } from '@/stores/chat-store';
 import { Folder, MessageSquare } from 'lucide-react';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import type { ReactNode } from 'react';
 
 function NavDropdown({

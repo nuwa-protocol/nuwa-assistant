@@ -8,7 +8,7 @@ import {
 import { createRoot } from 'react-dom/client';
 
 import { Suggestion as PreviewSuggestion } from '@/components/suggestion';
-import type { ClientSuggestion } from '@/lib/stores/document-store';
+import type { ClientSuggestion } from '@/stores/document-store';
 import type { ArtifactKind } from '@/artifacts';
 
 export interface UISuggestion extends ClientSuggestion {

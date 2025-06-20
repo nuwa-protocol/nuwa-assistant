@@ -3,17 +3,17 @@
 import { memo, useCallback, useMemo, useRef } from 'react';
 import type { ArtifactKind } from '@/artifacts';
 import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from './icons';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import {
   useDocumentStore,
   type ClientDocument,
   type UIArtifact,
-} from '@/lib/stores/document-store';
+} from '@/stores/document-store';
 import { InlineDocumentSkeleton } from './document-skeleton';
 import { Editor } from './text-editor';
 import { DocumentToolCall, DocumentToolResult } from './document';
 import { CodeEditor } from './code-editor';
-import { useCurrentArtifact } from '@/lib/stores/document-store';
+import { useCurrentArtifact } from '@/hooks/use-artifact';
 import equal from 'fast-deep-equal';
 import { SpreadsheetEditor } from './sheet-editor';
 import { ImageEditor } from './image-editor';

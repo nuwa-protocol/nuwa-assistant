@@ -4,7 +4,7 @@ import { memo } from 'react';
 
 import { AssistantNav } from '@/components/assistant-nav';
 import { Logo } from './logo';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 
 function PureChatHeader({
   isReadonly: _isReadonly,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import { getLocale, type Locale } from './index';
 import { useMemo } from 'react';
 

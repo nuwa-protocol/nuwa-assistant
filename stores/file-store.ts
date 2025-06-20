@@ -2,7 +2,7 @@
 // Client-side file storage system using IndexedDB for file data and local storage for metadata
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { generateUUID } from '@/lib/utils';
+import { generateUUID } from '@/utils';
 // eslint-disable-next-line import/no-named-as-default
 import Dexie, { type Table } from 'dexie';
 import { useDIDStore } from './did-store';

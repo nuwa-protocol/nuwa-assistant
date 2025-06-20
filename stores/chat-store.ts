@@ -3,11 +3,11 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Message } from 'ai';
-import { generateTitleFromUserMessage } from '@/lib/utils';
+import { generateTitleFromUserMessage } from '@/utils';
 // eslint-disable-next-line import/no-named-as-default
 import Dexie, { type Table } from 'dexie';
 import { useDIDStore } from './did-store';
-import { generateUUID } from '@/lib/utils';
+import { generateUUID } from '@/utils';
 
 // ================= Interfaces ================= //
 

@@ -1,7 +1,7 @@
 import { PreviewMessage, ThinkingMessage } from './message';
 import type { UIMessage } from 'ai';
 import { memo } from 'react';
-import type { UIArtifact } from '@/lib/stores/document-store';
+import type { UIArtifact } from '@/stores/document-store';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { motion } from 'framer-motion';
 import { useMessages } from '@/hooks/use-messages';

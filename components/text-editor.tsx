@@ -6,22 +6,22 @@ import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { memo, useEffect, useRef } from 'react';
 
-import type { ClientSuggestion } from '@/lib/stores/document-store';
+import type { ClientSuggestion } from '@/stores/document-store';
 import {
-    documentSchema,
-    handleTransaction,
-    headingRule,
-} from '@/lib/editor/config';
+  documentSchema,
+  handleTransaction,
+  headingRule,
+} from '@/artifacts/editor/config';
 import {
-    buildContentFromDocument,
-    buildDocumentFromContent,
-    createDecorations,
-} from '@/lib/editor/functions';
+  buildContentFromDocument,
+  buildDocumentFromContent,
+  createDecorations,
+} from '@/artifacts/editor/functions';
 import {
-    projectWithPositions,
-    suggestionsPlugin,
-    suggestionsPluginKey,
-} from '@/lib/editor/suggestions';
+  projectWithPositions,
+  suggestionsPlugin,
+  suggestionsPluginKey,
+} from '@/artifacts/editor/suggestions';
 
 type EditorProps = {
   content: string;

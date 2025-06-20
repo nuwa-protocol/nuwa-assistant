@@ -1,8 +1,8 @@
-import { useDIDStore } from './did-store';
-import { useChatStore } from './chat-store';
-import { useSettingsStore } from './settings-store';
-import { useFileStore } from './file-store';
-import { useDocumentStore } from './document-store';
+import { useDIDStore } from '@/stores/did-store';
+import { useChatStore } from '@/stores/chat-store';
+import { useSettingsStore } from '@/stores/settings-store';
+import { useFileStore } from '@/stores/file-store';
+import { useDocumentStore } from '@/stores/document-store';
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';

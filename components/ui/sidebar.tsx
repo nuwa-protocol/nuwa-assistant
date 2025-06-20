@@ -6,7 +6,7 @@ import { type VariantProps, cva } from 'class-variance-authority';
 import { PanelLeft } from 'lucide-react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -18,7 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -72,8 +72,12 @@ const SidebarProvider = React.forwardRef<
     const [openMobile, setOpenMobile] = React.useState(false);
 
     // Use settings store for sidebar collapsed state
-    const sidebarCollapsed = useSettingsStore(state => state.sidebarCollapsed);
-    const setSidebarCollapsed = useSettingsStore(state => state.setSidebarCollapsed);
+    const sidebarCollapsed = useSettingsStore(
+      (state) => state.sidebarCollapsed,
+    );
+    const setSidebarCollapsed = useSettingsStore(
+      (state) => state.setSidebarCollapsed,
+    );
 
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.

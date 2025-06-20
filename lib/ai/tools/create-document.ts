@@ -1,7 +1,7 @@
-import { generateUUID } from '@/lib/utils';
+import { generateUUID } from '@/utils';
 import { tool } from 'ai';
 import { z } from 'zod';
-import { useDocumentStore } from '@/lib/stores/document-store';
+import { useDocumentStore } from '@/stores/document-store';
 import { generateTextContent } from '@/artifacts/text';
 import { generateCodeContent } from '@/artifacts/code';
 import { generateSheetContent } from '@/artifacts/sheet';

@@ -10,14 +10,14 @@ import {
   RedoIcon,
   UndoIcon,
 } from '@/components/icons';
-import type { ClientSuggestion } from '@/lib/stores/document-store';
+import type { ClientSuggestion } from '@/stores/document-store';
 import { smoothStream, streamText } from 'ai';
 import { myProvider } from '@/lib/ai/providers';
 import { updateDocumentPrompt } from '@/lib/ai/prompts';
 import { toast } from 'sonner';
-import { useDocumentStore } from '@/lib/stores/document-store';
+import { useDocumentStore } from '@/stores/document-store';
 import { getLocaleText } from '@/locales/use-locale';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 
 interface TextArtifactMetadata {
   suggestions: Array<ClientSuggestion>;

@@ -9,7 +9,7 @@ import {
   UndoIcon,
 } from '@/components/icons';
 import { toast } from 'sonner';
-import { generateUUID } from '@/lib/utils';
+import { generateUUID } from '@/utils';
 import { z } from 'zod';
 import { streamObject } from 'ai';
 import { myProvider } from '@/lib/ai/providers';
@@ -20,7 +20,7 @@ import {
   type ConsoleOutputContent,
 } from '@/components/console';
 import { getLocaleText } from '@/locales/use-locale';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 
 const OUTPUT_HANDLERS = {
   matplotlib: `

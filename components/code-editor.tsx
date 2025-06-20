@@ -6,7 +6,7 @@ import { python } from '@codemirror/lang-python';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { basicSetup } from 'codemirror';
 import { memo, useEffect, useRef } from 'react';
-import type { ClientSuggestion } from '@/lib/stores/document-store';
+import type { ClientSuggestion } from '@/stores/document-store';
 
 type EditorProps = {
   content: string;

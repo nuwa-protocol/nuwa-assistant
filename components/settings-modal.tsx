@@ -4,14 +4,14 @@ import React, { useState, useRef } from 'react';
 import { Monitor, PlayCircle, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import * as Dialog from '@/components/ui/dialog';
-import { useSettingsStore } from '@/lib/stores/settings-store';
-import { useDIDStore } from '@/lib/stores/did-store';
+import { useSettingsStore } from '@/stores/settings-store';
+import { useDIDStore } from '@/stores/did-store';
 import { useLocale } from '@/locales/use-locale';
 import { SettingSection } from './setting-section';
 import { toast } from '@/components/toast';
 import type { SettingCardProps } from './setting-card';
 import { SettingsNav } from './settings-nav';
-import { clearAllStorage } from '@/lib/stores/storage-utils';
+import { clearAllStorage } from '@/utils/storage-utils';
 
 // Define the type for settingsSections
 interface SettingsSection {

@@ -3,13 +3,13 @@
 import type { Attachment, UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useState } from 'react';
-import { generateUUID } from '@/lib/utils';
+import { generateUUID } from '@/utils';
 import { ArtifactViewer } from './artifact-viewer';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
-import { useDocumentStore } from '@/lib/stores/document-store';
-import { ChatSDKError } from '@/lib/chatsdk-errors';
-import { ErrorHandlers } from '@/lib/error-handler';
+import { useDocumentStore } from '@/stores/document-store';
+import { ChatSDKError } from '@/utils/chatsdk-errors';
+import { ErrorHandlers } from '@/utils/error-handler';
 import { createClientAIFetch } from '@/lib/ai/client-fetch';
 import { useWindowSize } from 'usehooks-ts';
 

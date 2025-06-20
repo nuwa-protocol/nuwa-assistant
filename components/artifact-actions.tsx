@@ -1,10 +1,10 @@
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { artifactDefinitions } from '@/artifacts';
-import type { UIArtifact } from '@/lib/stores/document-store';
+import type { UIArtifact } from '@/stores/document-store';
 import { type Dispatch, memo, type SetStateAction, useState } from 'react';
 import type { ArtifactActionContext } from '@/components/create-artifact';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { toast } from 'sonner';
 
 interface ArtifactActionsProps {

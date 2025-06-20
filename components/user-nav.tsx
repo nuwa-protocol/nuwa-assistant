@@ -4,8 +4,8 @@ import { ChevronUp } from 'lucide-react';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { useDIDStore } from '@/lib/stores/did-store';
-import { clearAllStorage } from '@/lib/stores/storage-utils';
+import { useDIDStore } from '@/stores/did-store';
+import { clearAllStorage } from '@/utils/storage-utils';
 
 import {
   DropdownMenu,
@@ -64,7 +64,9 @@ export function UserNav() {
             <DropdownMenuItem
               data-testid="user-nav-item-theme"
               className="cursor-pointer"
-              onSelect={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              onSelect={() =>
+                setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+              }
             >
               {`Toggle ${resolvedTheme === 'light' ? 'dark' : 'light'} mode`}
             </DropdownMenuItem>
@@ -95,4 +97,4 @@ export function UserNav() {
       </SidebarMenuItem>
     </SidebarMenu>
   );
-} 
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDIDStore } from '@/lib/stores/did-store';
+import { useDIDStore } from '@/stores/did-store';
 import { LoaderIcon } from './icons';
 
 interface AuthGuardProps {

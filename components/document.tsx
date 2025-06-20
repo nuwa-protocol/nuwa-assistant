@@ -3,7 +3,7 @@ import { memo } from 'react';
 import type { ArtifactKind } from '@/artifacts';
 import { FileIcon, LoaderIcon, MessageIcon, PencilEditIcon } from './icons';
 import { toast } from 'sonner';
-import { useCurrentArtifact } from '@/lib/stores/document-store';
+import { useCurrentArtifact } from '@/hooks/use-artifact';
 import { useLocale } from '@/locales/use-locale';
 import { useRouter } from 'next/navigation';
 

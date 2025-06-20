@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/tooltip';
 
 import { Button } from './ui/button';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import { Pin, PinOff } from 'lucide-react';
 import { useLocale } from '@/locales/use-locale';
 

@@ -9,13 +9,13 @@ import {
   SidebarMenu,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { useLocale } from '@/locales/use-locale';
 import { SidebarButton } from './ui/sidebar-button';
 import { Search, Settings, Folder, Package } from 'lucide-react';
 import { SearchModal } from './search-modal';
 import { SidebarToggle } from './sidebar-toggle';
-import { useSettingsStore } from '@/lib/stores/settings-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import { useFloatingSidebar } from '@/components/floating-sidebar';
 import { Logo } from './logo';
 import { useRouter } from 'next/navigation';

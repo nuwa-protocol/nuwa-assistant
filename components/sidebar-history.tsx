@@ -6,8 +6,8 @@ import {
   SidebarMenu,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { useDIDStore } from '@/lib/stores/did-store';
-import { useChatStore } from '@/lib/stores/chat-store';
+import { useDIDStore } from '@/stores/did-store';
+import { useChatStore } from '@/stores/chat-store';
 import { ChatItem } from './sidebar-history-item';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from '@/locales/use-locale';
