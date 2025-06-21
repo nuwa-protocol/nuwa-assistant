@@ -1,4 +1,4 @@
-import { generateText, Message } from "ai";
+import { generateText, type Message } from "ai";
 import { myProvider } from "../ai/providers";
 
 // Generate a title from the first message a user begins a conversation with

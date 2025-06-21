@@ -81,7 +81,7 @@ async function updateTextContent(
   return draftContent;
 }
 
-const language = useSettingsStore.getState().language;
+const language = useSettingsStore.getState().settings.language || "en";
 const { t } = getLocaleText(language);
 
 export const textArtifact = new Artifact<"text", TextArtifactMetadata>({
