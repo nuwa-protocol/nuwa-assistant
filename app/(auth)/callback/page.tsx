@@ -47,6 +47,7 @@ export default function CallbackPage() {
         <p className="text-sm text-muted-foreground mb-2">{message}</p>
         {status === 'error' && (
           <button
+            type="button"
             className="text-sm underline mt-2"
             onClick={() => window.close()}
           >

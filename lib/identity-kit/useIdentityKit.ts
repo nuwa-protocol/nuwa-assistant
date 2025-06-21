@@ -1,6 +1,6 @@
 'use client';
 
-import { useNuwaIdentityKit, UseIdentityKitOptions } from '@nuwa-ai/identity-kit-web';
+import { useNuwaIdentityKit, type UseIdentityKitOptions } from '@nuwa-ai/identity-kit-web';
 
 /**
  * Thin wrapper around identity-kit-web hook that injects sensible defaults for Nuwa Assistant.
